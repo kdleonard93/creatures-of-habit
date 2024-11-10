@@ -12,6 +12,7 @@ export default defineConfig({
 
 	verbose: true,
 	strict: true,
+	out: './migrations',
 	driver: 'turso',
 	dialect: 'sqlite'
 });
