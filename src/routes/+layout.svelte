@@ -1,6 +1,14 @@
 <script lang="ts">
 	import '../app.css';
-	let { children } = $props();
+	import Header from '$lib/components/Header.svelte'
+	import Footer from '$lib/components/Footer.svelte'
 </script>
 
-{@render children()}
+<Header />
+
+<main class="container mx-auto px-4 py-8">
+  <slot />
+</main>
+
+<Footer />
+
