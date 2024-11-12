@@ -8,7 +8,7 @@
     const footerLinks = {
       product: [
         { label: 'Features', href: '/features' },
-        { label: 'How It Works', href: '/how-it-works' },
+        { label: 'How to Play', href: '/how-to-play' },
         { label: 'FAQ', href: '/faq' }
       ],
       support: [
