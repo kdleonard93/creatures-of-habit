@@ -3,6 +3,7 @@ import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 import { v4 as uuidv4 } from 'uuid';
 
 const userId = uuidv4();
+const creatureId = uuidv4();
 
 export const user = sqliteTable('user', {
 	id: text('id').primaryKey().default(userId),
@@ -11,6 +12,14 @@ export const user = sqliteTable('user', {
 	passwordHash: text('password_hash').notNull(),
 	createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
+
+export const creature = sqliteTable('creature', {
+	id: text('id').primaryKey().default(creatureId),
+	userId: text('user_id').notNull(),
+	name: text('name').notNull(),
+	level: integer('level', {mode: 'number'}).default(1),
+	createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+})
 
 export const session = sqliteTable('session', {
 	id: text('id').primaryKey(),
