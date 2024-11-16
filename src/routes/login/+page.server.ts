@@ -10,7 +10,7 @@ import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
 	if (event.locals.user) {
-		return redirect(302, '/demo/lucia');
+		return redirect(302, '/');
 	}
 	return {};
 };
@@ -18,15 +18,19 @@ export const load: PageServerLoad = async (event) => {
 export const actions: Actions = {
 	login: async (event) => {
 		const formData = await event.request.formData();
-		const username = formData.get('username');
-		const password = formData.get('password');
+		const username = formData.get('username') as string | null;
+		const password = formData.get('password') as string | null;
+        const email = formData.get('email') as string | null;
 
-		if (!validateUsername(username)) {
+		if (!username || !validateUsername(username)) {
 			return fail(400, { message: 'Invalid username' });
 		}
-		if (!validatePassword(password)) {
+		if (! password || !validatePassword(password)) {
 			return fail(400, { message: 'Invalid password' });
 		}
+        if (!email || !validateEmail(email)) {
+            return fail(400, { message: 'Invalid email'});
+        }
 
 		const results = await db
 			.select()
@@ -52,19 +56,23 @@ export const actions: Actions = {
 		const session = await auth.createSession(sessionToken, existingUser.id);
 		auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
-		return redirect(302, '/demo/lucia');
+		return redirect(302, '/');
 	},
 	register: async (event) => {
 		const formData = await event.request.formData();
-		const username = formData.get('username');
-		const password = formData.get('password');
+		const username = formData.get('username') as string | null;
+		const password = formData.get('password') as string | null;
+        const email = formData.get('email') as string | null;
 
-		if (!validateUsername(username)) {
+		if (!username || !validateUsername(username)) {
 			return fail(400, { message: 'Invalid username' });
 		}
-		if (!validatePassword(password)) {
+		if (! password || !validatePassword(password)) {
 			return fail(400, { message: 'Invalid password' });
 		}
+        if (!email || !validateEmail(email)) {
+            return fail(400, { message: 'Invalid email'});
+        }
 
 		const userId = generateUserId();
 		const passwordHash = await hash(password, {
@@ -76,12 +84,13 @@ export const actions: Actions = {
 		});
 
 		try {
-			await db.insert(table.user).values({ id: userId, username, passwordHash });
+			await db.insert(table.user).values({ id: userId, email, username, passwordHash });
 
 			const sessionToken = auth.generateSessionToken();
 			const session = await auth.createSession(sessionToken, userId);
 			auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
-		} catch {
+		} catch (error) {
+            console.error(error);
 			return fail(500, { message: 'An error has occurred' });
 		}
 		return redirect(302, '/');
@@ -109,5 +118,14 @@ function validatePassword(password: unknown): password is string {
 		typeof password === 'string' &&
 		password.length >= 6 &&
 		password.length <= 255
+	);
+}
+
+function validateEmail(email: unknown): email is string {
+	return (
+		typeof email === 'string' &&
+		email.length >= 5 &&
+		email.length <= 254 &&
+		/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 	);
 }

@@ -11,7 +11,6 @@ export default defineConfig({
 	},
 	verbose: true,
 	strict: true,
-	out: './drizzle',
-	driver: 'turso',
-	dialect: 'sqlite'
+	out: './migrations',
+	dialect: 'turso'
 });
