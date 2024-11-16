@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { db } from '../../src/lib/server/db';
-import * as table from '../../src/lib/server/db/schema';
+import { db } from '../../lib/server/db';
+import * as table from '../../lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 
 describe('Database Schema', () => {
