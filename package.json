@@ -20,7 +20,7 @@
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.3.1",
-		"@sveltejs/kit": "^2.8.0",
+		"@sveltejs/kit": "^2.8.1",
 		"@sveltejs/vite-plugin-svelte": "^4.0.0",
 		"@tailwindcss/typography": "^0.5.15",
 		"@types/eslint": "^9.6.1",
@@ -53,6 +53,7 @@
 		"@oslojs/encoding": "^1.1.0",
 		"arctic": "^2.2.2",
 		"dotenv": "^16.4.5",
-		"drizzle-orm": "^0.36.1"
+		"drizzle-orm": "^0.36.1",
+		"uuid": "^11.0.3"
 	}
 }
