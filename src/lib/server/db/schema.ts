@@ -8,6 +8,7 @@ const creatureId = uuidv4();
 export const user = sqliteTable('user', {
 	id: text('id').primaryKey().default(userId),
 	age: integer('age', { mode: 'number'}),
+	email: text('email').notNull().unique(),
 	username: text('username').notNull().unique(),
 	passwordHash: text('password_hash').notNull(),
 	createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
