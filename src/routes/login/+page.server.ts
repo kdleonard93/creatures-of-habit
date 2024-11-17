@@ -7,9 +7,10 @@ import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
 import type { Actions, PageServerLoad } from './$types';
 
+
 export const load: PageServerLoad = async (event) => {
 	if (event.locals.user) {
-		return redirect(302, '/demo/lucia');
+		return redirect(302, '/');
 	}
 	return {};
 };
@@ -17,17 +18,24 @@ export const load: PageServerLoad = async (event) => {
 export const actions: Actions = {
 	login: async (event) => {
 		const formData = await event.request.formData();
-		const username = formData.get('username');
-		const password = formData.get('password');
+		const username = formData.get('username') as string | null;
+		const password = formData.get('password') as string | null;
+        const email = formData.get('email') as string | null;
 
-		if (!validateUsername(username)) {
+		if (!username || !validateUsername(username)) {
 			return fail(400, { message: 'Invalid username' });
 		}
-		if (!validatePassword(password)) {
+		if (! password || !validatePassword(password)) {
 			return fail(400, { message: 'Invalid password' });
 		}
+        if (!email || !validateEmail(email)) {
+            return fail(400, { message: 'Invalid email'});
+        }
 
-		const results = await db.select().from(table.user).where(eq(table.user.username, username));
+		const results = await db
+			.select()
+			.from(table.user)
+			.where(eq(table.user.username, username));
 
 		const existingUser = results.at(0);
 		if (!existingUser) {
@@ -38,7 +46,7 @@ export const actions: Actions = {
 			memoryCost: 19456,
 			timeCost: 2,
 			outputLen: 32,
-			parallelism: 1
+			parallelism: 1,
 		});
 		if (!validPassword) {
 			return fail(400, { message: 'Incorrect username or password' });
@@ -48,19 +56,23 @@ export const actions: Actions = {
 		const session = await auth.createSession(sessionToken, existingUser.id);
 		auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
-		return redirect(302, '/demo/lucia');
+		return redirect(302, '/');
 	},
 	register: async (event) => {
 		const formData = await event.request.formData();
-		const username = formData.get('username');
-		const password = formData.get('password');
+		const username = formData.get('username') as string | null;
+		const password = formData.get('password') as string | null;
+        const email = formData.get('email') as string | null;
 
-		if (!validateUsername(username)) {
+		if (!username || !validateUsername(username)) {
 			return fail(400, { message: 'Invalid username' });
 		}
-		if (!validatePassword(password)) {
+		if (! password || !validatePassword(password)) {
 			return fail(400, { message: 'Invalid password' });
 		}
+        if (!email || !validateEmail(email)) {
+            return fail(400, { message: 'Invalid email'});
+        }
 
 		const userId = generateUserId();
 		const passwordHash = await hash(password, {
@@ -68,20 +80,21 @@ export const actions: Actions = {
 			memoryCost: 19456,
 			timeCost: 2,
 			outputLen: 32,
-			parallelism: 1
+			parallelism: 1,
 		});
 
 		try {
-			await db.insert(table.user).values({ id: userId, username, passwordHash });
+			await db.insert(table.user).values({ id: userId, email, username, passwordHash });
 
 			const sessionToken = auth.generateSessionToken();
 			const session = await auth.createSession(sessionToken, userId);
 			auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
-		} catch (e) {
+		} catch (error) {
+            console.error(error);
 			return fail(500, { message: 'An error has occurred' });
 		}
-		return redirect(302, '/demo/lucia');
-	}
+		return redirect(302, '/');
+	},
 };
 
 function generateUserId() {
@@ -101,5 +114,18 @@ function validateUsername(username: unknown): username is string {
 }
 
 function validatePassword(password: unknown): password is string {
-	return typeof password === 'string' && password.length >= 6 && password.length <= 255;
+	return (
+		typeof password === 'string' &&
+		password.length >= 6 &&
+		password.length <= 255
+	);
+}
+
+function validateEmail(email: unknown): email is string {
+	return (
+		typeof email === 'string' &&
+		email.length >= 5 &&
+		email.length <= 254 &&
+		/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+	);
 }
