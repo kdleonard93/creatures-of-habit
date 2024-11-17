@@ -36,6 +36,20 @@
       "when": 1731802530260,
       "tag": "0004_wealthy_war_machine",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1731877426988,
+      "tag": "0005_flowery_puff_adder",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1731877493210,
+      "tag": "0006_rich_cerise",
+      "breakpoints": true
     }
   ]
 }
