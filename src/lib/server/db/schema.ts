@@ -5,6 +5,28 @@ import { v4 as uuidv4 } from 'uuid';
 const userId = uuidv4();
 const creatureId = uuidv4();
 
+export const CreatureClass = {
+	WARRIOR: 'warrior',
+	BRAWLER: 'brawler',
+	WIZARD: 'wizard',
+	CLERIC: 'cleric',
+	ASSASSIN: 'assassin',
+	ARCHER: 'archer',
+	ALCHEMIST: 'alchemist',
+	ENGINEER: 'engineer'
+  } as const;
+
+
+export const CreatureRace = {
+	HUMAN: 'human',
+	ORC: 'orc',
+	ELF: 'elf',
+	DWARF: 'dwarf',
+  } as const;
+
+export type CreatureClassType = typeof CreatureClass[keyof typeof CreatureClass];
+export type CreatureRaceType = typeof CreatureRace[keyof typeof CreatureRace];
+
 export const user = sqliteTable('user', {
 	id: text('id').primaryKey().default(userId),
 	age: integer('age', { mode: 'number'}),
@@ -18,6 +40,8 @@ export const creature = sqliteTable('creature', {
 	id: text('id').primaryKey().default(creatureId),
 	userId: text('user_id').notNull(),
 	name: text('name').notNull(),
+	class: text('class', { enum: Object.values(CreatureClass) as [string, ...string[]] }).notNull(),
+	race: text('race', { enum: Object.values(CreatureRace) as [string, ...string[]] }).notNull(),
 	level: integer('level', {mode: 'number'}).default(1),
 	createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 })
