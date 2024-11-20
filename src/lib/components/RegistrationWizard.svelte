@@ -4,8 +4,8 @@
   import Input from "$lib/components/ui/input/input.svelte";
   import Progress from "$lib/components/ui/progress/progress.svelte";
   import Label from "$lib/components/ui/label/label.svelte";
-	import { CreatureClass, CreatureRace } from "$lib/server/db/schema";
-	import type { CreatureRaceType, CreatureClassType } from "$lib/server/db/schema";
+	import { CreatureClass, CreatureRace } from '$lib/types';
+	import type { CreatureRaceType, CreatureClassType } from "$lib/types";
   
   export let onComplete: (data: RegistrationData) => void;
   

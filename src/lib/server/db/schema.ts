@@ -1,31 +1,10 @@
 import { sql } from "drizzle-orm";
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 import { v4 as uuidv4 } from 'uuid';
+import { CreatureClass, CreatureRace } from '$lib/types';
 
 const userId = uuidv4();
 const creatureId = uuidv4();
-
-export const CreatureClass = {
-	WARRIOR: 'warrior',
-	BRAWLER: 'brawler',
-	WIZARD: 'wizard',
-	CLERIC: 'cleric',
-	ASSASSIN: 'assassin',
-	ARCHER: 'archer',
-	ALCHEMIST: 'alchemist',
-	ENGINEER: 'engineer'
-  } as const;
-
-
-export const CreatureRace = {
-	HUMAN: 'human',
-	ORC: 'orc',
-	ELF: 'elf',
-	DWARF: 'dwarf',
-  } as const;
-
-export type CreatureClassType = typeof CreatureClass[keyof typeof CreatureClass];
-export type CreatureRaceType = typeof CreatureRace[keyof typeof CreatureRace];
 
 export const user = sqliteTable('user', {
 	id: text('id').primaryKey().default(userId),

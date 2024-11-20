@@ -40,8 +40,8 @@
   
         <!-- User Menu (Desktop) -->
         <div class="hidden md:flex items-center gap-4">
-          <Button variant="ghost" size="sm">Sign in</Button>
-          <Button size="sm">Sign up</Button>
+          <Button href="/login" variant="ghost" size="sm">Log in</Button>
+          <Button href="/signup" size="sm">Sign up</Button>
         </div>
   
         <!-- Mobile Navigation -->
