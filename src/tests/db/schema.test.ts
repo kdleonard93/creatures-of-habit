@@ -6,18 +6,18 @@ import { eq } from 'drizzle-orm';
 describe('Database Schema', () => {
     it('can insert and retrieve a user', async () => {
         const testUser = {
-            id: 'test-user-id',
             username: 'testuser',
             email: 'testuser@example.com',
             passwordHash: 'testpassword',
+            age: 25
         };
 
-        await db.insert(table.user).values(testUser);
+        const [insertedUser] = await db.insert(table.user).values(testUser).returning();
 
         const [retrievedUser] = await db
             .select()
             .from(table.user)
-            .where(eq(table.user.id, testUser.id));
+            .where(eq(table.user.id, insertedUser.id));
 
         expect(retrievedUser).toBeDefined();
         expect(retrievedUser.username).toBe(testUser.username);
@@ -26,24 +26,28 @@ describe('Database Schema', () => {
 
     it('enforces unique constraints', async () => {
         const testUser = {
-            id: 'duplicate-id',
             username: 'duplicateuser',
             email: 'duplicate@example.com',
             passwordHash: 'testpassword',
+            age: 25
         };
 
         await db.insert(table.user).values(testUser);
 
         // Attempting to insert a user with the same ID should throw an error
         await expect(async () => {
-            await db.insert(table.user).values(testUser);
+            await db.insert(table.user).values({
+                ...testUser,
+                username: 'uniqueuser2'
+            });
         }).rejects.toThrow();
     });
+
 
     it('enforces foreign key constraints', async () => {
         const testSession = {
             id: 'test-session-id',
-            userId: 'nonexistent-user-id', // This user does not exist
+            userId: crypto.randomUUID(), // This user does not exist
             expiresAt: new Date(),
         };
 

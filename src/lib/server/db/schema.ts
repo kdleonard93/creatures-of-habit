@@ -1,13 +1,9 @@
 import { sql } from "drizzle-orm";
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
-import { v4 as uuidv4 } from 'uuid';
-import { CreatureClass, CreatureRace } from '$lib/types';
-
-const userId = uuidv4();
-const creatureId = uuidv4();
+import { CreatureClass, CreatureRace } from '../../types';
 
 export const user = sqliteTable('user', {
-	id: text('id').primaryKey().default(userId),
+	id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
 	age: integer('age', { mode: 'number'}),
 	email: text('email').notNull().unique(),
 	username: text('username').notNull().unique(),
@@ -16,7 +12,7 @@ export const user = sqliteTable('user', {
 });
 
 export const creature = sqliteTable('creature', {
-	id: text('id').primaryKey().default(creatureId),
+	id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
 	userId: text('user_id').notNull(),
 	name: text('name').notNull(),
 	class: text('class', { enum: Object.values(CreatureClass) as [string, ...string[]] }).notNull(),

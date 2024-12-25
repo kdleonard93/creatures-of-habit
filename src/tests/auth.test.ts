@@ -12,28 +12,45 @@ describe('Auth Utilities', () => {
     });
 
     it('creates a session in the database', async () => {
-        const token = generateSessionToken();
-        const userId = 'test-user-id';
 
-        const session = await createSession(token, userId);
+        const [testUser] = await db.insert(table.user).values({
+            username: 'sessiontestuser',
+            email: 'sessiontest@example.com',
+            passwordHash: 'testpass',
+            age: 25
+        }).returning();
+
+        const token = generateSessionToken();
+        const session = await createSession(token, testUser.id);
+
         const [dbSession] = await db
             .select()
             .from(table.session)
             .where(eq(table.session.id, session.id));
 
         expect(dbSession).toBeDefined();
-        expect(dbSession.userId).toBe(userId);
+        expect(dbSession.userId).toBe(testUser.id);
     });
 
     it('validates an active session token', async () => {
+
+        const [testUser] = await db.insert(table.user).values({
+            username: 'validationtestuser',
+            email: 'validationtest@example.com',
+            passwordHash: 'testpass',
+            age: 25
+        }).returning();
+
         const token = generateSessionToken();
-        const userId = 'test-user-id';
+        await createSession(token, testUser.id);
+        const result = await validateSessionToken(token);
 
-        await createSession(token, userId);
-        const { session, user } = await validateSessionToken(token);
-
-        expect(session).not.toBeNull();
-        expect(user).not.toBeNull();
-        expect(user.id).toBe(userId);
+        expect(result.session).not.toBeNull();
+        expect(result.user).not.toBeNull();
+        if (result.user) {
+            expect(result.user.id).toBe(testUser.id);
+        } else {
+            throw new Error('User should not be null');
+        }
     });
 });
