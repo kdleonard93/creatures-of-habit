@@ -50,6 +50,13 @@
       "when": 1731877493210,
       "tag": "0006_rich_cerise",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1735145000111,
+      "tag": "0007_empty_roland_deschain",
+      "breakpoints": true
     }
   ]
 }

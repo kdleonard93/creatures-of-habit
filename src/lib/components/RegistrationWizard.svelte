@@ -6,8 +6,32 @@
   import Label from "$lib/components/ui/label/label.svelte";
 	import { CreatureClass, CreatureRace } from '$lib/types';
 	import type { CreatureRaceType, CreatureClassType } from "$lib/types";
-  
-  export let onComplete: (data: RegistrationData) => void;
+  import { goto } from '$app/navigation';
+
+  async function handleSubmit(formData: RegistrationData) {
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        // Use SvelteKit's goto instead of window.location
+        goto('/dashboard');
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      errors.general = error instanceof Error ? error.message : 'An error occurred during registration';
+    }
+  }
+
+let onComplete = handleSubmit;
   
   interface RegistrationData {
     email: string;
@@ -44,7 +68,8 @@
     password: '',
     confirmPassword: '',
     age: '',
-    creature: ''
+    creature: '',
+    general: ''
   };
   
   $: completionPercentage = (currentStep / totalSteps) * 100;

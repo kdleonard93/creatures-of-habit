@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 import { v4 as uuidv4 } from 'uuid';
-import { CreatureClass, CreatureRace } from '$lib/types';
+import { CreatureClass, CreatureRace } from '../../types';
 
 const userId = uuidv4();
 const creatureId = uuidv4();
