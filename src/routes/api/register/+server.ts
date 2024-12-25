@@ -1,27 +1,44 @@
+// src/routes/api/register/+server.ts
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import * as schema from '$lib/server/db/schema';
 import { generateSessionToken, createSession, setSessionTokenCookie } from '$lib/server/auth';
+import { eq } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
-import type { CreatureClassType, CreatureRaceType } from '$lib/types';
-
-interface RegistrationData {
-  email: string;
-  username: string;
-  password: string;
-  age: number;
-  creature: {
-    name: string;
-    class: CreatureClassType;
-    race: CreatureRaceType;
-  };
-}
+import type { RegistrationData } from '$lib/types';
 
 export const POST: RequestHandler = async (event) => {
-  const data = await event.request.json() as RegistrationData;
-  
   try {
+    const data = await event.request.json() as RegistrationData;
+    console.log('Received registration data:', { ...data, password: '[REDACTED]', confirmPassword: '[REDACTED]' });
+
+    // Check if email already exists
+    const existingUserByEmail = await db.select()
+      .from(schema.user)
+      .where(eq(schema.user.email, data.email))
+      .limit(1);
+
+    if (existingUserByEmail.length > 0) {
+      return json({
+        success: false,
+        error: 'An account with this email already exists'
+      }, { status: 400 });
+    }
+
+    // Check if username already exists
+    const existingUserByUsername = await db.select()
+      .from(schema.user)
+      .where(eq(schema.user.username, data.username))
+      .limit(1);
+
+    if (existingUserByUsername.length > 0) {
+      return json({
+        success: false,
+        error: 'This username is already taken'
+      }, { status: 400 });
+    }
+
     // Hash password
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(data.password, saltRounds);
@@ -55,9 +72,9 @@ export const POST: RequestHandler = async (event) => {
     return json(
       { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Registration failed. Email or username may already exist.' 
+        error: 'An unexpected error occurred during registration. Please try again.' 
       }, 
-      { status: 400 }
+      { status: 500 }
     );
   }
 };

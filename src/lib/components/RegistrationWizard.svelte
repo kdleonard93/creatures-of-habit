@@ -8,28 +8,45 @@
 	import type { CreatureRaceType, CreatureClassType } from "$lib/types";
   import { goto } from '$app/navigation';
 
-  async function handleSubmit(formData: RegistrationData) {
-    try {
-      const response = await fetch('/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        // Use SvelteKit's goto instead of window.location
-        goto('/dashboard');
+// In your signup component
+async function handleSubmit(formData: RegistrationData) {
+  try {
+    errors = {
+      email: '',
+      username: '',
+      password: '',
+      confirmPassword: '',
+      age: '',
+      creature: '',
+      general: ''
+    };
+
+    const response = await fetch('/api/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData)
+    });
+    
+    const data = await response.json();
+    if (data.success) {
+      await goto('/dashboard');
+    } else {
+      // Handle specific errors
+      if (data.error.includes('email')) {
+        errors.email = data.error;
+      } else if (data.error.includes('username')) {
+        errors.username = data.error;
       } else {
-        throw new Error(data.error);
+        errors.general = data.error;
       }
-    } catch (error) {
-      console.error('Registration error:', error);
-      errors.general = error instanceof Error ? error.message : 'An error occurred during registration';
     }
+  } catch (error) {
+    console.error('Registration error:', error);
+    errors.general = 'An unexpected error occurred. Please try again.';
   }
+}
 
 let onComplete = handleSubmit;
   
@@ -44,6 +61,7 @@ let onComplete = handleSubmit;
       class: CreatureClassType;
       race: CreatureRaceType;
     };
+    general: string;
   }
   
   let currentStep = 1;
@@ -59,7 +77,8 @@ let onComplete = handleSubmit;
       name: '',
       class: CreatureClass.WARRIOR,
       race: CreatureRace.HUMAN
-    }
+    },
+    general: ''
   };
 
   let errors = {
@@ -86,7 +105,8 @@ let onComplete = handleSubmit;
       password: '',
       confirmPassword: '',
       age: '',
-      creature: ''
+      creature: '',
+      general: ''
     };
 
     switch(currentStep) {
