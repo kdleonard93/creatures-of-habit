@@ -8,5 +8,9 @@ declare global {
 		}
 	}
 }
+declare module 'svelte-sonner' {
+	export const Toaster: unknown;
+	export const toast: unknown;
+}
 
 export {};
