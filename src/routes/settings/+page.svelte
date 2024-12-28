@@ -1,4 +1,3 @@
-<!-- src/routes/settings/+page.svelte -->
 <script lang="ts">
     import { enhance } from "$app/forms";
     import { Button } from "$lib/components/ui/button";
@@ -6,7 +5,7 @@
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
     import { Switch } from "$lib/components/ui/switch";
-    import { Toaster, toast } from 'svelte-sonner'
+    import { Toaster, toast } from 'svelte-sonner';
   
     // Form state
     let loading = $state(false);
@@ -129,7 +128,7 @@
       <CardContent>
         <form 
           class="space-y-4" 
-          on:submit|preventDefault={handlePasswordSubmit}
+          onsubmit={handlePasswordSubmit}
           use:enhance
         >
           <div class="space-y-2">
