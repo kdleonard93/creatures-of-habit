@@ -4,52 +4,58 @@
   import Input from "$lib/components/ui/input/input.svelte";
   import Progress from "$lib/components/ui/progress/progress.svelte";
   import Label from "$lib/components/ui/label/label.svelte";
-	import { CreatureClass, CreatureRace } from '$lib/types';
-	import type { CreatureRaceType, CreatureClassType } from "$lib/types";
+  import { CreatureClass, CreatureRace } from '$lib/types';
+  import type { CreatureRaceType, CreatureClassType } from "$lib/types";
   import { goto } from '$app/navigation';
 
-// In your signup component
-async function handleSubmit(formData: RegistrationData) {
-  try {
-    errors = {
-      email: '',
-      username: '',
-      password: '',
-      confirmPassword: '',
-      age: '',
-      creature: '',
-      general: ''
-    };
-
-    const response = await fetch('/api/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData)
-    });
-    
-    const data = await response.json();
-    if (data.success) {
-      await goto('/dashboard');
-    } else {
-      // Handle specific errors
-      if (data.error.includes('email')) {
-        errors.email = data.error;
-      } else if (data.error.includes('username')) {
-        errors.username = data.error;
-      } else {
-        errors.general = data.error;
-      }
-    }
-  } catch (error) {
-    console.error('Registration error:', error);
-    errors.general = 'An unexpected error occurred. Please try again.';
-  }
-}
-
-let onComplete = handleSubmit;
+  // State management with runes
+  let currentStep = $state(1);
+  const totalSteps = 3;
   
+  let formData = $state({
+    email: '',
+    username: '',
+    password: '',
+    confirmPassword: '',
+    age: 0,
+    creature: {
+      name: '',
+      class: CreatureClass.WARRIOR,
+      race: CreatureRace.HUMAN
+    },
+    general: ''
+  });
+
+  let errors = $state({
+    email: '',
+    username: '',
+    password: '',
+    confirmPassword: '',
+    age: '',
+    creature: '',
+    general: ''
+  });
+
+  let completionPercentage = $derived((currentStep / totalSteps) * 100);
+
+  const creatureClasses = [
+    CreatureClass.WARRIOR,
+    CreatureClass.BRAWLER,
+    CreatureClass.WIZARD,
+    CreatureClass.CLERIC,
+    CreatureClass.ASSASSIN,
+    CreatureClass.ARCHER,
+    CreatureClass.ALCHEMIST,
+    CreatureClass.ENGINEER
+  ] as const;
+
+  const creatureRaces = [
+    CreatureRace.HUMAN,
+    CreatureRace.ORC,
+    CreatureRace.ELF,
+    CreatureRace.DWARF
+  ];
+
   interface RegistrationData {
     email: string;
     username: string;
@@ -63,42 +69,14 @@ let onComplete = handleSubmit;
     };
     general: string;
   }
-  
-  let currentStep = 1;
-  const totalSteps = 3;
-  
-  let formData: RegistrationData = {
-    email: '',
-    username: '',
-    password: '',
-    confirmPassword: '',
-    age: 0,
-    creature: {
-      name: '',
-      class: CreatureClass.WARRIOR,
-      race: CreatureRace.HUMAN
-    },
-    general: ''
-  };
 
-  let errors = {
-    email: '',
-    username: '',
-    password: '',
-    confirmPassword: '',
-    age: '',
-    creature: '',
-    general: ''
-  };
-  
-  $: completionPercentage = (currentStep / totalSteps) * 100;
-  
   function validateEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   }
 
   function validateCurrentStep(): boolean {
+    // Reset errors
     errors = {
       email: '',
       username: '',
@@ -110,7 +88,7 @@ let onComplete = handleSubmit;
     };
 
     switch(currentStep) {
-      case 1: // Account Details
+      case 1:
         if (!validateEmail(formData.email)) {
           errors.email = 'Please enter a valid email address';
           return false;
@@ -129,14 +107,14 @@ let onComplete = handleSubmit;
         }
         return true;
 
-      case 2: // Basic Info
+      case 2:
         if (!formData.age || formData.age < 13) {
           errors.age = 'You must be at least 13 years old';
           return false;
         }
         return true;
 
-      case 3: // Creature Creation
+      case 3:
         if (!formData.creature.name) {
           errors.creature = 'Your creature needs a name';
           return false;
@@ -151,11 +129,50 @@ let onComplete = handleSubmit;
         return false;
     }
   }
-  
+
+  async function handleSubmit(formData: RegistrationData) {
+    try {
+      errors = {
+        email: '',
+        username: '',
+        password: '',
+        confirmPassword: '',
+        age: '',
+        creature: '',
+        general: ''
+      };
+
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+    
+      const data = await response.json();
+      if (data.success) {
+        await goto('/dashboard');
+      } else {
+        // Handle specific errors
+        if (data.error.includes('email')) {
+          errors.email = data.error;
+        } else if (data.error.includes('username')) {
+          errors.username = data.error;
+        } else {
+          errors.general = data.error;
+        }
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      errors.general = 'An unexpected error occurred. Please try again.';
+    }
+  }
+
   function nextStep() {
     if (validateCurrentStep()) {
       if (currentStep === totalSteps) {
-        onComplete(formData);
+        handleSubmit(formData);
       } else {
         currentStep++;
       }
@@ -167,24 +184,6 @@ let onComplete = handleSubmit;
       currentStep--;
     }
   }
-
-  const creatureClasses = [
-    CreatureClass.WARRIOR,
-    CreatureClass.BRAWLER,
-    CreatureClass.WIZARD,
-    CreatureClass.CLERIC,
-    CreatureClass.ASSASSIN,
-    CreatureClass.ARCHER,
-    CreatureClass.ALCHEMIST,
-    CreatureClass.ENGINEER
-  ] as const;
-
-  const creatureRaces = [
-    CreatureRace.HUMAN,
-    CreatureRace.ORC,
-    CreatureRace.ELF,
-    CreatureRace.DWARF
-  ]
 </script>
 
 <Card class="w-full max-w-lg mx-auto p-6">
