@@ -8,6 +8,10 @@
   import type { CreatureRaceType, CreatureClassType } from "$lib/types";
   import { goto } from '$app/navigation';
 
+  const { onComplete } = $props<{
+        onComplete: (data: RegistrationData) => void;
+    }>();
+
   // State management with runes
   let currentStep = $state(1);
   const totalSteps = 3;
@@ -56,7 +60,7 @@
     CreatureRace.DWARF
   ];
 
-  interface RegistrationData {
+  export interface RegistrationData {
     email: string;
     username: string;
     password: string;

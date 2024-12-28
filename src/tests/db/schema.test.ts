@@ -1,22 +1,13 @@
-import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { db } from '../../lib/server/db';
 import * as table from '../../lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 
 describe('Database Schema', () => {
-    async function cleanupDatabase() {
-        // First delete tables that have foreign key dependencies
-        await db.delete(table.session).execute();
-        // Then delete the main tables
-        await db.delete(table.user).execute();
-    }
-
     beforeAll(async () => {
-        await cleanupDatabase();
-    });
-
-    beforeEach(async () => {
-        await cleanupDatabase();
+        // Clean up in correct order
+        await db.delete(table.session).execute();
+        await db.delete(table.user).execute();
     });
 
     it('can insert and retrieve a user', async () => {
@@ -36,22 +27,23 @@ describe('Database Schema', () => {
 
         console.log('Inserted user:', insertedUser);
 
-        // Check if user exists in database immediately after insert
+        // Check all users in database
         const allUsers = await db.select().from(table.user);
-        console.log('All users in database:', allUsers);
+        console.log('All users:', allUsers);
 
-        // Try to retrieve the specific user
-        const [retrievedUser] = await db
+        // Use select instead of query
+        const retrievedUser = await db
             .select()
             .from(table.user)
-            .where(eq(table.user.id, insertedUser.id));
+            .where(eq(table.user.id, insertedUser.id))
+            .then(rows => rows[0]);
 
         console.log('Retrieved user:', retrievedUser);
         console.log('Using ID:', insertedUser.id);
 
         expect(retrievedUser).toBeDefined();
-        expect(retrievedUser.username).toBe(testUser.username);
-        expect(retrievedUser.email).toBe(testUser.email);
+        expect(retrievedUser?.username).toBe(testUser.username);
+        expect(retrievedUser?.email).toBe(testUser.email);
     });
 
     it('enforces unique constraints', async () => {
@@ -65,25 +57,21 @@ describe('Database Schema', () => {
 
         await db.insert(table.user).values(testUser);
 
-        // Attempting to insert a user with the same email should throw an error
-        await expect(async () => {
-            await db.insert(table.user).values({
-                ...testUser,
-                username: `${uniqueUsername}_2`
-            });
-        }).rejects.toThrow();
+        // Attempting to insert the same user should fail
+        await expect(() =>
+            db.insert(table.user).values(testUser)
+        ).rejects.toThrow(/UNIQUE constraint failed/);
     });
 
     it('enforces foreign key constraints', async () => {
         const testSession = {
             id: 'test-session-id',
             userId: crypto.randomUUID(),
-            expiresAt: new Date(),
+            expiresAt: new Date()
         };
 
-        // Attempting to insert a session with a non-existent user should throw an error
-        await expect(async () => {
-            await db.insert(table.session).values(testSession);
-        }).rejects.toThrow();
+        await expect(() =>
+            db.insert(table.session).values(testSession)
+        ).rejects.toThrow(/FOREIGN KEY constraint failed/);
     });
 });
