@@ -15,7 +15,7 @@
   
     $: path = $page.url.pathname;
 
-    const svgLogo = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="h-8 w-8">
+    const svgLogo = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="h-12 w-12">
   <!-- Shield background -->
   <path d="M100 20 
            L160 50 
