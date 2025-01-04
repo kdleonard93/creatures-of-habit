@@ -2,6 +2,8 @@
 <script lang="ts">
     import type { PageData } from './$types';
     import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "$lib/components/ui/card";
+    import { classIcons } from '$lib/assets/classIcons';
+    import type { CreatureClassType } from "$lib/types";
     
     export let data: PageData;
 </script>
@@ -34,9 +36,13 @@
             <CardContent>
                 {#if data.creature}
                     <div class="space-y-2">
-                        <p><span class="font-semibold">Name:</span> {data.creature.name}</p>
-                        <p><span class="font-semibold">Race:</span> {data.creature.race}</p>
-                        <p><span class="font-semibold">Class:</span> {data.creature.class}</p>
+                        <p class="capitalize"><span class="font-semibold">Name:</span> {data.creature.name}</p>
+                        <p class="capitalize"><span class="font-semibold">Race:</span> {data.creature.race}</p>
+                        <p class="flex items-center gap-2">
+                            <span class="font-semibold capitalize">Class:</span> 
+                            {@html classIcons[data.creature.class as CreatureClassType]}
+                            <span class="capitalize">{data.creature.class}</span>
+                        </p>
                         <p><span class="font-semibold">Level:</span> {data.creature.level}</p>
                     </div>
                 {:else}
