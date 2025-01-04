@@ -7,6 +7,7 @@
   import { CreatureClass, CreatureRace } from '$lib/types';
   import type { CreatureRaceType, CreatureClassType } from "$lib/types";
   import { goto } from '$app/navigation';
+  import { classIcons } from '$lib/assets/classIcons';
 
   const { onComplete } = $props<{
         onComplete: (data: RegistrationData) => void;
@@ -16,7 +17,7 @@
   let currentStep = $state(1);
   const totalSteps = 3;
   
-  let formData = $state({
+  let formData = $state<RegistrationData>({
     email: '',
     username: '',
     password: '',
@@ -288,7 +289,7 @@
                 {formData.creature.race === creatureRace ? 
                   'border-primary bg-primary/10' : 
                   'hover:bg-primary/5'}"
-              on:click={() => formData.creature.race = creatureRace}
+              onclick={() => formData.creature.race = creatureRace}
             >
               <span class="capitalize">{creatureRace}</span>
             </button>
@@ -299,17 +300,18 @@
         <Label>Choose Your Creature's Class</Label>
         <div class="grid grid-cols-3 gap-4 mt-2">
           {#each creatureClasses as creatureClass}
-            <button
-              type="button"
-              class="p-4 border rounded-lg text-center transition-colors
-                {formData.creature.class === creatureClass ? 
-                  'border-primary bg-primary/10' : 
-                  'hover:bg-primary/5'}"
-              on:click={() => formData.creature.class = creatureClass}
-            >
-              <span class="capitalize">{creatureClass}</span>
-            </button>
-          {/each}
+          <button
+            type="button"
+            class="p-4 border rounded-lg text-center transition-colors flex flex-col items-center gap-2
+              {formData.creature.class === creatureClass ? 
+                'border-primary bg-primary/10' : 
+                'hover:bg-primary/5'}"
+            onclick={() => formData.creature.class = creatureClass}
+          >
+            {@html classIcons[creatureClass]}
+            <span class="capitalize">{creatureClass}</span>
+          </button>
+        {/each}
         </div>
       </div>
     </div>
