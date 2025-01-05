@@ -22,7 +22,7 @@ const wizardIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100
 const clericIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-8 h-8">
   <circle cx="50" cy="50" r="40" fill="#67917A"/>
   <path d="M40 20 L60 20 L60 40 L80 40 L80 60 L60 60 L60 80 L40 80 L40 60 L20 60 L20 40 L40 40 Z" 
-        fill="#CCBF82" transform="scale(0.6) translate(43, 43)"/>
+        fill="#CCBF82" transform="scale(0.6) translate(33.33, 33.33)"/>
 </svg>`;
 
 const assassinIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-8 h-8">
