@@ -8,6 +8,7 @@
   import type { CreatureRaceType, CreatureClassType } from "$lib/types";
   import { goto } from '$app/navigation';
   import { classIcons } from '$lib/assets/classIcons';
+  import PasswordStrengthIndicator from '$lib/components/PasswordStrengthIndicator.svelte';
 
   const { onComplete } = $props<{
         onComplete: (data: RegistrationData) => void;
@@ -231,6 +232,7 @@
           bind:value={formData.password} 
           placeholder="Create a password"
         />
+        <PasswordStrengthIndicator password={formData.password} />
         {#if errors.password}
           <p class="text-red-500 text-sm mt-1">{errors.password}</p>
         {/if}
