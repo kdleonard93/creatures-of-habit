@@ -1,5 +1,6 @@
+// src/routes/settings/password/+page.svelte
 <script lang="ts">
-    import { enhance } from '$app/forms';
+    import { enhance } from "$app/forms";
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
     import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "$lib/components/ui/card";
@@ -8,14 +9,16 @@
 
     const props = $props<{ form: ActionData }>();
     let isSubmitting = $state(false);
-    let password = $state('');
 
     $effect(() => {
         if (props.form?.message) {
-            toast.error(props.form.message, {
-                description: "Please check your credentials and try again",
-                duration: 5000
-            });
+            toast.error(props.form.message);
+        }
+        if (props.form?.success) {
+            toast.success('Password updated successfully');
+            // Reset form
+            const form = document.querySelector('form') as HTMLFormElement;
+            form?.reset();
         }
     });
 </script>
@@ -23,8 +26,8 @@
 <div class="container mx-auto py-8 max-w-md">
     <Card>
         <CardHeader>
-            <CardTitle>Login</CardTitle>
-            <CardDescription>Welcome back to Creatures of Habit!</CardDescription>
+            <CardTitle>Change Password</CardTitle>
+            <CardDescription>Update your account password</CardDescription>
         </CardHeader>
         <CardContent>
             <form 
@@ -38,62 +41,54 @@
                 }}
             >
                 <div class="space-y-2">
-                    <label for="username" class="text-sm font-medium">
-                        Username
-                    </label>
-                    <Input
-                        type="text"
-                        id="username"
-                        name="username"
-                        required
-                        autocomplete="username"
-                        placeholder="Enter your username"
-                    />
-                </div>
-
-                <div class="space-y-2">
-                    <label for="email" class="text-sm font-medium">
-                        Email
-                    </label>
-                    <Input
-                        type="email"
-                        id="email"
-                        name="email"
-                        required
-                        autocomplete="email"
-                        placeholder="Enter your email"
-                    />
-                </div>
-
-                <div class="space-y-2">
-                    <label for="password" class="text-sm font-medium">
-                        Password
+                    <label for="currentPassword" class="text-sm font-medium">
+                        Current Password
                     </label>
                     <Input
                         type="password"
-                        id="password"
-                        name="password"
-                        bind:value={password}
+                        id="currentPassword"
+                        name="currentPassword"
                         required
                         autocomplete="current-password"
-                        placeholder="Enter your password"
+                        placeholder="Enter your current password"
+                    />
+                </div>
+
+                <div class="space-y-2">
+                    <label for="newPassword" class="text-sm font-medium">
+                        New Password
+                    </label>
+                    <Input
+                        type="password"
+                        id="newPassword"
+                        name="newPassword"
+                        required
+                        autocomplete="new-password"
+                        placeholder="Enter your new password"
+                    />
+                </div>
+
+                <div class="space-y-2">
+                    <label for="confirmPassword" class="text-sm font-medium">
+                        Confirm New Password
+                    </label>
+                    <Input
+                        type="password"
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        required
+                        autocomplete="new-password"
+                        placeholder="Confirm your new password"
                     />
                 </div>
 
                 <Button type="submit" disabled={isSubmitting} class="w-full">
                     {#if isSubmitting}
-                        Logging in...
+                        Updating Password...
                     {:else}
-                        Login
+                        Update Password
                     {/if}
                 </Button>
-
-                <div class="text-center text-sm text-muted-foreground">
-                    <p>
-                        Don't have an account? 
-                        <a href="/signup" class="text-primary hover:underline">Sign up</a>
-                    </p>
-                </div>
             </form>
         </CardContent>
     </Card>

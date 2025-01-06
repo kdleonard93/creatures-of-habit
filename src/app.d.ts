@@ -1,4 +1,3 @@
-// See https://svelte.dev/docs/kit/types#app.d.ts
 declare global {
     namespace App {
         interface Locals {
@@ -10,6 +9,8 @@ declare global {
 }
 
 declare module 'svelte-sonner' {
+    import type { ComponentType, SvelteComponent } from 'svelte';
+    
     interface ToasterProps {
         theme?: 'light' | 'dark' | 'system';
         richColors?: boolean;
@@ -54,7 +55,8 @@ declare module 'svelte-sonner' {
         custom: (message: string, props?: ToastProps) => void;
     }
 
-    export const Toaster: (props: ToasterProps) => void;
+    type ToasterComponent = ComponentType<SvelteComponent<ToasterProps>>;
+    export const Toaster: ToasterComponent;
     export const toast: Toast;
     export type { ToasterProps, ToastProps, Position };
 }
