@@ -47,6 +47,7 @@
 				<div class="space-y-4">
 					<div class="space-y-2">
 						<p><span class="font-semibold">Email:</span> {data.user.email}</p>
+                        <p><span class="font-semibold">Username:</span> {data.user.username}</p>
 						<p><span class="font-semibold">Age:</span> {data.user.age}</p>
 						<p>
 							<span class="font-semibold">Member since:</span>

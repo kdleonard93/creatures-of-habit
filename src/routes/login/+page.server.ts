@@ -20,27 +20,23 @@ export const actions = {
         const password = formData.get('password') as string | null;
         const email = formData.get('email') as string | null;
 
-        if (!username) {
-            return fail(400, { message: 'Username is required' });
-        }
-        if (!password) {
-            return fail(400, { message: 'Password is required' });
-        }
-        if (!email) {
-            return fail(400, { message: 'Email is required' });
+        if (!username || !password || !email) {
+            return fail(400, { message: 'All fields are required' });
         }
 
-        const results = await db
+        const existingUser = await db
             .select()
             .from(table.user)
-            .where(eq(table.user.username, username));
+            .where(eq(table.user.username, username))
+            .limit(1)
+            .then(rows => rows[0]);
 
-        const existingUser = results.at(0);
         if (!existingUser) {
             return fail(400, { message: 'Incorrect username or password' });
         }
 
         const validPassword = await verifyPassword(existingUser.passwordHash, password);
+        
         if (!validPassword) {
             return fail(400, { message: 'Incorrect username or password' });
         }
