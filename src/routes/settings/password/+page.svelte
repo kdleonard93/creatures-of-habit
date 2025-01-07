@@ -1,4 +1,3 @@
-// src/routes/settings/password/+page.svelte
 <script lang="ts">
     import { enhance } from "$app/forms";
     import { Button } from "$lib/components/ui/button";
@@ -33,12 +32,24 @@
             <form 
                 method="POST"
                 class="space-y-4"
-                use:enhance={() => {
+                use:enhance={(() => {
                     isSubmitting = true;
+                    
                     return async ({ result }) => {
                         isSubmitting = false;
+                        
+                        if (result.type === 'failure') {
+                            return;
+                        } else if (result.type === 'success') {
+                            toast.success('Password updated successfully');
+                            // Reset form
+                            const form = document.querySelector('form') as HTMLFormElement;
+                            form?.reset();
+                        } else if (result.type === 'redirect') {
+                            window.location.href = result.location;
+                        }
                     };
-                }}
+                })}
             >
                 <div class="space-y-2">
                     <label for="currentPassword" class="text-sm font-medium">

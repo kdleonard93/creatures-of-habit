@@ -8,7 +8,6 @@
 
     const props = $props<{ form: ActionData }>();
     let isSubmitting = $state(false);
-    let password = $state('');
 
     $effect(() => {
         if (props.form?.message) {
@@ -30,12 +29,19 @@
             <form 
                 method="POST"
                 class="space-y-4"
-                use:enhance={() => {
+                use:enhance={(() => {
                     isSubmitting = true;
+                    
                     return async ({ result }) => {
                         isSubmitting = false;
+                        
+                        if (result.type === 'failure') {
+                            return;
+                        } else if (result.type === 'redirect') {
+                            window.location.href = result.location;
+                        }
                     };
-                }}
+                })}
             >
                 <div class="space-y-2">
                     <label for="username" class="text-sm font-medium">
@@ -73,7 +79,6 @@
                         type="password"
                         id="password"
                         name="password"
-                        bind:value={password}
                         required
                         autocomplete="current-password"
                         placeholder="Enter your password"
