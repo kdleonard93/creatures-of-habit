@@ -8,6 +8,7 @@
   import type { CreatureRaceType, CreatureClassType } from "$lib/types";
   import { goto } from '$app/navigation';
   import { classIcons } from '$lib/assets/classIcons';
+  import { raceIcons } from '$lib/assets/raceIcons';
   import PasswordStrengthIndicator from '$lib/components/PasswordStrengthIndicator.svelte';
 
   const { onComplete } = $props<{
@@ -293,6 +294,7 @@
                   'hover:bg-primary/5'}"
               onclick={() => formData.creature.race = creatureRace}
             >
+              {@html raceIcons[creatureRace]}
               <span class="capitalize">{creatureRace}</span>
             </button>
           {/each}

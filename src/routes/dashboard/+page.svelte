@@ -10,7 +10,8 @@
 	} from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { classIcons } from '$lib/assets/classIcons';
-	import type { CreatureClassType } from '$lib/types';
+    import { raceIcons } from '$lib/assets/raceIcons';
+	import type { CreatureClassType, CreatureRaceType } from '$lib/types';
 	import { Lock, LogOut } from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 
@@ -80,7 +81,11 @@
 				{#if data.creature}
 					<div class="space-y-2">
 						<p class="capitalize"><span class="font-semibold">Name:</span> {data.creature.name}</p>
-						<p class="capitalize"><span class="font-semibold">Race:</span> {data.creature.race}</p>
+						<p class="flex items-center gap-2">
+                            <span class="font-semibold capitalize">Race:</span> 
+                            {@html raceIcons[data.creature.race as CreatureRaceType]}
+                            <span class="capitalize">{data.creature.race}</span>
+                        </p>
 						<p class="flex items-center gap-2">
 							<span class="font-semibold capitalize">Class:</span>
 							{@html classIcons[data.creature.class as CreatureClassType]}
