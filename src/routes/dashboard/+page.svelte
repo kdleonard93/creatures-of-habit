@@ -81,12 +81,12 @@
 				{#if data.creature}
 					<div class="space-y-2">
 						<p class="capitalize"><span class="font-semibold">Name:</span> {data.creature.name}</p>
-						<p class="flex items-center gap-2">
+						<p class="flex items-center gap-3">
                             <span class="font-semibold capitalize">Race:</span> 
                             {@html raceIcons[data.creature.race as CreatureRaceType]}
                             <span class="capitalize">{data.creature.race}</span>
                         </p>
-						<p class="flex items-center gap-2">
+						<p class="flex items-center gap-3">
 							<span class="font-semibold capitalize">Class:</span>
 							{@html classIcons[data.creature.class as CreatureClassType]}
 							<span class="capitalize">{data.creature.class}</span>
