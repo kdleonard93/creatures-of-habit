@@ -23,6 +23,31 @@ export const creature = sqliteTable('creature', {
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+export const creatureStats = sqliteTable('creature_stats', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    creatureId: text('creature_id')
+        .notNull()
+        .references(() => creature.id, { onDelete: 'cascade' }),
+    strength: integer('strength').notNull().default(10),
+    dexterity: integer('dexterity').notNull().default(10),
+    constitution: integer('constitution').notNull().default(10),
+    intelligence: integer('intelligence').notNull().default(10),
+    wisdom: integer('wisdom').notNull().default(10),
+    charisma: integer('charisma').notNull().default(10),
+    createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+    updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const creatureEquipment = sqliteTable('creature_equipment', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    creatureId: text('creature_id')
+        .notNull()
+        .references(() => creature.id, { onDelete: 'cascade' }),
+    slot: text('slot').notNull(), // 'weapon', 'armor', etc.
+    itemId: text('item_id').notNull(),
+    equipped: integer('equipped').notNull().default(1),
+});
+
 export const session = sqliteTable('session', {
     id: text('id').primaryKey(),
     userId: text('user_id')

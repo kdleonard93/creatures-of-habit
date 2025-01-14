@@ -12,7 +12,7 @@
 	import { classIcons } from '$lib/assets/classIcons';
     import { raceIcons } from '$lib/assets/raceIcons';
 	import type { CreatureClassType, CreatureRaceType } from '$lib/types';
-	import { Lock, LogOut } from 'lucide-svelte';
+	import { Lock, LogOut, Eye } from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 
 	export let data: PageData;
@@ -79,19 +79,34 @@
 			</CardHeader>
 			<CardContent>
 				{#if data.creature}
-					<div class="space-y-2">
-						<p class="capitalize"><span class="font-semibold">Name:</span> {data.creature.name}</p>
-						<p class="flex items-center gap-3">
-                            <span class="font-semibold capitalize">Race:</span> 
-                            {@html raceIcons[data.creature.race as CreatureRaceType]}
-                            <span class="capitalize">{data.creature.race}</span>
-                        </p>
-						<p class="flex items-center gap-3">
-							<span class="font-semibold capitalize">Class:</span>
-							{@html classIcons[data.creature.class as CreatureClassType]}
-							<span class="capitalize">{data.creature.class}</span>
-						</p>
-						<p><span class="font-semibold">Level:</span> {data.creature.level}</p>
+					<div class="space-y-4">
+						<div class="space-y-2">
+							<p class="capitalize"><span class="font-semibold">Name:</span> {data.creature.name}</p>
+							<p class="flex items-center gap-3">
+								<span class="font-semibold capitalize">Race:</span> 
+								{@html raceIcons[data.creature.race as CreatureRaceType]}
+								<span class="capitalize">{data.creature.race}</span>
+							</p>
+							<p class="flex items-center gap-3">
+								<span class="font-semibold capitalize">Class:</span>
+								{@html classIcons[data.creature.class as CreatureClassType]}
+								<span class="capitalize">{data.creature.class}</span>
+							</p>
+							<p><span class="font-semibold">Level:</span> {data.creature.level}</p>
+						</div>
+		
+						<!-- Add this new button -->
+						<div class="pt-2">
+							<Button
+								href="/character/details"
+								variant="outline"
+								size="sm"
+								class="w-full flex items-center justify-center gap-2"
+							>
+								<Eye class="h-4 w-4" />
+								View Details
+							</Button>
+						</div>
 					</div>
 				{:else}
 					<p class="text-muted-foreground">No creature found. Create one to get started!</p>
