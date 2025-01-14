@@ -11,7 +11,7 @@
     const navItems = [
       { href: '/dashboard', label: 'Dashboard' },
       { href: '/habits', label: 'Habits' },
-      { href: '/character', label: 'Character' },
+      { href: '/character/details', label: 'Character' },
       { href: '/quests', label: 'Quests' },
       { href: '/profile', label: 'Profile' }
     ];
