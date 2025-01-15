@@ -73,6 +73,7 @@ export interface RegistrationData {
       stats: CreatureStats;
       background?: string;
     };
+    general: string;
   }
 
 export interface Equipment {
