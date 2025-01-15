@@ -23,7 +23,7 @@
 		});
 
 		if (response.ok) {
-			window.location.href = '/login';
+			window.location.href = '/';
 		}
 	}
 </script>
