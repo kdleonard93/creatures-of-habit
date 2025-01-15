@@ -66,7 +66,7 @@ export const POST: RequestHandler = async (event) => {
     // Set session cookie
     setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
-    return json({ success: true, userId: newUser.id });
+    return json({ success: true, userId: newUser.id, redirectUrl: '/dashboard'  });
   } catch (error) {
     console.error('Registration error:', error);
     return json(

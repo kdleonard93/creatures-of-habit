@@ -1,4 +1,3 @@
-<!-- src/lib/components/character/RaceInfoCard.svelte -->
 <script lang="ts">
     import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
     import type { CreatureRaceType } from "$lib/types";
