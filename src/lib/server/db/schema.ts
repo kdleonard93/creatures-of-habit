@@ -48,6 +48,81 @@ export const creatureEquipment = sqliteTable('creature_equipment', {
     equipped: integer('equipped').notNull().default(1),
 });
 
+export const habitFrequency = sqliteTable('habit_frequency', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    name: text('name', { enum: ['daily', 'weekly', 'custom'] }).notNull(),
+    days: text('days'),
+    everyX: integer('every_x'), 
+    createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const habitCategory = sqliteTable('habit_category', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text('user_id')
+        .notNull()
+        .references(() => user.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(), // e.g., 'health', 'productivity'
+    description: text('description'),
+    isDefault: integer('is_default', { mode: 'boolean' }).notNull().default(false),
+    createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+// Main habits table
+export const habit = sqliteTable('habit', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text('user_id')
+        .notNull()
+        .references(() => user.id, { onDelete: 'cascade' }),
+    categoryId: text('category_id')
+        .references(() => habitCategory.id),
+    title: text('title').notNull(),
+    description: text('description'),
+    frequencyId: text('frequency_id')
+        .references(() => habitFrequency.id),
+    difficulty: text('difficulty', { 
+        enum: ['easy', 'medium', 'hard'] 
+    }).notNull().default('medium'),
+    baseExperience: integer('base_experience').notNull().default(10),
+    isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+    isArchived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),
+    startDate: text('start_date').notNull(),
+    endDate: text('end_date'), 
+    createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+    updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+// Habit completion tracking
+export const habitCompletion = sqliteTable('habit_completion', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    habitId: text('habit_id')
+        .notNull()
+        .references(() => habit.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+        .notNull()
+        .references(() => user.id, { onDelete: 'cascade' }),
+    completedAt: text('completed_at').notNull(),
+    value: integer('value').notNull().default(1), // For partial completions (0-100)
+    experienceEarned: integer('experience_earned').notNull(),
+    note: text('note'),
+    createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+// Streak tracking
+export const habitStreak = sqliteTable('habit_streak', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    habitId: text('habit_id')
+        .notNull()
+        .references(() => habit.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+        .notNull()
+        .references(() => user.id, { onDelete: 'cascade' }),
+    currentStreak: integer('current_streak').notNull().default(0),
+    longestStreak: integer('longest_streak').notNull().default(0),
+    lastCompletedAt: text('last_completed_at'),
+    createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+    updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 export const session = sqliteTable('session', {
     id: text('id').primaryKey(),
     userId: text('user_id')
