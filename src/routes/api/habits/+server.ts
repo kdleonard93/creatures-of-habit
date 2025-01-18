@@ -1,0 +1,84 @@
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+import { db } from '$lib/server/db';
+import { habit, habitFrequency, habitStreak } from '$lib/server/db/schema';
+import { eq, and } from 'drizzle-orm';
+import type { HabitData } from '$lib/types';
+
+// GET - List habits for the current user
+export const GET = (async ({ locals }) => {
+    const session = await locals.auth();
+    
+    if (!session?.user) {
+        return json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    try {
+        const habits = await db
+            .select()
+            .from(habit)
+            .where(and(
+                eq(habit.userId, session.user.id),
+                eq(habit.isArchived, false)
+            ));
+
+        return json({ habits });
+    } catch (error) {
+        console.error('Error fetching habits:', error);
+        return json({ error: 'Failed to fetch habits' }, { status: 500 });
+    }
+}) satisfies RequestHandler;
+
+// POST - Create a new habit
+export const POST = (async ({ locals, request }) => {
+    const session = await locals.auth();
+    
+    if (!session?.user) {
+        return json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    try {
+        const habitData = await request.json() as HabitData;
+        
+        // Create the habit frequency first if it's custom
+        let frequencyId = null;
+        if (habitData.frequency === 'custom' && habitData.customFrequency) {
+            const [frequency] = await db
+                .insert(habitFrequency)
+                .values({
+                    name: 'custom',
+                    days: JSON.stringify(habitData.customFrequency.days),
+                })
+                .returning();
+            frequencyId = frequency.id;
+        }
+
+        // Create the habit
+        const [newHabit] = await db
+            .insert(habit)
+            .values({
+                userId: session.user.id,
+                title: habitData.title,
+                description: habitData.description,
+                categoryId: habitData.categoryId,
+                frequencyId,
+                difficulty: habitData.difficulty,
+                startDate: habitData.startDate,
+                endDate: habitData.endDate
+            })
+            .returning();
+
+        // Initialize streak tracking
+        await db
+            .insert(habitStreak)
+            .values({
+                habitId: newHabit.id,
+                userId: session.user.id
+            });
+
+        return json({ habit: newHabit });
+    } catch (error) {
+        console.error('Error creating habit:', error);
+        return json({ error: 'Failed to create habit' }, { status: 500 });
+    }
+}) satisfies RequestHandler;
