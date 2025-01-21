@@ -5,15 +5,16 @@
     import { Label } from "$lib/components/ui/label";
     import type { HabitData, HabitFrequency, HabitDifficulty } from '$lib/types';
     
-    const { onSubmit } = $props<{
-        onSubmit: (data: HabitData) => Promise<void>;
-    }>();
+const { onSubmit, initialData = null } = $props<{
+    onSubmit: (data: HabitData) => Promise<void>;
+    initialData?: HabitData | null;
+}>();
 
     let formData = $state<HabitData>({
         title: '',
         description: '',
-        frequency: 'daily' as HabitFrequency,
-        difficulty: 'medium' as HabitDifficulty,
+        frequency: 'daily',
+        difficulty: 'medium',
         startDate: new Date().toISOString().split('T')[0],
         customFrequency: {
             days: [],
