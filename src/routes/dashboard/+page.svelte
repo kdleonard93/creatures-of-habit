@@ -12,7 +12,7 @@
 	import { classIcons } from '$lib/assets/classIcons';
     import { raceIcons } from '$lib/assets/raceIcons';
 	import type { CreatureClassType, CreatureRaceType } from '$lib/types';
-	import { Lock, LogOut, Eye } from 'lucide-svelte';
+	import { LogOut, ScanEye, ShieldAlert } from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 
 	export let data: PageData;
@@ -63,7 +63,7 @@
 							size="sm"
 							class="flex items-center gap-2"
 						>
-							<Lock class="h-4 w-4" />
+							<ShieldAlert class="h-4 w-4" />
 							Change Password
 						</Button>
 					</div>
@@ -103,7 +103,7 @@
 								size="sm"
 								class="w-full flex items-center justify-center gap-2"
 							>
-								<Eye class="h-4 w-4" />
+								<ScanEye class="h-4 w-4" />
 								View Details
 							</Button>
 						</div>
