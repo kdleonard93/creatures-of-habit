@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Button } from "$lib/components/ui/button";
-    import { Plus, Check, Trash2, Pencil } from 'lucide-svelte';
+    import { Check, Trash2, Pen, CirclePlus } from 'lucide-svelte';
     import { goto, invalidateAll } from '$app/navigation';
     import type { PageData } from './$types';
 
@@ -41,7 +41,7 @@
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold">Your Habits</h1>
         <Button onclick={navigateToNewHabit} class="flex items-center gap-2">
-            <Plus class="h-4 w-4" />
+            <CirclePlus class="h-4 w-4" />
             Create New Habit
         </Button>
     </div>
@@ -72,7 +72,7 @@
                             onclick={() => editHabit(habit.id)}
                             class="flex items-center gap-2"
                         >
-                            <Pencil class="h-4 w-4" />
+                            <Pen class="h-4 w-4" />
                             Edit
                         </Button>
                         <Button 
