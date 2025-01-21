@@ -2,8 +2,7 @@ import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { habit, habitFrequency } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
-
+import { eq, and } from 'drizzle-orm';
 export const load: PageServerLoad = async ({ locals }) => {
     const session = await locals.auth();
     
@@ -25,8 +24,9 @@ export const load: PageServerLoad = async ({ locals }) => {
         })
         .from(habit)
         .leftJoin(habitFrequency, eq(habit.frequencyId, habitFrequency.id))
-        .where(eq(habit.userId, session.user.id));
-
+        .where(and(
+            eq(habit.userId, session.user.id), 
+            eq(habit.isArchived, false)));
     return {
         habits: habits.map(habit => ({
             ...habit,
