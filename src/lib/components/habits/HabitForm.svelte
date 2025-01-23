@@ -14,7 +14,7 @@ const { onSubmit, initialData = null } = $props<{
         title: '',
         description: '',
         frequency: 'daily',
-        difficulty: 'medium',
+        difficulty: 'medium' as const,
         startDate: new Date().toISOString().split('T')[0],
         customFrequency: {
             days: [],
