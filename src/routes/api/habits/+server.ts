@@ -15,14 +15,32 @@ export const GET = (async ({ locals }) => {
 
     try {
         const habits = await db
-            .select()
+            .select({
+                id: habit.id,
+                title: habit.title,
+                description: habit.description,
+                difficulty: habit.difficulty,
+                frequency: habitFrequency.name,
+                startDate: habit.startDate,
+                endDate: habit.endDate,
+                isActive: habit.isActive,
+                createdAt: habit.createdAt,
+                customFrequency: habitFrequency.days
+            })
             .from(habit)
+            .leftJoin(habitFrequency, eq(habit.frequencyId, habitFrequency.id))
             .where(and(
                 eq(habit.userId, session.user.id),
                 eq(habit.isArchived, false)
             ));
 
-        return json({ habits });
+        // Parse the customFrequency days if they exist
+        const habitsWithParsedFrequency = habits.map(habit => ({
+            ...habit,
+            customFrequency: habit.customFrequency ? JSON.parse(habit.customFrequency) : null
+        }));
+
+        return json({ habits: habitsWithParsedFrequency });
     } catch (error) {
         console.error('Error fetching habits:', error);
         return json({ error: 'Failed to fetch habits' }, { status: 500 });
