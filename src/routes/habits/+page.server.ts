@@ -17,6 +17,7 @@ export const load: PageServerLoad = async ({ locals }) => {
             description: habit.description,
             difficulty: habit.difficulty,
             frequency: habitFrequency.name,
+            customFrequency: habitFrequency.days,
             startDate: habit.startDate,
             endDate: habit.endDate,
             isActive: habit.isActive,
@@ -30,7 +31,10 @@ export const load: PageServerLoad = async ({ locals }) => {
     return {
         habits: habits.map(habit => ({
             ...habit,
-            frequency: habit.frequency || 'daily' // Provide a default if no frequency found
+            frequency: habit.frequency || 'daily',
+            customFrequency: habit.customFrequency ? {
+                days: JSON.parse(habit.customFrequency)
+            } : undefined
         }))
     };
 };

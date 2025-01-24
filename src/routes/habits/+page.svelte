@@ -3,6 +3,7 @@
     import { Check, Trash2, Pen, CirclePlus } from 'lucide-svelte';
     import { goto, invalidateAll } from '$app/navigation';
     import type { PageData } from './$types';
+    import type { HabitData } from '$lib/types';
 
     export let data: PageData;
 
@@ -28,12 +29,18 @@
         await invalidateAll();
     } catch (error) {
         console.error('Error deleting habit:', error);
-    }
-}
+        }
+        }
 
     function editHabit(habitId: string) {
         goto(`/habits/${habitId}/edit`);
     }
+
+    export function formatCustomDays(days: number[] | undefined): string {
+    if (!days || !days.length) return 'Custom';
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return days.map(d => dayNames[d]).join(', ');
+}
 
 </script>
 
@@ -57,7 +64,9 @@
                         {/if}
                         <div class="mt-2 flex gap-2 text-sm">
                             <span class="capitalize px-2 py-1 bg-primary/10 rounded">
-                                {habit.frequency}
+                                {habit.frequency === 'custom' && habit.customFrequency?.days ? 
+                                    formatCustomDays(habit.customFrequency.days) : 
+                                    habit.frequency}
                             </span>
                             <span class="capitalize px-2 py-1 bg-primary/10 rounded">
                                 {habit.difficulty}
