@@ -3,12 +3,13 @@
     import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
+    import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "$lib/components/ui/select";
     import type { HabitData, HabitFrequency, HabitDifficulty } from '$lib/types';
     
-const { onSubmit, initialData = null } = $props<{
-    onSubmit: (data: HabitData) => Promise<void>;
-    initialData?: HabitData | null;
-}>();
+    const { onSubmit, initialData = null } = $props<{
+        onSubmit: (data: HabitData) => Promise<void>;
+        initialData?: HabitData | null;
+    }>();
 
     let formData = $state<HabitData>({
         title: '',
@@ -16,6 +17,7 @@ const { onSubmit, initialData = null } = $props<{
         frequency: 'daily',
         difficulty: 'medium' as const,
         startDate: new Date().toISOString().split('T')[0],
+        categoryId: undefined,
         customFrequency: {
             days: [],
         }
@@ -24,8 +26,17 @@ const { onSubmit, initialData = null } = $props<{
     let errors = $state({
         title: '',
         frequency: '',
+        category: '',
         general: ''
     });
+
+    const categories = [
+        { id: 'health', name: 'Health', description: 'Physical and mental well-being habits' },
+        { id: 'productivity', name: 'Productivity', description: 'Work and task management habits' },
+        { id: 'learning', name: 'Learning', description: 'Educational and skill development habits' },
+        { id: 'social', name: 'Social', description: 'Relationships and communication habits' },
+        { id: 'creativity', name: 'Creativity', description: 'Artistic and creative habits' }
+    ];
 
     const difficulties: { value: HabitDifficulty; label: string }[] = [
         { value: 'easy', label: 'Easy' },
@@ -59,12 +70,18 @@ const { onSubmit, initialData = null } = $props<{
         errors = {
             title: '',
             frequency: '',
+            category: '',
             general: ''
         };
 
         // Validate
         if (!formData.title) {
             errors.title = 'Title is required';
+            return;
+        }
+
+        if (!formData.categoryId) {
+            errors.category = 'Please select a category';
             return;
         }
 
@@ -85,7 +102,7 @@ const { onSubmit, initialData = null } = $props<{
 
 <Card class="w-full max-w-lg mx-auto">
     <CardHeader>
-        <CardTitle>Create New Habit</CardTitle>
+        <CardTitle>{initialData ? 'Edit' : 'Create New'} Habit</CardTitle>
     </CardHeader>
     <CardContent>
         <form class="space-y-4" onsubmit={handleSubmit}>
@@ -99,6 +116,26 @@ const { onSubmit, initialData = null } = $props<{
                 />
                 {#if errors.title}
                     <p class="text-red-500 text-sm mt-1">{errors.title}</p>
+                {/if}
+            </div>
+
+            <!-- Category -->
+            <div>
+                <Label for="category">Category</Label>
+                <Select onValueChange={(value: string) => formData.categoryId = value} value={formData.categoryId}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {#each categories as category}
+                            <SelectItem value={category.id}>
+                                {category.name}
+                            </SelectItem>
+                        {/each}
+                    </SelectContent>
+                </Select>
+                {#if errors.category}
+                    <p class="text-red-500 text-sm mt-1">{errors.category}</p>
                 {/if}
             </div>
 

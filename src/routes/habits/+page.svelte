@@ -71,6 +71,9 @@
                             <span class="capitalize px-2 py-1 bg-primary/10 rounded">
                                 {habit.difficulty}
                             </span>
+                            <span class="capitalize px-2 py-1 bg-primary/10 rounded">
+                                {habit.category}
+                            </span>
                         </div>
                     </div>
                     
