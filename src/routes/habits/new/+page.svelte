@@ -2,6 +2,12 @@
     import HabitForm from '$lib/components/habits/HabitForm.svelte';
     import type { HabitData } from '$lib/types';
     import { goto } from '$app/navigation';
+    import type { PageData } from './$types';
+
+    export let data: PageData;
+
+    console.log('Page Data:', data);
+    console.log('Categories:', data.categories);
 
     async function handleSubmit(data: HabitData) {
         const response = await fetch('/api/habits', {
@@ -23,5 +29,5 @@
 </script>
 
 <div class="container mx-auto py-8">
-    <HabitForm onSubmit={handleSubmit} />
+    <HabitForm onSubmit={handleSubmit} categories={data.categories}/>
 </div>

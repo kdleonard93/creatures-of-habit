@@ -3,13 +3,17 @@
     import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
-    import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "$lib/components/ui/select";
+    import * as Select from "$lib/components/ui/select";
+    import type { Selected } from 'bits-ui';
     import type { HabitData, HabitFrequency, HabitDifficulty } from '$lib/types';
     
-    const { onSubmit, initialData = null } = $props<{
+    const { onSubmit, initialData = null, categories } = $props<{
         onSubmit: (data: HabitData) => Promise<void>;
         initialData?: HabitData | null;
+        categories: Array<{ id: string; name: string; }>;
     }>();
+
+    console.log('Categories in form:', categories);
 
     let formData = $state<HabitData>({
         title: '',
@@ -17,7 +21,7 @@
         frequency: 'daily',
         difficulty: 'medium' as const,
         startDate: new Date().toISOString().split('T')[0],
-        categoryId: undefined,
+        categoryId: categories?.[0]?.id, // Set default category if available
         customFrequency: {
             days: [],
         }
@@ -30,13 +34,15 @@
         general: ''
     });
 
-    const categories = [
-        { id: 'health', name: 'Health', description: 'Physical and mental well-being habits' },
-        { id: 'productivity', name: 'Productivity', description: 'Work and task management habits' },
-        { id: 'learning', name: 'Learning', description: 'Educational and skill development habits' },
-        { id: 'social', name: 'Social', description: 'Relationships and communication habits' },
-        { id: 'creativity', name: 'Creativity', description: 'Artistic and creative habits' }
-    ];
+    let selected = $state<Selected<string> | undefined>(undefined);
+
+    $effect(() => {
+        console.log('Current form data:', formData);
+    });
+
+    $effect(() => {
+        selected = formData.categoryId ? { value: formData.categoryId, label: categories.find((cat: { id: string; name: string; }) => cat.id === formData.categoryId)?.name || '' } : undefined;
+    });
 
     const difficulties: { value: HabitDifficulty; label: string }[] = [
         { value: 'easy', label: 'Easy' },
@@ -98,6 +104,14 @@
             errors.general = 'Failed to create habit. Please try again.';
         }
     }
+
+    function handleSelectedChange(selected: Selected<string> | undefined) {
+        if (selected) {
+            formData.categoryId = selected.value;
+        } else {
+            formData.categoryId = undefined;
+        }
+    }
 </script>
 
 <Card class="w-full max-w-lg mx-auto">
@@ -122,18 +136,25 @@
             <!-- Category -->
             <div>
                 <Label for="category">Category</Label>
-                <Select onValueChange={(value: string) => formData.categoryId = value} value={formData.categoryId}>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {#each categories as category}
-                            <SelectItem value={category.id}>
+                <Select.Root
+                    selected={selected}
+                    onSelectedChange={handleSelectedChange}
+                >
+                    <Select.Trigger>
+                        <Select.Value>
+                            {selected?.label ?? 'Select a category'}
+                        </Select.Value>
+                    </Select.Trigger>
+                    <Select.Content>
+                        {#each categories as category (category.id)}
+                            <Select.Item 
+                                value={category.id}
+                            >
                                 {category.name}
-                            </SelectItem>
+                            </Select.Item>
                         {/each}
-                    </SelectContent>
-                </Select>
+                    </Select.Content>
+                </Select.Root>
                 {#if errors.category}
                     <p class="text-red-500 text-sm mt-1">{errors.category}</p>
                 {/if}

@@ -25,12 +25,11 @@
         }
 
         console.log('Habit deleted successfully');
-        
         await invalidateAll();
     } catch (error) {
         console.error('Error deleting habit:', error);
-        }
-        }
+    }
+}
 
     function editHabit(habitId: string) {
         goto(`/habits/${habitId}/edit`);
@@ -55,7 +54,7 @@
 
     {#if data.habits?.length > 0}
         <div class="grid gap-4">
-            {#each data.habits as habit}
+            {#each data.habits as habit (habit.id)}
                 <div class="p-4 border rounded-lg flex justify-between items-start">
                     <div>
                         <h3 class="font-semibold">{habit.title}</h3>
@@ -72,7 +71,7 @@
                                 {habit.difficulty}
                             </span>
                             <span class="capitalize px-2 py-1 bg-primary/10 rounded">
-                                {habit.category}
+                                {habit.category?.name ?? 'Uncategorized'}
                             </span>
                         </div>
                     </div>
