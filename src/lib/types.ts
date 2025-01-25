@@ -100,10 +100,16 @@ export interface HabitData {
 	title: string;
 	description?: string;
 	categoryId?: string;
+	category?: {
+		id: string;
+		name: string;
+		description?: string;
+	};
 	frequency: HabitFrequency;
 	customFrequency?: {
 		days?: number[]; // [0,1,2,3,4,5,6] for specific days of week
 	};
+	days?: number[];
 	difficulty: HabitDifficulty;
 	startDate: string;
 	endDate?: string;
