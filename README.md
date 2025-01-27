@@ -12,7 +12,6 @@
 
 - **Frontend**: Built with [Svelte](https://svelte.dev/) and [SvelteKit](https://kit.svelte.dev/) for a reactive and efficient user interface.
 - **Styling**: Utilizes [Tailwind CSS](https://tailwindcss.com/) for utility-first CSS styling.
-- **State Management**: Managed with [Arctic](https://github.com/arcticicestudio/arctic) for predictable state handling.
 - **Icons**: Integrated with [Lucide Svelte](https://lucide.dev/) for crisp and customizable icons.
 - **Notifications**: Implemented using [Svelte Sonner](https://github.com/robbrazier/svelte-sonner) for user feedback.
 - **Backend**:
