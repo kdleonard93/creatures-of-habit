@@ -9,13 +9,14 @@
 
     const initialData: HabitData = {
         title: data.habit.title,
+        categoryId: data.habit.categoryId ?? undefined,
         description: data.habit.description || '',
         frequency: data.habit.frequencyId ? 'custom' : 'daily',
         customFrequency: {
             days: []
         },
         difficulty: data.habit.difficulty,
-        startDate: data.habit.startDate
+        startDate: data.habit.startDate ?? new Date().toISOString()
     };
 
     async function handleSubmit(formData: HabitData) {
@@ -38,5 +39,5 @@
 
 <div class="container mx-auto py-8">
     <h1 class="text-2xl font-bold mb-6">Edit Habit</h1>
-    <HabitForm {initialData} onSubmit={handleSubmit} />
+    <HabitForm {initialData} onSubmit={handleSubmit} categories={data.categories}/>
 </div>
