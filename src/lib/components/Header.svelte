@@ -12,8 +12,7 @@
       { href: '/dashboard', label: 'Dashboard' },
       { href: '/habits', label: 'Habits' },
       { href: '/character/details', label: 'Character' },
-      { href: '/quests', label: 'Quests' },
-      { href: '/profile', label: 'Profile' }
+      { href: '/quests', label: 'Quests' }
     ];
 
     // Auth items for consistent usage
