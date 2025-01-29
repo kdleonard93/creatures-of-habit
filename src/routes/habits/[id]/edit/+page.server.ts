@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
-import { habit } from '$lib/server/db/schema';
+import { habit, habitCategory } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
@@ -23,7 +23,13 @@ export const load: PageServerLoad = async ({ locals, params }) => {
         throw redirect(302, '/habits');
     }
 
+    const categories = await db
+        .select()
+        .from(habitCategory)
+        .where(eq(habitCategory.userId, session.user.id));
+
     return {
-        habit: habitData
+        habit: habitData,
+        categories
     };
 };
