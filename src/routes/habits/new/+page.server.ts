@@ -49,7 +49,6 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
         }
     }
 
-    console.log('Returning existing categories:', categories);
     return {
         categories
     };
