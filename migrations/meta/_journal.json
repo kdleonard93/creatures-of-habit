@@ -99,6 +99,13 @@
       "when": 1737090365259,
       "tag": "0013_flat_tusk",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1738639130058,
+      "tag": "0014_hard_tusk",
+      "breakpoints": true
     }
   ]
 }

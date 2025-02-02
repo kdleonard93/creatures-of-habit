@@ -1,0 +1,1 @@
+ALTER TABLE `creature` ADD `experience` integer DEFAULT 0 NOT NULL;
