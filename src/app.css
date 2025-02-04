@@ -6,6 +6,9 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
+
+    --success: 83.61 81.33% 44.12%;
+    --success-foreground: 0 0% 100%;
  
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
@@ -39,6 +42,9 @@
   .dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
+
+    --success: 83.61, 81.33%, 44.12%;
+    --success-foreground: 83.61, 81.33%, 20%;
  
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
@@ -79,4 +85,9 @@
 
 .capitalize {
   text-transform: capitalize;
+}
+
+.custom-btn {
+  color: #fff;
+  background-color: #84CC15;
 }

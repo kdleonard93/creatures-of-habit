@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Button } from "$lib/components/ui/button";
-    import { Check, Trash2, Pen, CirclePlus } from 'lucide-svelte';
+    import { Trash2, Pen, CirclePlus, CircleCheck, Trophy } from 'lucide-svelte';
     import { goto, invalidateAll } from '$app/navigation';
     import type { PageData } from './$types';
     import type { HabitData } from '$lib/types';
@@ -28,6 +28,30 @@
         await invalidateAll();
     } catch (error) {
         console.error('Error deleting habit:', error);
+    }
+}
+
+async function completeHabit(habitId: string) {
+    try {
+        const response = await fetch(`/api/habits/${habitId}/complete`, {
+            method: 'POST'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to complete habit');
+        }
+
+        const data = await response.json();
+        
+        console.log(`Gained ${data.experienceEarned} XP!`);
+        if (data.newLevel > data.previousLevel) {
+            console.log(`Level up! Now level ${data.newLevel}`);
+        }
+
+        // Refresh the habits list
+        await invalidateAll();
+    } catch (error) {
+        console.error('Error completing habit:', error);
     }
 }
 
@@ -61,6 +85,11 @@
                         {#if habit.description}
                             <p class="text-sm text-gray-600">{habit.description}</p>
                         {/if}
+                        <div class="flex items-center gap-2">
+                            {#if habit.completedToday}
+                                <Trophy class="h-4 w-4 text-success" />
+                            {/if}
+                        </div>
                         <div class="mt-2 flex gap-2 text-sm">
                             <span class="capitalize px-2 py-1 bg-primary/10 rounded">
                                 {habit.frequency === 'custom' && habit.customFrequency?.days ? 
@@ -95,6 +124,16 @@
                             <Trash2 class="h-4 w-4" />
                             Delete
                         </Button>
+                        <Button 
+                        variant="success"
+                        size="sm"
+                        onclick={() => completeHabit(habit.id)}
+                        disabled={habit.completedToday}
+                        class="flex items-center gap-2"
+                    >
+                        <CircleCheck class="h-4 w-4" />
+                        Complete
+                    </Button>
                     </div>
                 </div>
             {/each}
