@@ -47,21 +47,31 @@ export const POST = (async ({ locals, params }) => {
                 userId: session.user.id,
                 completedAt: new Date().toISOString(),
                 experienceEarned,
-                value: 100 // Full completion
+                value: 100
             })
             .returning();
 
-        // Update creature experience and level
+        // Get current creature
+        const [currentCreature] = await db
+            .select()
+            .from(creature)
+            .where(eq(creature.userId, session.user.id));
+
+        if (!currentCreature) {
+            return json({ error: 'Creature not found' }, { status: 404 });
+        }
+
+        // Calculate new level
+        const newExperience = (currentCreature.experience ?? 0) + experienceEarned;
+        const newLevel = Math.floor(newExperience / 100) + 1;
+
+        // Update creature
         const [updatedCreature] = await db
             .update(creature)
-            .set(sql`
-                experience = experience + ${experienceEarned},
-                level = CASE 
-                    WHEN (experience + ${experienceEarned}) >= (level * 100) 
-                    THEN level + 1 
-                    ELSE level 
-                END
-            `)
+            .set({
+                experience: newExperience,
+                level: newLevel
+            })
             .where(eq(creature.userId, session.user.id))
             .returning();
 
