@@ -17,4 +17,4 @@
 
 <Footer />
 
-<Toaster richColors closeButton position="bottom-right" theme="dark" />
+<Toaster richColors closeButton position="top-center" />

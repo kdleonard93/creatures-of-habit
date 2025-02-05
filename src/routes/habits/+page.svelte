@@ -1,11 +1,13 @@
 <script lang="ts">
     import { Button } from "$lib/components/ui/button";
-    import { Check, Trash2, Pen, CirclePlus } from 'lucide-svelte';
+    import { Trash2, Pen, CirclePlus, CircleCheck, Trophy, FolderCheck } from 'lucide-svelte';
     import { goto, invalidateAll } from '$app/navigation';
     import type { PageData } from './$types';
+    import { toast } from 'svelte-sonner';
     import type { HabitData } from '$lib/types';
 
     export let data: PageData;
+
 
     function navigateToNewHabit() {
         goto('/habits/new');
@@ -15,7 +17,6 @@
     if (!confirm('Are you sure you want to delete this habit?')) return;
     
     try {
-        console.log('Deleting habit:', habitId);
         const response = await fetch(`/api/habits/${habitId}`, {
             method: 'DELETE'
         });
@@ -24,10 +25,34 @@
             throw new Error('Failed to delete habit');
         }
 
-        console.log('Habit deleted successfully');
+        toast.success(`${habitId} deleted successfully`, {duration: 10000});
         await invalidateAll();
     } catch (error) {
-        console.error('Error deleting habit:', error);
+        toast.error(`Error deleting habit: ${error}`);
+    }
+}
+
+async function completeHabit(habitId: string) {
+    try {
+        const response = await fetch(`/api/habits/${habitId}/complete`, {
+            method: 'POST'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to complete habit');
+        }
+
+        const data = await response.json();
+        
+        toast.success(`Gained ${data.experienceEarned} XP!`);
+        if (data.newLevel > data.previousLevel) {
+            toast.success(`Level up! Now level ${data.newLevel}`);
+        }
+
+        // Refresh the habits list
+        await invalidateAll();
+    } catch (error) {
+        console.error('Error completing habit:', error);
     }
 }
 
@@ -45,7 +70,13 @@
 
 <div class="container mx-auto py-8">
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">Your Habits</h1>
+        <div>
+            <h1 class="text-2xl font-bold">Your Habits</h1>
+            <Button class="custom-btn" size="sm" onclick={() => goto('/habits/completed')}>
+                <div class="pr-4"><FolderCheck color="#8FBE00" class="h-4 w-4"  /></div>
+                View Completed Habits
+            </Button>
+        </div>
         <Button onclick={navigateToNewHabit} class="flex items-center gap-2">
             <CirclePlus class="h-4 w-4" />
             Create New Habit
@@ -61,6 +92,11 @@
                         {#if habit.description}
                             <p class="text-sm text-gray-600">{habit.description}</p>
                         {/if}
+                        <div class="flex items-center gap-2">
+                            {#if habit.completedToday}
+                                <Trophy class="h-4 w-4 text-success" />
+                            {/if}
+                        </div>
                         <div class="mt-2 flex gap-2 text-sm">
                             <span class="capitalize px-2 py-1 bg-primary/10 rounded">
                                 {habit.frequency === 'custom' && habit.customFrequency?.days ? 
@@ -95,6 +131,16 @@
                             <Trash2 class="h-4 w-4" />
                             Delete
                         </Button>
+                        <Button 
+                        variant="success"
+                        size="sm"
+                        onclick={() => completeHabit(habit.id)}
+                        disabled={habit.completedToday}
+                        class="flex items-center gap-2"
+                    >
+                        <CircleCheck class="h-4 w-4" />
+                        Complete
+                    </Button>
                     </div>
                 </div>
             {/each}

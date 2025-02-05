@@ -47,29 +47,46 @@ export const POST = (async ({ locals, params }) => {
                 userId: session.user.id,
                 completedAt: new Date().toISOString(),
                 experienceEarned,
-                value: 100 // Full completion
+                value: 100
             })
             .returning();
 
-        // Update creature experience and level
-        const [updatedCreature] = await db
-            .update(creature)
-            .set(sql`
-                experience = experience + ${experienceEarned},
-                level = CASE 
-                    WHEN (experience + ${experienceEarned}) >= (level * 100) 
-                    THEN level + 1 
-                    ELSE level 
-                END
-            `)
-            .where(eq(creature.userId, session.user.id))
-            .returning();
+        // Get current creature
+        const [currentCreature] = await db
+            .select()
+            .from(creature)
+            .where(eq(creature.userId, session.user.id));
+
+        // Calculate new level
+        const newExperience = (currentCreature.experience ?? 0) + experienceEarned;
+        const newLevel = Math.floor(newExperience / 100) + 1;
+        const previousLevel = currentCreature.level;
+
+        // Update creature and mark habit as completed (archived)
+        await Promise.all([
+            // Update creature experience and level
+            db.update(creature)
+                .set({
+                    experience: newExperience,
+                    level: newLevel
+                })
+                .where(eq(creature.userId, session.user.id)),
+            
+            // Mark habit as completed
+            db.update(habit)
+                .set({
+                    isArchived: true,
+                    updatedAt: new Date().toISOString()
+                })
+                .where(eq(habit.id, habitData.id))
+        ]);
 
         return json({
             success: true,
             completion,
             experienceEarned,
-            newLevel: updatedCreature.level
+            newLevel,
+            previousLevel
         });
     } catch (error) {
         console.error('Error completing habit:', error);
