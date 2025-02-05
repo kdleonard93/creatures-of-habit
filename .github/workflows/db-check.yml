@@ -2,17 +2,18 @@ name: Database Checks
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
 
 jobs:
   db-check:
     runs-on: ubuntu-latest
+    
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup pnpm
+      - name: Setup PNPM
         uses: pnpm/action-setup@v2
         with:
           version: 8
@@ -24,10 +25,13 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
-      - name: Check Migration Generation
+      - name: Generate migrations
         run: pnpm db:generate
 
-      - name: Validate Migrations
+      - name: Check migrations
         run: pnpm db:push
+        env:
+          DATABASE_URL: "file:test-db.db"
+          DATABASE_AUTH_TOKEN: "test-token"
