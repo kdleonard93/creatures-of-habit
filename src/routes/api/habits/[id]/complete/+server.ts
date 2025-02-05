@@ -57,29 +57,36 @@ export const POST = (async ({ locals, params }) => {
             .from(creature)
             .where(eq(creature.userId, session.user.id));
 
-        if (!currentCreature) {
-            return json({ error: 'Creature not found' }, { status: 404 });
-        }
-
         // Calculate new level
         const newExperience = (currentCreature.experience ?? 0) + experienceEarned;
         const newLevel = Math.floor(newExperience / 100) + 1;
+        const previousLevel = currentCreature.level;
 
-        // Update creature
-        const [updatedCreature] = await db
-            .update(creature)
-            .set({
-                experience: newExperience,
-                level: newLevel
-            })
-            .where(eq(creature.userId, session.user.id))
-            .returning();
+        // Update creature and mark habit as completed (archived)
+        await Promise.all([
+            // Update creature experience and level
+            db.update(creature)
+                .set({
+                    experience: newExperience,
+                    level: newLevel
+                })
+                .where(eq(creature.userId, session.user.id)),
+            
+            // Mark habit as completed
+            db.update(habit)
+                .set({
+                    isArchived: true,
+                    updatedAt: new Date().toISOString()
+                })
+                .where(eq(habit.id, habitData.id))
+        ]);
 
         return json({
             success: true,
             completion,
             experienceEarned,
-            newLevel: updatedCreature.level
+            newLevel,
+            previousLevel
         });
     } catch (error) {
         console.error('Error completing habit:', error);
