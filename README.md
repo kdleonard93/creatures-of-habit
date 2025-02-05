@@ -161,10 +161,4 @@
 
   ```bash
   pnpm run format
-  ```
 
-- **Lint Code**:
-
-  ```bash
-  pnpm run lint
-  ```
