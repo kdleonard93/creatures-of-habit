@@ -2,6 +2,13 @@
 
 **Creatures of Habit** is a web application designed to help users track and develop habits, promoting personal growth and productivity.
 
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+- [Node.js](https://nodejs.org/) (version 18 or later)
+- [pnpm](https://pnpm.io/) (version 8 or later)
+- A modern web browser
+
 ## Features
 
 - **Habit Tracking**: Monitor daily habits and visualize progress over time.
@@ -27,144 +34,105 @@
 
 ## Getting Started
 
-1. **Clone the Repository**:
+### 1. Clone the Repository
 
+```bash
+git clone https://github.com/kdleonard93/creatures-of-habit.git
+cd creatures-of-habit
+```
+
+### 2. Install Dependencies
+
+```bash
+pnpm install
+```
+
+### 3. Set Up Environment Variables
+
+1. Duplicate `.env.example` and rename it to `.env`:
    ```bash
-   git clone https://github.com/kdleonard93/creatures-of-habit.git
-   cd creatures-of-habit
+   cp .env.example .env
    ```
 
-2. **Install Dependencies**:
+2. Open `.env` and configure the following variables:
+   - `DATABASE_URL`: Connection URL for your database (e.g., LibSQL or SQLite)
+   - `JWT_SECRET`: A secure, random string for JWT token generation
+   - `SALT_ROUNDS`: Number of salt rounds for password hashing (recommended: 10-12)
 
-   ```bash
-   pnpm install
-   ```
+   **Security Note**: 
+   - Never commit your `.env` file to version control
+   - Use strong, unique values for `JWT_SECRET`
+   - Keep your environment variables confidential
 
-3. **Set Up Environment Variables**:
+### 4. Database Setup
 
-   - Duplicate `.env.example` and rename it to `.env`.
-   - Fill in the necessary environment variables.
+Initialize the database:
 
-4. **Database Setup**:
+```bash
+# Push database schema
+pnpm run db:push
 
-   - **Push Database Schema**:
+# Generate Drizzle client
+pnpm run db:generate
 
-     ```bash
-     pnpm run db:push
-     ```
+# Run migrations
+pnpm run db:migrate
+```
 
-   - **Generate Drizzle Client**:
+### 5. Start Development Server
 
-     ```bash
-     pnpm run db:generate
-     ```
+```bash
+pnpm run dev
+```
 
-   - **Run Migrations**:
+The application will be available at `http://localhost:5173`.
 
-     ```bash
-     pnpm run db:migrate
-     ```
+## Authentication Flow
 
-   - **Start Local Database** (Optional):
+1. **Registration**:
+   - Navigate to the registration page
+   - Provide required details (email, password)
+   - Password requirements:
+     * Minimum 8 characters
+     * At least one uppercase letter
+     * At least one lowercase letter
+     * At least one number
+     * At least one special character
 
-     ```bash
-     pnpm run db:local
-     ```
+2. **Login**:
+   - Use registered email and password
+   - Passwords are securely hashed before storage
+   - JWT tokens are used for maintaining user sessions
 
-5. **Development Server**:
+## Troubleshooting
 
-   Start the development server:
+- **Database Connection Issues**: 
+  - Verify `DATABASE_URL` in `.env`
+  - Ensure database service is running
+  - Check network connectivity
 
-   ```bash
-   pnpm run dev
-   ```
+- **Authentication Problems**:
+  - Confirm `.env` variables are correctly set
+  - Verify password meets complexity requirements
+  - Clear browser cache and cookies
 
-   The application will be available at `http://localhost:5173`.
+## Available Scripts
 
-## Scripts
+- `pnpm run dev`: Start development server
+- `pnpm run build`: Build for production
+- `pnpm run preview`: Preview production build
+- `pnpm run test`: Run all tests
+- `pnpm run lint`: Lint code
+- `pnpm run format`: Format code
 
-- **Development**:
+## Contributing
 
-  ```bash
-  pnpm run dev
-  ```
+Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) before getting started.
 
-- **Build**:
+## License
 
-  ```bash
-  pnpm run build
-  ```
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-- **Preview**:
+## Support
 
-  ```bash
-  pnpm run preview
-  ```
-
-- **Type Check**:
-
-  ```bash
-  pnpm run check
-  ```
-
-- **Watch Type Check**:
-
-  ```bash
-  pnpm run check:watch
-  ```
-
-- **Unit Tests**:
-
-  ```bash
-  pnpm run test:unit
-  ```
-
-- **Run All Tests**:
-
-  ```bash
-  pnpm run test
-  ```
-
-- **Database Operations**:
-
-  - **Push Schema**:
-
-    ```bash
-    pnpm run db:push
-    ```
-
-  - **Generate Client**:
-
-    ```bash
-    pnpm run db:generate
-    ```
-
-  - **Migrate**:
-
-    ```bash
-    pnpm run db:migrate
-    ```
-
-  - **Open Studio**:
-
-    ```bash
-    pnpm run db:studio
-    ```
-
-  - **Start Local DB**:
-
-    ```bash
-    pnpm run db:local
-    ```
-
-- **Format Code**:
-
-  ```bash
-  pnpm run format
-  ```
-
-- **Lint Code**:
-
-  ```bash
-  pnpm run lint
-  ```
+For issues or questions, please [open an issue](https://github.com/kdleonard93/creatures-of-habit/issues) on GitHub.

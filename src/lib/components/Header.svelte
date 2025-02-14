@@ -5,10 +5,11 @@
     import { page } from '$app/stores';
     import { svgLogo } from '$lib/assets/appLogo';
   
-    type ButtonVariant = "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | undefined;
+    type ButtonVariant = "default" | "destructive" | "outline" | "secondary" | undefined;
+
 
     // Navigation items
-    const navItems = [
+    const navItems: Array<{href: string; label: string;}> = [
       { href: '/dashboard', label: 'Dashboard' },
       { href: '/habits', label: 'Habits' },
       { href: '/character/details', label: 'Character' },
@@ -17,7 +18,7 @@
 
     // Auth items for consistent usage
     const authItems: Array<{ href: string; label: string; variant: ButtonVariant }> = [
-      { href: '/login', label: 'Log in', variant: 'ghost' },
+      { href: '/login', label: 'Log in', variant: 'secondary' },
       { href: '/signup', label: 'Sign up', variant: 'default' }
     ];
   
