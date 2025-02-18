@@ -72,12 +72,12 @@ async function completeHabit(habitId: string) {
     <div class="flex justify-between items-center mb-6">
         <div>
             <h1 class="text-2xl font-bold">Your Habits</h1>
-            <Button class="custom-btn" size="sm" onclick={() => goto('/habits/completed')}>
-                <div class="pr-4"><FolderCheck color="#8FBE00" class="h-4 w-4"  /></div>
+            <Button class="bg-primary text-primary-foreground hover:bg-foreground hover:text-background transition-colors duration-200" size="sm" onclick={() => goto('/habits/completed')}>
+                <div class="pr-4"><FolderCheck class="h-4 w-4"  /></div>
                 View Completed Habits
             </Button>
         </div>
-        <Button onclick={navigateToNewHabit} class="flex items-center gap-2">
+        <Button onclick={navigateToNewHabit} class="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-foreground hover:text-background transition-colors duration-200">
             <CirclePlus class="h-4 w-4" />
             Create New Habit
         </Button>

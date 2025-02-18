@@ -68,7 +68,7 @@
 
     --destructive: #EF4444;
     --destructive-foreground: #FFFFFF;
-    
+
     --ring: #8C2323;
     --radius: 0.5rem;
   }
@@ -85,14 +85,4 @@
 
 .capitalize {
   text-transform: capitalize;
-}
-
-.custom-btn {
-  color: #FFFFFF;
-  background-color: #B72E2E;
-}
-
-.custom-btn:hover {
-  color: #B72E2E;
-  background-color: #FFFFFF;
 }
