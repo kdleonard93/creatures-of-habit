@@ -137,3 +137,11 @@ export interface HabitStreak {
 	longestStreak: number;
 	lastCompletedAt?: string;
 }
+
+
+export interface Notifications {
+	id: string;
+	message: string;
+	type: string;
+	timestamp: Date;
+}
