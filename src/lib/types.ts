@@ -18,8 +18,7 @@ export const CreatureRace = {
 
 export type CreatureClassType = (typeof CreatureClass)[keyof typeof CreatureClass];
 export type CreatureRaceType = (typeof CreatureRace)[keyof typeof CreatureRace];
-export type HabitFrequency = 'daily' | 'weekly' | 'custom';
-export type HabitDifficulty = 'easy' | 'medium' | 'hard';
+
 
 export interface CreatureStats {
 	strength: number;
@@ -115,6 +114,9 @@ export interface HabitData {
 	endDate?: string;
 }
 
+export type HabitFrequency = 'daily' | 'weekly' | 'custom';
+export type HabitDifficulty = 'easy' | 'medium' | 'hard';
+
 export interface HabitCategory {
 	id: string;
 	name: string;
@@ -137,3 +139,12 @@ export interface HabitStreak {
 	longestStreak: number;
 	lastCompletedAt?: string;
 }
+
+export interface Notifications {
+	id: string;
+	message: string;
+	type: NotificationType;
+	timestamp: Date;
+}
+
+export type NotificationType = 'email' | 'sms' | 'in-app'
