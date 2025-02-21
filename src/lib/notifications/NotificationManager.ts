@@ -47,12 +47,18 @@ export class NotificationManager {
                 body: notification.message,
                 icon: '/icons/notification.png',
             });
-
-            this.notifications.set(notification.id, browserNotification);
+            const notificationRecord: Notifications = {
+                id: notification.id,
+                message: notification.message,
+                type: notification.type,
+                timestamp: new Date(), 
+                browserNotification: browserNotification 
+            };
+            this.notifications.set(notification.id, notificationRecord);
             this.plugins.forEach(plugin => plugin.send(notification));
         }, time);
 
-        this.notifications.set(notification.id, timeoutId as unknown as Notifications);
+        this.notifications.set(notification.id, Number(timeoutId) as unknown as Notifications);
     }
 
     public clearNotification(id: string): void {
