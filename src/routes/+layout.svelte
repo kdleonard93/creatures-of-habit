@@ -4,19 +4,19 @@
 	import Footer from '$lib/components/Footer.svelte';
 	import { Toaster } from 'svelte-sonner';
 	import type { LayoutData } from './$types';
-	import { initPostHog } from '$lib/plugins/PostHog';
-	import { onMount } from 'svelte';
+	import posthog from 'posthog-js';
+	import { beforeNavigate, afterNavigate } from '$app/navigation';
+	import { browser } from '$app/environment';
 
 
 	const props = $props<{ data: LayoutData }>();
 	const {children} = props;
 
-    console.log('Layout component initializing');
 
-    onMount(() => {
-        console.log('Layout component mounted');
-        initPostHog();
-    });
+	if (browser) {
+    beforeNavigate(() => posthog.capture('$pageleave'));
+    afterNavigate(() => posthog.capture('$pageview'));
+  }
 </script>
 
 
