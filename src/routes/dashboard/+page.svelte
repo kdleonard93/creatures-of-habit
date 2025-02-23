@@ -28,6 +28,7 @@
 	}
 </script>
 
+
 <div class="container mx-auto py-8 space-y-6">
 	<div class="flex justify-between items-center">
 		<h1 class="text-3xl font-bold">Welcome, {data.user.username}!</h1>
