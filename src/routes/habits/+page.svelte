@@ -4,7 +4,6 @@
     import { goto, invalidateAll } from '$app/navigation';
     import type { PageData } from './$types';
     import { toast } from 'svelte-sonner';
-    import type { HabitData } from '$lib/types';
 
     export let data: PageData;
 
