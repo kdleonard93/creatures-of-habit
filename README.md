@@ -129,9 +129,6 @@ The application will be available at `http://localhost:5173`.
 
 Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) before getting started.
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Support
 
