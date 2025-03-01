@@ -20,7 +20,7 @@
       community: [
         { label: 'Discord', href: '#', icon: Bot },
         { label: 'GitHub', href: '#', icon: Github },
-        { label: 'Twitter', href: '#', icon: Twitter }
+        { label: 'BlueSky', href: '#', icon: Butterfly  }
       ]
     };
   </script>
