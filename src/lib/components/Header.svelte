@@ -4,6 +4,7 @@
     import { Menu } from "lucide-svelte";
     import { page } from '$app/stores';
     import { svgLogo } from '$lib/assets/appLogo';
+    import NotificationCenter from '$lib/components/notifications/NotificationCenter.svelte'
   
     type ButtonVariant = "default" | "destructive" | "outline" | "secondary" | undefined;
 
@@ -51,12 +52,15 @@
   
             <!-- User Menu (Desktop) -->
             <div class="hidden md:flex items-center gap-4">
+                <NotificationCenter />
                 {#each authItems as item}
                     <Button href={item.href} variant={item.variant} size="sm">
                         {item.label}
                     </Button>
                 {/each}
             </div>
+
+            
   
             <!-- Mobile Navigation -->
             <Sheet>
