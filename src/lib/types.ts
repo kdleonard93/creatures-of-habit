@@ -145,6 +145,7 @@ export interface Notifications {
 	message: string;
 	type: NotificationType;
 	timestamp: Date;
+	browserNotification?: Notification;
 }
 
 export type NotificationType = 'email' | 'sms' | 'in-app'
