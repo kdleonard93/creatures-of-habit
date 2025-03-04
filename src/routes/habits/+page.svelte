@@ -4,6 +4,7 @@
     import { goto, invalidateAll } from '$app/navigation';
     import type { PageData } from './$types';
     import { toast } from 'svelte-sonner';
+    import HabitReminder from '$lib/components/habits/HabitReminder.svelte'
 
     export let data: PageData;
 
@@ -141,6 +142,9 @@ async function completeHabit(habitId: string) {
                         Complete
                     </Button>
                     </div>
+                </div>
+                <div class="mt-4 border-t pt-4">
+                    <HabitReminder habitId={habit.id} habitTitle={habit.title} />
                 </div>
             {/each}
         </div>

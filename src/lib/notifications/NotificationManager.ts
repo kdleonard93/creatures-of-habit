@@ -1,8 +1,6 @@
-import { writable } from 'svelte/store';
-import type { Notifications} from '$lib/types';
-
-// Store for notifications
-export const notifications = writable<Notifications[]>([]);
+import { get } from 'svelte/store';
+import type { Notifications } from '$lib/types';
+import { notifications } from './NotificationStore';
 
 // Notification Plugin Interface
 export interface NotificationPlugin {
@@ -10,7 +8,7 @@ export interface NotificationPlugin {
 }
 
 export class NotificationManager {
-    private notifications: Map<string, Notifications | number> = new Map();
+    private timeouts: Map<string, number> = new Map();
     private plugins: NotificationPlugin[] = [];
     private permission: NotificationPermission = 'default';
 
@@ -19,10 +17,12 @@ export class NotificationManager {
     }
 
     private async requestPermission(): Promise<void> {
-        if (Notification.permission !== 'granted') {
-            this.permission = await Notification.requestPermission();
-        } else {
-            this.permission = 'granted';
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+            if (Notification.permission !== 'granted') {
+                this.permission = await Notification.requestPermission();
+            } else {
+                this.permission = 'granted';
+            }
         }
     }
 
@@ -34,46 +34,91 @@ export class NotificationManager {
         this.plugins.push(plugin);
     }
 
-    public scheduleNotification(notification: Notifications, time: number): void {
-        if (!this.isPermissionGranted()) {
-            console.warn('Notification permission not granted.');
-            return;
+    public async scheduleNotification(
+        id: string, 
+        message: string, 
+        type: 'email' | 'sms' | 'in-app', 
+        delay: number
+    ): Promise<void> {
+        // Clear existing timeout for this ID if it exists
+        this.clearNotification(id);
+
+        // Schedule the notification
+        const timeoutId = setTimeout(() => {
+            this.showNotification(id, message, type);
+        }, delay);
+
+        // Store the timeout ID
+        this.timeouts.set(id, Number(timeoutId));
+    }
+
+    public showNotification(id: string, message: string, type: 'email' | 'sms' | 'in-app'): void {
+        // Create notification record
+        const notification: Notifications = {
+            id,
+            message,
+            type,
+            timestamp: new Date()
+        };
+
+        // Show browser notification if permission granted
+        if (this.isPermissionGranted() && type !== 'in-app' && typeof window !== 'undefined' && 'Notification' in window) {
+            const browserNotification = new Notification(message, {
+                icon: '/favicon.png'
+            });
+            browserNotification.onclick = () => {
+                window.focus();
+                browserNotification.close();
+            };
+            notification.browserNotification = browserNotification;
         }
 
-        this.clearNotification(notification.id);
+        // Add to the notifications store
+        notifications.update(n => [...n, notification]);
 
-        const timeoutId = setTimeout(() => {
-            const browserNotification = new Notification(notification.message, {
-                body: notification.message,
-                icon: '/icons/notification.png',
-            });
-            const notificationRecord: Notifications = {
-                id: notification.id,
-                message: notification.message,
-                type: notification.type,
-                timestamp: new Date(), 
-                browserNotification: browserNotification 
-            };
-            this.notifications.set(notification.id, notificationRecord);
-            this.plugins.forEach(plugin => plugin.send(notification));
-        }, time);
-
-        this.notifications.set(notification.id, Number(timeoutId) as unknown as Notifications);
+        // Send to plugins
+        this.plugins.forEach(plugin => plugin.send(notification));
     }
 
     public clearNotification(id: string): void {
-        const existingNotification = this.notifications.get(id);
-        if (existingNotification) {
-            if (existingNotification instanceof Notification) {
-                existingNotification.close();
-            } else {
-                clearTimeout(existingNotification as unknown as number);
-            }
-            this.notifications.delete(id);
+        const timeoutId = this.timeouts.get(id);
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+            this.timeouts.delete(id);
         }
+
+        // Remove from notifications store
+        notifications.update(n => n.filter(notification => {
+            if (notification.id === id && notification.browserNotification) {
+                notification.browserNotification.close();
+            }
+            return notification.id !== id;
+        }));
     }
 
     public clearAllNotifications(): void {
-        this.notifications.forEach((_, id) => this.clearNotification(id));
+        // Clear all timeouts
+        this.timeouts.forEach((timeoutId) => {
+            clearTimeout(timeoutId);
+        });
+        this.timeouts.clear();
+
+        // Close all browser notifications
+        const currentNotifications = get(notifications);
+        currentNotifications.forEach(notification => {
+            if (notification.browserNotification) {
+                notification.browserNotification.close();
+            }
+        });
+
+        // Clear the notifications store
+        notifications.set([]);
+    }
+
+    public getNotifications(): Notifications[] {
+        return get(notifications);
     }
 }
+
+// Create a singleton instance to use throughout the app
+export const notificationManager = new NotificationManager();
