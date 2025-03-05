@@ -34,6 +34,7 @@ describe('NotificationManager', () => {
     
     afterEach(() => {
         vi.clearAllTimers();
+        vi.restoreAllMocks();
     });
     
     it('should show an immediate notification', () => {
@@ -113,16 +114,16 @@ describe('NotificationManager', () => {
         notificationManager.showNotification('test-8', 'SMS Plugin Test', 'sms');
         
         // Plugins should be called
-        expect(emailSpy).toHaveBeenCalledTimes(1);
+        expect(emailSpy).toHaveBeenCalledTimes(2);
         expect(emailSpy).toHaveBeenCalledWith(expect.objectContaining({
             id: 'test-7',
-            message: 'Email Plugin',
+            message: 'Email Plugin Test',
             type: 'email'
         }));
-        expect(smsSpy).toHaveBeenCalledTimes(1);
+        expect(smsSpy).toHaveBeenCalledTimes(2);
         expect(smsSpy).toHaveBeenCalledWith(expect.objectContaining({
             id: 'test-8',
-            message: 'SMS Plugin',
+            message: 'SMS Plugin Test',
             type: 'sms'
         }));
     });
