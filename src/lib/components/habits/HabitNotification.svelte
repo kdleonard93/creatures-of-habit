@@ -52,7 +52,10 @@
 >
     <div class="flex items-start">
         <div class="mr-3 mt-1 {getColor(props.notification.type)}">
-            {getIcon(props.notification.type)} size={20}
+            {#if getIcon(props.notification.type)}
+            {@const Icon = getIcon(props.notification.type)}
+            <Icon size={20} />
+          {/if}
         </div>
         <div>
             <p class="font-medium">{props.notification.message}</p>
