@@ -39,7 +39,7 @@
   }
 
   .dark {
-    --background: #1A1616;
+    --background: #1A1617;
     --foreground: #FDFBF8;
 
     --success: #10B981;
@@ -64,7 +64,7 @@
     --secondary-foreground: #FFFFFF;
 
     --accent: #B5A642;
-    --accent-foreground: #1A1616;
+    --accent-foreground: #1A1617;
 
     --destructive: #EF4444;
     --destructive-foreground: #FFFFFF;
