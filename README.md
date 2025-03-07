@@ -1,4 +1,4 @@
-# Creatures of Habit
+# Creatures of Habit (WIP)
 
 **Creatures of Habit** is a web application designed to help users track and develop habits, promoting personal growth and productivity.
 
