@@ -14,8 +14,9 @@
 
 
 	if (browser) {
-    beforeNavigate(() => posthog.capture('$pageleave'));
-    afterNavigate(() => posthog.capture('$pageview'));
+		afterNavigate(() => {
+        posthog.capture('$pageview');
+    });
   }
 </script>
 
