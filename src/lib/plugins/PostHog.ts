@@ -8,6 +8,7 @@ export const posthogConfig: Partial<PostHogConfig> = {
     api_host: 'https://us.i.posthog.com',
     capture_pageview: false,
     capture_pageleave: false,
+    disable_session_recording: true,
 };
 
 export const getPostHogKey = () => {

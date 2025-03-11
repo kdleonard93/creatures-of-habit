@@ -17,6 +17,7 @@
 
 	// State management with runes
 	let currentStep = $state(1);
+	let isSubmitting = $state(false);
 	const totalSteps = 3;
 
 	let formData = $state<RegistrationData>({
@@ -184,7 +185,11 @@
 	function nextStep() {
 		if (validateCurrentStep()) {
 			if (currentStep === totalSteps) {
-				handleSubmit(formData);
+				isSubmitting = true;
+				handleSubmit(formData)
+				.finally(() => {
+					isSubmitting = false;
+				})
 			} else {
 				currentStep++;
 			}
@@ -380,8 +385,13 @@
 
 	<div class="flex justify-between mt-6">
 		<Button variant="outline" on:click={previousStep} disabled={currentStep === 1}>Previous</Button>
-		<Button on:click={nextStep}>
-			{currentStep === totalSteps ? 'Create Account' : 'Next'}
-		</Button>
+		<Button on:click={nextStep} disabled={isSubmitting}>
+			{#if isSubmitting}
+			  <div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+			  {currentStep === totalSteps ? 'Creating Account...' : 'Processing...'}
+			{:else}
+			  {currentStep === totalSteps ? 'Create Account' : 'Next'}
+			{/if}
+		  </Button>
 	</div>
 </Card>

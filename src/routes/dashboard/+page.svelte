@@ -1,41 +1,26 @@
 <!-- src/routes/dashboard/+page.svelte -->
 <script lang="ts">
 	import type { PageData } from './$types';
-	import {
-		Card,
-		CardContent,
-		CardDescription,
-		CardHeader,
-		CardTitle
-	} from '$lib/components/ui/card';
+	import { Card, CardContent, CardDescription, CardHeader, CardTitle} from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { classIcons } from '$lib/assets/classIcons';
-    import { raceIcons } from '$lib/assets/raceIcons';
+	import { raceIcons } from '$lib/assets/raceIcons';
 	import type { CreatureClassType, CreatureRaceType } from '$lib/types';
 	import { LogOut, ScanEye, ShieldAlert } from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 
 	export let data: PageData;
-
-	async function handleLogout() {
-		const response = await fetch('/api/logout', {
-			method: 'POST'
-		});
-
-		if (response.ok) {
-			window.location.href = '/';
-		}
-	}
 </script>
-
 
 <div class="container mx-auto py-8 space-y-6">
 	<div class="flex justify-between items-center">
 		<h1 class="text-3xl font-bold">Welcome, {data.user.username}!</h1>
-		<Button variant="outline" size="sm" class="flex items-center gap-2" on:click={handleLogout}>
-			<LogOut class="h-4 w-4" />
-			Logout
-		</Button>
+		<form action="/logout" method="POST" use:enhance>
+			<Button type="submit" variant="outline" size="sm" class="flex items-center gap-2">
+				<LogOut class="h-4 w-4" />
+				Logout
+			</Button>
+		</form>
 	</div>
 
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -49,7 +34,7 @@
 				<div class="space-y-4">
 					<div class="space-y-2">
 						<p><span class="font-semibold">Email:</span> {data.user.email}</p>
-                        <p><span class="font-semibold">Username:</span> {data.user.username}</p>
+						<p><span class="font-semibold">Username:</span> {data.user.username}</p>
 						<p><span class="font-semibold">Age:</span> {data.user.age}</p>
 						<p>
 							<span class="font-semibold">Member since:</span>
@@ -82,9 +67,12 @@
 				{#if data.creature}
 					<div class="space-y-4">
 						<div class="space-y-2">
-							<p class="capitalize"><span class="font-semibold">Name:</span> {data.creature.name}</p>
+							<p class="capitalize">
+								<span class="font-semibold">Name:</span>
+								{data.creature.name}
+							</p>
 							<p class="flex items-center gap-3">
-								<span class="font-semibold capitalize">Race:</span> 
+								<span class="font-semibold capitalize">Race:</span>
 								{@html raceIcons[data.creature.race as CreatureRaceType]}
 								<span class="capitalize">{data.creature.race}</span>
 							</p>
@@ -95,7 +83,7 @@
 							</p>
 							<p><span class="font-semibold">Level:</span> {data.creature.level}</p>
 						</div>
-		
+
 						<!-- Add this new button -->
 						<div class="pt-2">
 							<Button
