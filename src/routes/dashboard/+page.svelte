@@ -15,12 +15,6 @@
 <div class="container mx-auto py-8 space-y-6">
 	<div class="flex justify-between items-center">
 		<h1 class="text-3xl font-bold">Welcome, {data.user.username}!</h1>
-		<form action="/logout" method="POST" use:enhance>
-			<Button type="submit" variant="outline" size="sm" class="flex items-center gap-2">
-				<LogOut class="h-4 w-4" />
-				Logout
-			</Button>
-		</form>
 	</div>
 
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
