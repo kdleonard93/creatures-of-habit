@@ -5,7 +5,7 @@
 	import { Toaster } from 'svelte-sonner';
 	import type { LayoutData } from './$types';
 	import posthog from 'posthog-js';
-	import { beforeNavigate, afterNavigate } from '$app/navigation';
+	import { afterNavigate } from '$app/navigation';
 	import { browser } from '$app/environment';
 
 
