@@ -61,6 +61,7 @@
 		"drizzle-orm": "^0.36.4",
 		"posthog-js": "^1.222.0",
 		"svelte-sonner": "^0.3.28",
+		"typesync": "^0.14.1",
 		"uuid": "^11.0.3",
 		"zod": "^3.24.1"
 	}
