@@ -6,8 +6,8 @@ console.log('🔍 PostHog: Config file loaded');
 
 export const posthogConfig: Partial<PostHogConfig> = {
     api_host: 'https://us.i.posthog.com',
-    capture_pageview: false,
-    capture_pageleave: false,
+    capture_pageview: true,
+    capture_pageleave: true,
     disable_session_recording: true,
 };
 
