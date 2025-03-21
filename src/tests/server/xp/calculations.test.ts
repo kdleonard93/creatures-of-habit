@@ -13,9 +13,9 @@ describe('XP Calculations', () => {
     });
 
     it('should return correct XP for each level', () => {
-      expect(getXpRequiredForLevel(2)).toBe(100);
-      expect(getXpRequiredForLevel(3)).toBe(300);
-      expect(getXpRequiredForLevel(4)).toBe(600);
+      expect(getXpRequiredForLevel(2)).toBe(282);
+      expect(getXpRequiredForLevel(3)).toBe(519);
+      expect(getXpRequiredForLevel(4)).toBe(800);
       expect(getXpRequiredForLevel(10)).toBe(3162);
     });
   });
@@ -27,9 +27,9 @@ describe('XP Calculations', () => {
 
     it('should return correct level for XP', () => {
       expect(getLevelFromXp(50)).toBe(1);  // Not enough for level 2
-      expect(getLevelFromXp(100)).toBe(2);  // Just enough for level 2
-      expect(getLevelFromXp(299)).toBe(2);  // Not enough for level 3
-      expect(getLevelFromXp(300)).toBe(3);  // Just enough for level 3
+      expect(getLevelFromXp(282)).toBe(2);  // Just enough for level 2
+      expect(getLevelFromXp(500)).toBe(2);  // Not enough for level 3
+      expect(getLevelFromXp(519)).toBe(3);  // Just enough for level 3
       expect(getLevelFromXp(3000)).toBe(9);  // Between levels
     });
   });
@@ -39,18 +39,22 @@ describe('XP Calculations', () => {
       const progress = getLevelProgress(50);
       expect(progress.currentLevel).toBe(1);
       expect(progress.currentLevelXp).toBe(0);
-      expect(progress.nextLevelXp).toBe(100);
+      expect(progress.nextLevelXp).toBe(282);
       expect(progress.xpProgress).toBe(50);
-      expect(progress.progressPercentage).toBe(50);
+      // Percentage should be: (50 / (282 - 0)) * 100 = about 17.7%
+      expect(progress.progressPercentage).toBe(17);
     });
 
     it('should calculate progress for higher levels', () => {
       const progress = getLevelProgress(350);
-      expect(progress.currentLevel).toBe(3);
-      expect(progress.currentLevelXp).toBe(300);
-      expect(progress.nextLevelXp).toBe(600);
-      expect(progress.xpProgress).toBe(50);
-      expect(progress.progressPercentage).toBe(16);
+      expect(progress.currentLevel).toBe(2);
+      expect(progress.currentLevelXp).toBe(282);
+      expect(progress.nextLevelXp).toBe(519);
+      // Progress: 350 - 282 = 68
+      // Total needed: 519 - 282 = 237
+      // Percentage: (68 / 237) * 100 = about 28.7%
+      expect(progress.xpProgress).toBe(68);
+      expect(progress.progressPercentage).toBe(28);
     });
   });
 
@@ -62,17 +66,22 @@ describe('XP Calculations', () => {
     });
 
     it('should apply streak bonuses', () => {
-      expect(calculateHabitXp('medium', 2)).toBe(11); // 10 * (1 + 0.1)
-      expect(calculateHabitXp('hard', 5)).toBe(25); // 20 * (1 + 0.25)
+      // 10 * (1 + 0.05*2) = 10 * 1.1 = 11
+      expect(calculateHabitXp('medium', 2)).toBe(11);
+      // 20 * (1 + 0.05*5) = 20 * 1.25 = 25
+      expect(calculateHabitXp('hard', 5)).toBe(25);
     });
 
     it('should cap streak bonuses at 50%', () => {
-      expect(calculateHabitXp('medium', 20)).toBe(15); // 10 * 1.5 (capped)
+      // 10 * 1.5 (capped) = 15
+      expect(calculateHabitXp('medium', 20)).toBe(15);
     });
 
     it('should apply bonus multipliers', () => {
-      expect(calculateHabitXp('medium', 0, 1.5)).toBe(15); // 10 * 1.5
-      expect(calculateHabitXp('hard', 2, 1.5)).toBe(33); // 20 * (1 + 0.1) * 1.5
+      // 10 * 1.0 * 1.5 = 15
+      expect(calculateHabitXp('medium', 0, 1.5)).toBe(15);
+      // 20 * (1 + 0.05*2) * 1.5 = 20 * 1.1 * 1.5 = 33
+      expect(calculateHabitXp('hard', 2, 1.5)).toBe(33);
     });
   });
 });
