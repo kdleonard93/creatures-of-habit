@@ -1,20 +1,28 @@
 <!-- src/routes/dashboard/+page.svelte -->
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle} from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle
+	} from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { classIcons } from '$lib/assets/classIcons';
 	import { raceIcons } from '$lib/assets/raceIcons';
 	import type { CreatureClassType, CreatureRaceType } from '$lib/types';
 	import { LogOut, ScanEye, ShieldAlert } from 'lucide-svelte';
 	import { enhance } from '$app/forms';
+	import XpBar from '$lib/components/character/XpBar.svelte';
 
-	export let data: PageData;
+	const props = $props<{ data: PageData }>();
+
 </script>
 
 <div class="container mx-auto py-8 space-y-6">
 	<div class="flex justify-between items-center">
-		<h1 class="text-3xl font-bold">Welcome, {data.user.username}!</h1>
+		<h1 class="text-3xl font-bold">Welcome, {props.data.user.username}!</h1>
 	</div>
 
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -27,12 +35,12 @@
 			<CardContent>
 				<div class="space-y-4">
 					<div class="space-y-2">
-						<p><span class="font-semibold">Email:</span> {data.user.email}</p>
-						<p><span class="font-semibold">Username:</span> {data.user.username}</p>
-						<p><span class="font-semibold">Age:</span> {data.user.age}</p>
+						<p><span class="font-semibold">Email:</span> {props.data.user.email}</p>
+						<p><span class="font-semibold">Username:</span> {props.data.user.username}</p>
+						<p><span class="font-semibold">Age:</span> {props.data.user.age}</p>
 						<p>
 							<span class="font-semibold">Member since:</span>
-							{new Date(data.user.createdAt).toLocaleDateString()}
+							{new Date(props.data.user.createdAt).toLocaleDateString()}
 						</p>
 					</div>
 
@@ -58,27 +66,33 @@
 				<CardDescription>Your companion details</CardDescription>
 			</CardHeader>
 			<CardContent>
-				{#if data.creature}
+				{#if props.data.creature}
 					<div class="space-y-4">
 						<div class="space-y-2">
 							<p class="capitalize">
 								<span class="font-semibold">Name:</span>
-								{data.creature.name}
+								{props.data.creature.name}
 							</p>
 							<p class="flex items-center gap-3">
 								<span class="font-semibold capitalize">Race:</span>
-								{@html raceIcons[data.creature.race as CreatureRaceType]}
-								<span class="capitalize">{data.creature.race}</span>
+								{@html raceIcons[props.data.creature.race as CreatureRaceType]}
+								<span class="capitalize">{props.data.creature.race}</span>
 							</p>
 							<p class="flex items-center gap-3">
 								<span class="font-semibold capitalize">Class:</span>
-								{@html classIcons[data.creature.class as CreatureClassType]}
-								<span class="capitalize">{data.creature.class}</span>
+								{@html classIcons[props.data.creature.class as CreatureClassType]}
+								<span class="capitalize">{props.data.creature.class}</span>
 							</p>
-							<p><span class="font-semibold">Level:</span> {data.creature.level}</p>
+							<p><span class="font-semibold">Level:</span> {props.data.creature.level}</p>
 						</div>
 
-						<!-- Add this new button -->
+						<!-- Add XP progress bar -->
+						<div class="pt-4 border-t">
+							<h4 class="font-medium mb-2">Experience</h4>
+							<XpBar experience={props.data.creature.experience} />
+						</div>
+
+						<!-- View Details -->
 						<div class="pt-2">
 							<Button
 								href="/character/details"

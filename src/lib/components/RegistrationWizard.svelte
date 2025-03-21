@@ -5,11 +5,12 @@
 	import Progress from '$lib/components/ui/progress/progress.svelte';
 	import Label from '$lib/components/ui/label/label.svelte';
 	import { CreatureClass, CreatureRace } from '$lib/types';
-	import type { CreatureRaceType, CreatureClassType, RegistrationData, CreatureStats} from '$lib/types';
+	import type { RegistrationData, CreatureStats } from '$lib/types';
 	import { raceDefinitions } from '$lib/data/races';
 	import { classIcons } from '$lib/assets/classIcons';
 	import { raceIcons } from '$lib/assets/raceIcons';
 	import PasswordStrengthIndicator from '$lib/components/PasswordStrengthIndicator.svelte';
+	import {createInitialStats, allocateStatPoints, getTotalStatPoints, INITIAL_STAT_POINTS, STAT_MIN, STAT_MAX} from '$lib/server/xp';
 
 	const { onComplete } = $props<{
 		onComplete: (data: RegistrationData) => void;
@@ -42,6 +43,15 @@
 		},
 		general: ''
 	});
+
+	let remainingStatPoints = $state(INITIAL_STAT_POINTS);
+
+	// Update the stat modification function
+	function modifyStat(stat: keyof CreatureStats, increment: boolean): void {
+		const result = allocateStatPoints(formData.creature.stats, stat, increment);
+		formData.creature.stats = result.stats;
+		remainingStatPoints = result.remainingPoints;
+	}
 
 	let errors = $state({
 		email: '',
@@ -163,7 +173,7 @@
 			});
 
 			const data = await response.json();
-      console.log('Registration response:', data);
+			console.log('Registration response:', data);
 			if (response.ok && data.success) {
 				window.location.href = '/dashboard';
 			} else {
@@ -186,10 +196,9 @@
 		if (validateCurrentStep()) {
 			if (currentStep === totalSteps) {
 				isSubmitting = true;
-				handleSubmit(formData)
-				.finally(() => {
+				handleSubmit(formData).finally(() => {
 					isSubmitting = false;
-				})
+				});
 			} else {
 				currentStep++;
 			}
@@ -334,11 +343,8 @@
 									type="button"
 									variant="outline"
 									size="sm"
-									on:click={() => {
-										if (value > 8) {
-											formData.creature.stats[stat as keyof CreatureStats] = value - 1;
-										}
-									}}
+									disabled={value <= STAT_MIN}
+									on:click={() => modifyStat(stat as keyof CreatureStats, false)}
 								>
 									-
 								</Button>
@@ -347,11 +353,8 @@
 									type="button"
 									variant="outline"
 									size="sm"
-									on:click={() => {
-										if (value < 15) {
-											formData.creature.stats[stat as keyof CreatureStats] = value + 1;
-										}
-									}}
+									disabled={value >= STAT_MAX || remainingStatPoints <= 0}
+									on:click={() => modifyStat(stat as keyof CreatureStats, true)}
 								>
 									+
 								</Button>
@@ -387,11 +390,13 @@
 		<Button variant="outline" on:click={previousStep} disabled={currentStep === 1}>Previous</Button>
 		<Button on:click={nextStep} disabled={isSubmitting}>
 			{#if isSubmitting}
-			  <div class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-			  {currentStep === totalSteps ? 'Creating Account...' : 'Processing...'}
+				<div
+					class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+				></div>
+				{currentStep === totalSteps ? 'Creating Account...' : 'Processing...'}
 			{:else}
-			  {currentStep === totalSteps ? 'Create Account' : 'Next'}
+				{currentStep === totalSteps ? 'Create Account' : 'Next'}
 			{/if}
-		  </Button>
+		</Button>
 	</div>
 </Card>
