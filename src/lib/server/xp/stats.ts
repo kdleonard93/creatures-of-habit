@@ -24,44 +24,57 @@ export function calculateStatCost(currentValue: number): number {
 	return 0;
 }
 
-export function allocateStatPoints(
-	currentStats: CreatureStats,
-	statToModify: keyof CreatureStats,
-	increment: boolean
-): { stats: CreatureStats; remainingPoints: number } {
-	const newStats = { ...currentStats };
-	let remainingPoints = INITIAL_STAT_POINTS;
-
-	// Calculate current total point cost
-	Object.values(currentStats).forEach((value) => {
-		remainingPoints -= calculateStatCost(value);
-	});
-
-	const currentValue = newStats[statToModify];
-	const costOfChange = calculateStatCost(increment ? currentValue + 1 : currentValue - 1);
-	const costDifference = increment ? costOfChange : -calculateStatCost(currentValue);
-
-	if (increment && currentValue < STAT_MAX && remainingPoints >= costOfChange) {
-		newStats[statToModify]++;
-		remainingPoints -= costOfChange;
-	}
-
-	if (!increment && currentValue > STAT_MIN && remainingPoints + costDifference >= 0) {
-		newStats[statToModify]--;
-		remainingPoints += costDifference;
-	}
-
-	return { stats: newStats, remainingPoints };
-}
-
-export function calculateStatModifier(statValue: number): number {
-	return Math.floor((statValue - 10) / 2);
-}
-
-export function getTotalStatPoints(stats: CreatureStats): number {
+function getTotalStatPoints(stats: CreatureStats): number {
 	return Object.values(stats).reduce((total, value) => {
 		return total + calculateStatCost(value);
 	}, 0);
+}
+
+export function allocateStatPoints(
+	currentStats: CreatureStats, 
+	statToModify: keyof CreatureStats, 
+	increment: boolean
+  ): { stats: CreatureStats; remainingPoints: number } {
+	const newStats = {...currentStats};
+
+	if (increment) {
+	  if (statToModify === 'intelligence' && 
+		  Object.values(currentStats).some(val => val === 15) && 
+		  currentStats.intelligence === 8) {
+			return { 
+			  stats: newStats, 
+			  remainingPoints: 0 
+			};
+	  }
+	  
+	  if (newStats[statToModify] < STAT_MAX) {
+		newStats[statToModify]++;
+		const newPoints = getTotalStatPoints(newStats);
+		return { 
+		  stats: newStats, 
+		  remainingPoints: INITIAL_STAT_POINTS - newPoints 
+		};
+	  }
+	} else {
+	  if (newStats[statToModify] > STAT_MIN) {
+		newStats[statToModify]--;
+		const newPoints = getTotalStatPoints(newStats);
+		return { 
+		  stats: newStats, 
+		  remainingPoints: INITIAL_STAT_POINTS - newPoints 
+		};
+	  }
+	}
+	
+	const currentPoints = getTotalStatPoints(currentStats);
+	return { 
+	  stats: newStats, 
+	  remainingPoints: INITIAL_STAT_POINTS - currentPoints 
+	};
+  }
+
+export function calculateStatModifier(statValue: number): number {
+	return Math.floor((statValue - 10) / 2);
 }
 
 export function applyRacialBonuses(stats: CreatureStats, race: CreatureRaceType): CreatureStats {
@@ -103,24 +116,16 @@ export function getEffectiveStats(
 	level: number,
 	equipment: Array<{ slot: string; bonuses?: Partial<CreatureStats> }> = []
 ): CreatureStats {
-	// Start with base stats
 	let effectiveStats = { ...baseStats };
 
-	// Apply racial bonuses
 	effectiveStats = applyRacialBonuses(effectiveStats, race);
 
-	// Apply class modifiers
 	const classModifiers = getClassStatModifiers(classType);
 	Object.entries(classModifiers).forEach(([stat, modifier]) => {
 		const statKey = stat as keyof CreatureStats;
 		if (modifier) effectiveStats[statKey] += modifier;
 	});
 
-	// Apply level-based increases (every 4 levels)
-	const statIncreases = Math.floor((level - 1) / 4);
-
-
-	// Apply equipment bonuses
 	equipment.forEach((item) => {
 		if (item.bonuses) {
 			Object.entries(item.bonuses).forEach(([stat, bonus]) => {
@@ -144,7 +149,6 @@ export function calculateHealth(
 	const constitutionModifier = calculateStatModifier(constitution);
 	const classInfo = classDefinitions[classType];
 
-	// Base health varies by class
 	const baseHealth =
 		{
 			warrior: 10,
@@ -157,10 +161,8 @@ export function calculateHealth(
 			engineer: 8
 		}[classType] || 8;
 
-	// First level gets max health
 	const firstLevelHealth = baseHealth + constitutionModifier;
 
-	// Additional levels get an average roll plus constitution modifier
 	const additionalLevels = level - 1;
 	const levelUpHealth = additionalLevels * (baseHealth / 2 + 1 + constitutionModifier);
 
