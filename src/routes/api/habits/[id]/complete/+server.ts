@@ -1,19 +1,9 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
-import { habit, habitCompletion, creature } from '$lib/server/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
-
-// Calculate experience based on difficulty
-function calculateExperience(difficulty: string): number {
-    const baseXP = 10;
-    switch(difficulty) {
-        case 'easy': return baseXP;
-        case 'medium': return baseXP * 2;
-        case 'hard': return baseXP * 3;
-        default: return baseXP;
-    }
-}
+import { habit, habitCompletion, creature, habitStreak } from '$lib/server/db/schema';
+import { eq, and, gte } from 'drizzle-orm';
+import { calculateHabitXp, getLevelFromXp } from '$lib/server/xp';
 
 export const POST = (async ({ locals, params }) => {
     const session = await locals.auth();
@@ -23,7 +13,6 @@ export const POST = (async ({ locals, params }) => {
     }
 
     try {
-        // Get the habit
         const [habitData] = await db
             .select()
             .from(habit)
@@ -36,8 +25,17 @@ export const POST = (async ({ locals, params }) => {
             return json({ error: 'Habit not found' }, { status: 404 });
         }
 
-        // Calculate experience
-        const experienceEarned = calculateExperience(habitData.difficulty);
+        // Get current streak data
+        const [streakData] = await db
+            .select()
+            .from(habitStreak)
+            .where(eq(habitStreak.habitId, habitData.id)) || [{ currentStreak: 0 }];
+
+        // Calculate experience with streak bonus
+        const experienceEarned = calculateHabitXp(
+            habitData.difficulty, 
+            streakData?.currentStreak || 0
+        );
 
         // Record completion
         const [completion] = await db
@@ -51,20 +49,31 @@ export const POST = (async ({ locals, params }) => {
             })
             .returning();
 
-        // Get current creature
+        const newStreakCount = (streakData?.currentStreak || 0) + 1;
+        const newLongestStreak = Math.max(newStreakCount, streakData?.longestStreak || 0);
+        
+        await db
+            .update(habitStreak)
+            .set({
+                currentStreak: newStreakCount,
+                longestStreak: newLongestStreak,
+                lastCompletedAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            })
+            .where(eq(habitStreak.habitId, habitData.id));
+
         const [currentCreature] = await db
             .select()
             .from(creature)
             .where(eq(creature.userId, session.user.id));
 
         // Calculate new level
-        const newExperience = (currentCreature.experience ?? 0) + experienceEarned;
-        const newLevel = Math.floor(newExperience / 100) + 1;
+        const newExperience = (currentCreature.experience || 0) + experienceEarned;
         const previousLevel = currentCreature.level;
+        const newLevel = getLevelFromXp(newExperience);
 
         // Update creature and mark habit as completed (archived)
         await Promise.all([
-            // Update creature experience and level
             db.update(creature)
                 .set({
                     experience: newExperience,
@@ -72,7 +81,6 @@ export const POST = (async ({ locals, params }) => {
                 })
                 .where(eq(creature.userId, session.user.id)),
             
-            // Mark habit as completed
             db.update(habit)
                 .set({
                     isArchived: true,
@@ -86,7 +94,8 @@ export const POST = (async ({ locals, params }) => {
             completion,
             experienceEarned,
             newLevel,
-            previousLevel
+            previousLevel,
+            leveledUp: newLevel > previousLevel
         });
     } catch (error) {
         console.error('Error completing habit:', error);

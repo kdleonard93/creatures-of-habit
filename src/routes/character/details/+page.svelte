@@ -7,6 +7,8 @@
     import { classIcons } from '$lib/assets/classIcons';
     import type { PageData } from './$types';
     import type { CreatureRaceType, CreatureClassType } from '$lib/types';
+    import XpBar from '$lib/components/character/XPBar.svelte';
+    import { getEffectiveStats, calculateStatModifier, calculateHealth, getLevelProgress } from '$lib/server/xp';
 
     const { data } = $props<{ data: PageData }>();
     
@@ -20,6 +22,41 @@
         ...item,
         details: equipmentDefinitions[item.itemId]
     })));
+
+    const effectiveStats = $derived(getEffectiveStats(
+        // This would come from creatureStats in a complete implementation
+        {
+            strength: 10,
+            dexterity: 10,
+            constitution: 10,
+            intelligence: 10,
+            wisdom: 10,
+            charisma: 10
+        },
+        creature.race as CreatureRaceType,
+        creature.class as CreatureClassType,
+        creature.level,
+        characterEquipment.map(e => ({ 
+            slot: e.slot, 
+            bonuses: e.details?.bonuses
+        }))
+    ));
+    
+    // Calculate stat modifiers
+    const statModifiers = $derived(Object.entries(effectiveStats).reduce((acc, [stat, value]) => {
+        acc[stat as keyof typeof effectiveStats] = calculateStatModifier(value);
+        return acc;
+    }, {} as Record<keyof typeof effectiveStats, number>));
+    
+    // Calculate health
+    const health = $derived(calculateHealth(
+        effectiveStats.constitution, 
+        creature.level, 
+        creature.class as CreatureClassType
+    ));
+    
+    // Get level progress
+    const levelProgress = $derived(getLevelProgress(creature.experience));
 </script>
 
 <div class="container mx-auto py-8 space-y-6">
