@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { habit, habitCompletion, creature, habitStreak } from '$lib/server/db/schema';
 import { eq, and, gte } from 'drizzle-orm';
-import { calculateHabitXp, getLevelFromXp } from '$lib/server/xp';
+import { calculateHabitXp, getLevelFromXp } from '$lib/client/xp';
 
 export const POST = (async ({ locals, params }) => {
     const session = await locals.auth();
