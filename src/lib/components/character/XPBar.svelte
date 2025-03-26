@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Progress } from "$lib/components/ui/progress";
-  import { getLevelProgress } from '$lib/server/xp';
+  import { getLevelProgress } from '$lib/client/xp/calculations';
   
   const props = $props<{ experience: number }>();
   

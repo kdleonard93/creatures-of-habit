@@ -10,7 +10,7 @@
 	import { classIcons } from '$lib/assets/classIcons';
 	import { raceIcons } from '$lib/assets/raceIcons';
 	import PasswordStrengthIndicator from '$lib/components/PasswordStrengthIndicator.svelte';
-	import {createInitialStats, allocateStatPoints, getTotalStatPoints, INITIAL_STAT_POINTS, STAT_MIN, STAT_MAX} from '$lib/server/xp';
+	import {createInitialStats, allocateStatPoints, getTotalStatPoints, INITIAL_STAT_POINTS, STAT_MIN, STAT_MAX} from '$lib/client/xp';
 
 	const { onComplete } = $props<{
 		onComplete: (data: RegistrationData) => void;
