@@ -87,7 +87,7 @@ export function calculateStatModifier(statValue: number): number {
  */
 export function getTotalStatPoints(stats: CreatureStats): number {
 	return Object.values(stats).reduce((total, value) => {
-		return calculateStatCost(value);
+		return total + calculateStatCost(value)
 	}, 0);
 }
 
@@ -155,5 +155,7 @@ export function calculateHealth(
 	const averageDiceRoll = Math.floor(baseHealth / 2) + 1;
 	const levelUpHealth = additionalLevels * (averageDiceRoll + constitutionModifier);
 
-	return Math.max(1, Math.floor(constitutionModifier));
+    const level1Health = baseHealth + constitutionModifier;
+    const totalHealth = level1Health + levelUpHealth;
+	return Math.max(1, totalHealth);
 }
