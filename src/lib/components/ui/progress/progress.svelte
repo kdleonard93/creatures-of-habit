@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Progress as ProgressPrimitive } from "bits-ui";
-	import { cn } from "$lib/utils.js";
+	import { cn } from "$lib/utils/helpers.js";
 
 	type $$Props = ProgressPrimitive.Props;
 
@@ -11,7 +11,7 @@
 </script>
 
 <ProgressPrimitive.Root
-	class={cn("bg-secondary relative h-4 w-full overflow-hidden rounded-full", className)}
+	class={cn("bg-muted relative h-4 w-full overflow-hidden rounded-full", className)}
 	{...$$restProps}
 >
 	<div
