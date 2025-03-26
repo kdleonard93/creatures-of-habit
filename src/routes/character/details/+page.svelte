@@ -7,48 +7,64 @@
     import { raceIcons } from '$lib/assets/raceIcons';
     import { classIcons } from '$lib/assets/classIcons';
     import type { PageData } from './$types';
-    import type { CreatureRaceType, CreatureClassType } from '$lib/types';
-    import XpBar from '$lib/components/character/XPBar.svelte';
-    import { calculateStatModifier, calculateHealth, getLevelProgress } from '$lib/utils/xp';
+    import type { CreatureRaceType, CreatureClassType, CreatureStats, EquipmentRecord, EnhancedEquipment } from '$lib/types';
+    import XPBar from '$lib/components/character/XPBar.svelte';
+    import { calculateStatModifier, calculateHealth, getLevelProgress, applyRacialBonuses, getClassStatModifiers } from '$lib/client/xp';
 
     const { data } = $props<{ data: PageData }>();
     
     // Using derived state for computed values
     let creature = $derived(data.creature);
+    let baseStats = $derived(data.stats as CreatureStats);
     let raceInfo = $derived(raceDefinitions[creature.race as CreatureRaceType]);
     let classInfo = $derived(classDefinitions[creature.class as CreatureClassType]);
     
-    // Compute equipment details
-    let characterEquipment = $derived(classInfo.startingEquipment.map(item => ({
-        ...item,
-        details: equipmentDefinitions[item.itemId]
-    })));
 
-    // We'll have to simplify this by hardcoding some of the stats that would normally come from the server
-    // In a real app, these would be fetched server-side and passed to the client
-    const effectiveStats = $derived({
-        strength: 10 + (raceInfo.statBonuses.strength || 0),
-        dexterity: 10 + (raceInfo.statBonuses.dexterity || 0),
-        constitution: 10 + (raceInfo.statBonuses.constitution || 0),
-        intelligence: 10 + (raceInfo.statBonuses.intelligence || 0),
-        wisdom: 10 + (raceInfo.statBonuses.wisdom || 0),
-        charisma: 10 + (raceInfo.statBonuses.charisma || 0)
+    let equipmentData = $derived(data.equipment as EquipmentRecord[] || []);
+    
+    let characterEquipment = $derived(equipmentData.map((item): EnhancedEquipment => {
+        const details = equipmentDefinitions[item.itemId];
+        return {
+            ...item,
+            name: details?.name || "Unknown Item",
+            details
+        };
+    }));
+
+    let statsWithRace = $derived(applyRacialBonuses(baseStats, creature.race as CreatureRaceType));
+    
+    let classModifiers = $derived(getClassStatModifiers(creature.class as CreatureClassType));
+    
+    let equipmentBonuses = $derived(characterEquipment.reduce((bonuses: Partial<CreatureStats>, item: EnhancedEquipment) => {
+        if (item.details?.bonuses) {
+            Object.entries(item.details.bonuses).forEach(([stat, bonus]) => {
+                const statKey = stat as keyof CreatureStats;
+                bonuses[statKey] = (bonuses[statKey] || 0) + (bonus as number);
+            });
+        }
+        return bonuses;
+    }, {} as Partial<CreatureStats>));
+    
+    let effectiveStats = $derived({
+        strength: statsWithRace.strength + (classModifiers.strength || 0) + (equipmentBonuses.strength || 0),
+        dexterity: statsWithRace.dexterity + (classModifiers.dexterity || 0) + (equipmentBonuses.dexterity || 0),
+        constitution: statsWithRace.constitution + (classModifiers.constitution || 0) + (equipmentBonuses.constitution || 0),
+        intelligence: statsWithRace.intelligence + (classModifiers.intelligence || 0) + (equipmentBonuses.intelligence || 0),
+        wisdom: statsWithRace.wisdom + (classModifiers.wisdom || 0) + (equipmentBonuses.wisdom || 0),
+        charisma: statsWithRace.charisma + (classModifiers.charisma || 0) + (equipmentBonuses.charisma || 0)
     });
     
-    // Calculate stat modifiers
     const statModifiers = $derived(Object.entries(effectiveStats).reduce((acc, [stat, value]) => {
         acc[stat as keyof typeof effectiveStats] = calculateStatModifier(value);
         return acc;
     }, {} as Record<keyof typeof effectiveStats, number>));
     
-    // Calculate health
     const health = $derived(calculateHealth(
         effectiveStats.constitution, 
         creature.level, 
         creature.class as CreatureClassType
     ));
     
-    // Get level progress
     const levelProgress = $derived(getLevelProgress(creature.experience));
 </script>
 
@@ -124,7 +140,7 @@
                     <!-- Experience Bar -->
                     <div>
                         <h3 class="font-medium mb-2">Experience</h3>
-                        <XpBar experience={creature.experience} />
+                        <XPBar experience={creature.experience} />
                     </div>
 
                     <!-- Equipment -->

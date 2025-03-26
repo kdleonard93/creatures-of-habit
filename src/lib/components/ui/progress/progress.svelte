@@ -11,7 +11,7 @@
 </script>
 
 <ProgressPrimitive.Root
-	class={cn("bg-secondary relative h-4 w-full overflow-hidden rounded-full", className)}
+	class={cn("bg-muted relative h-4 w-full overflow-hidden rounded-full", className)}
 	{...$$restProps}
 >
 	<div

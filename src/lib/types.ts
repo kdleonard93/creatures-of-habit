@@ -85,6 +85,19 @@ export interface Equipment {
 	classRestrictions?: CreatureClassType[];
 }
 
+export interface EquipmentRecord {
+    id: string;
+    creatureId: string;
+    slot: EquipmentSlot;
+    itemId: string;
+    equipped: number;
+}
+
+export interface EnhancedEquipment extends EquipmentRecord {
+    name: string;
+    details?: Equipment;
+}
+
 export type EquipmentSlot =
 	| 'weapon'
 	| 'offhand'
