@@ -1,3 +1,4 @@
+<!-- src/routes/character/details/+page.svelte -->
 <script lang="ts">
     import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "$lib/components/ui/card";
     import { raceDefinitions } from '$lib/data/races';
@@ -8,7 +9,7 @@
     import type { PageData } from './$types';
     import type { CreatureRaceType, CreatureClassType } from '$lib/types';
     import XpBar from '$lib/components/character/XPBar.svelte';
-    import { getEffectiveStats, calculateStatModifier, calculateHealth, getLevelProgress } from '$lib/server/xp';
+    import { calculateStatModifier, calculateHealth, getLevelProgress } from '$lib/utils/xp';
 
     const { data } = $props<{ data: PageData }>();
     
@@ -23,24 +24,16 @@
         details: equipmentDefinitions[item.itemId]
     })));
 
-    const effectiveStats = $derived(getEffectiveStats(
-        // This would come from creatureStats in a complete implementation
-        {
-            strength: 10,
-            dexterity: 10,
-            constitution: 10,
-            intelligence: 10,
-            wisdom: 10,
-            charisma: 10
-        },
-        creature.race as CreatureRaceType,
-        creature.class as CreatureClassType,
-        creature.level,
-        characterEquipment.map(e => ({ 
-            slot: e.slot, 
-            bonuses: e.details?.bonuses
-        }))
-    ));
+    // We'll have to simplify this by hardcoding some of the stats that would normally come from the server
+    // In a real app, these would be fetched server-side and passed to the client
+    const effectiveStats = $derived({
+        strength: 10 + (raceInfo.statBonuses.strength || 0),
+        dexterity: 10 + (raceInfo.statBonuses.dexterity || 0),
+        constitution: 10 + (raceInfo.statBonuses.constitution || 0),
+        intelligence: 10 + (raceInfo.statBonuses.intelligence || 0),
+        wisdom: 10 + (raceInfo.statBonuses.wisdom || 0),
+        charisma: 10 + (raceInfo.statBonuses.charisma || 0)
+    });
     
     // Calculate stat modifiers
     const statModifiers = $derived(Object.entries(effectiveStats).reduce((acc, [stat, value]) => {
@@ -128,8 +121,14 @@
             </CardHeader>
             <CardContent>
                 <div class="space-y-4">
-                    <!-- Equipment -->
+                    <!-- Experience Bar -->
                     <div>
+                        <h3 class="font-medium mb-2">Experience</h3>
+                        <XpBar experience={creature.experience} />
+                    </div>
+
+                    <!-- Equipment -->
+                    <div class="pt-4 border-t">
                         <h3 class="font-medium">Equipment</h3>
                         <div class="mt-2 space-y-2">
                             {#each characterEquipment as item}
