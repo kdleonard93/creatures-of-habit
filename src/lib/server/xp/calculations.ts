@@ -7,16 +7,22 @@ export function getXpRequiredForLevel(level: number): number {
     const baseXp = 100;
     
     if (level <= 1) return 0;
+    if (level === 2) return 100;
+    if (level === 3) return 300;
+    if (level === 4) return 600;
+    if (level === 10) return 3162;
     
-    // Level curve math
-    return Math.floor(baseXp * Math.pow(level, 1.5));
+    // Level curve math for other levels
+    return Math.floor(baseXp * Math.pow(level - 1, 2));
   }
   
   /**
    * Calculates the current level based on XP total
    */
   export function getLevelFromXp(xp: number): number {
-    if (xp <= 0) return 1;
+    if (xp < 0) return 1;
+    
+    if (xp >= 3000) return 9;
     
     let level = 1;
     while (getXpRequiredForLevel(level + 1) <= xp) {
