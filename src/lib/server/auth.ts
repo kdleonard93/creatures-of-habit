@@ -15,20 +15,20 @@ export function generateSessionToken() {
 	return token;
 }
 
-export async function createSession(token: string, userId: string) {
+export async function createSession(token: string, userId: string, dbInstance = db) {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 	const session: table.Session = {
 		id: sessionId,
 		userId,
 		expiresAt: new Date(Date.now() + DAY_IN_MS * 30)
 	};
-	await db.insert(table.session).values(session);
+	await dbInstance.insert(table.session).values(session);
 	return session;
 }
 
-export async function validateSessionToken(token: string) {
+export async function validateSessionToken(token: string, dbInstance = db) {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-	const [result] = await db
+	const [result] = await dbInstance
 		.select({
 			// Adjust user table here to tweak returned data
 			user: { id: table.user.id, username: table.user.username },
@@ -46,14 +46,14 @@ export async function validateSessionToken(token: string) {
 	// Check if session is expired
 	const sessionExpired = Date.now() >= session.expiresAt.getTime();
 	if (sessionExpired) {
-		await db.delete(table.session).where(eq(table.session.id, session.id));
+		await dbInstance.delete(table.session).where(eq(table.session.id, session.id));
 		return { session: null, user: null };
 	}
 	// Renew session if close to expiration
 	const renewSession = Date.now() >= session.expiresAt.getTime() - DAY_IN_MS * 15;
 	if (renewSession) {
 		session.expiresAt = new Date(Date.now() - DAY_IN_MS * 15);
-		await db
+		await dbInstance
 			.update(table.session)
 			.set({ expiresAt: session.expiresAt })
 			.where(eq(table.session.id, session.id));
@@ -64,8 +64,8 @@ export async function validateSessionToken(token: string) {
 
 export type SessionValidationResult = Awaited<ReturnType<typeof validateSessionToken>>;
 
-export async function invalidateSession(sessionId: string): Promise<void> {
-	await db.delete(table.session).where(eq(table.session.id, sessionId));
+export async function invalidateSession(sessionId: string, dbInstance = db): Promise<void> {
+	await dbInstance.delete(table.session).where(eq(table.session.id, sessionId));
 }
 
 export function setSessionTokenCookie(event: RequestEvent, token: string, expiresAt: Date): void {
