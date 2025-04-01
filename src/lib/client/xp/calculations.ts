@@ -9,7 +9,7 @@ export function getXpRequiredForLevel(level: number): number {
   if (level <= 1) return 0;
   
   // Level curve math
-  return Math.floor(baseXp * Math.pow(level, 1.5));
+  return Math.floor(baseXp * level ** 1.5);
 }
 
 /**
@@ -57,8 +57,8 @@ export function getLevelProgress(xp: number): {
 */
 export function calculateHabitXp(
   difficulty: 'easy' | 'medium' | 'hard',
-  streak: number = 0,
-  bonusMultiplier: number = 1.0
+  streak = 0,
+  bonusMultiplier = 1.0
 ): number {
   const baseXp = {
       'easy': 5,

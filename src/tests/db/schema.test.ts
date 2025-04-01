@@ -1,5 +1,5 @@
 // src/tests/db/schema.test.ts
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import * as schema from '../../lib/server/db/schema';
 
 describe('Database Schema', () => {

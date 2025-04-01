@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 describe('Streak Calculation Logic', () => {
   it('maintains streak when habit completed within frequency period', async () => {

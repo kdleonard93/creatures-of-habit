@@ -48,9 +48,9 @@ export function allocateStatPoints(
 	let remainingPoints = INITIAL_STAT_POINTS;
 
 	// Calculate current total point cost
-	Object.values(currentStats).forEach((value) => {
+	for (const value of Object.values(currentStats)) {
 		remainingPoints -= calculateStatCost(value);
-	});
+	}
 
 	const currentValue = newStats[statToModify];
 	if (increment) {
@@ -99,10 +99,10 @@ export function applyRacialBonuses(stats: CreatureStats, race: CreatureRaceType)
 	const newStats = { ...stats };
 	const raceBonuses = raceDefinitions[race]?.statBonuses || {};
 
-	Object.entries(raceBonuses).forEach(([stat, bonus]) => {
+	for (const [stat, bonus] of Object.entries(raceBonuses)) {
 		const statKey = stat as keyof CreatureStats;
 		newStats[statKey] += bonus as number;
-	});
+	}
 
 	return newStats;
 }
@@ -117,9 +117,9 @@ export function getClassStatModifiers(classType: CreatureClassType): Partial<Cre
 
 	// Primary stats for the class get a small bonus
 	if (classInfo?.primaryStats) {
-		classInfo.primaryStats.forEach((stat) => {
+		for (const stat of classInfo.primaryStats) {
 			modifiers[stat] = 1;
-		});
+		}
 	}
 
 	return modifiers;

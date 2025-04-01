@@ -1,5 +1,5 @@
-import type { Handle } from '@sveltejs/kit';
 import * as auth from '$lib/server/auth.js';
+import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
     // Attach the auth function to locals

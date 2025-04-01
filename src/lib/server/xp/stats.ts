@@ -33,9 +33,9 @@ export function allocateStatPoints(
 	let remainingPoints = INITIAL_STAT_POINTS;
 
 	// Calculate current total point cost
-	Object.values(currentStats).forEach((value) => {
+	for (const value of Object.values(currentStats)) {
 		remainingPoints -= calculateStatCost(value);
-	});
+	}
 
 	const currentValue = newStats[statToModify];
 	const costOfChange = calculateStatCost(increment ? currentValue + 1 : currentValue - 1);
@@ -68,10 +68,10 @@ export function applyRacialBonuses(stats: CreatureStats, race: CreatureRaceType)
 	const newStats = { ...stats };
 	const raceBonuses = raceDefinitions[race]?.statBonuses || {};
 
-	Object.entries(raceBonuses).forEach(([stat, bonus]) => {
+	for (const [stat, bonus] of Object.entries(raceBonuses)) {
 		const statKey = stat as keyof CreatureStats;
 		newStats[statKey] += bonus as number;
-	});
+	}
 
 	return newStats;
 }
@@ -85,9 +85,9 @@ export function getClassStatModifiers(classType: CreatureClassType): Partial<Cre
 
 	// Primary stats for the class get a small bonus
 	if (classInfo?.primaryStats) {
-		classInfo.primaryStats.forEach((stat) => {
+		for (const stat of classInfo.primaryStats) {
 			modifiers[stat] = 1;
-		});
+		}
 	}
 
 	return modifiers;
@@ -111,24 +111,24 @@ export function getEffectiveStats(
 
 	// Apply class modifiers
 	const classModifiers = getClassStatModifiers(classType);
-	Object.entries(classModifiers).forEach(([stat, modifier]) => {
+	for (const [stat, modifier] of Object.entries(classModifiers)) {
 		const statKey = stat as keyof CreatureStats;
 		if (modifier) effectiveStats[statKey] += modifier;
-	});
+	}
 
 	// Apply level-based increases (every 4 levels)
 	const statIncreases = Math.floor((level - 1) / 4);
 
 
 	// Apply equipment bonuses
-	equipment.forEach((item) => {
+	for (const item of equipment) {
 		if (item.bonuses) {
-			Object.entries(item.bonuses).forEach(([stat, bonus]) => {
+			for (const [stat, bonus] of Object.entries(item.bonuses)) {
 				const statKey = stat as keyof CreatureStats;
 				if (bonus) effectiveStats[statKey] += bonus;
-			});
+			}
 		}
-	});
+	}
 
 	return effectiveStats;
 }
