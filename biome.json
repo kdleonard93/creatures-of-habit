@@ -28,12 +28,8 @@
 		},
 		"globals": ["browser", "node"]
 	},
-	"overrides": [
-		{
-			"include": ["**/*.svelte"]
-		}
-	],
+	"overrides": [],
 	"files": {
-		"ignore": ["build/", ".svelte-kit/", "dist/"]
+		"ignore": ["build/", ".svelte-kit/", "dist/", "**/*.svelte"]
 	}
 }
