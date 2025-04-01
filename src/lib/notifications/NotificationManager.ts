@@ -77,7 +77,9 @@ export class NotificationManager {
         notifications.update(n => [...n, notification]);
 
         // Send to plugins
-        this.plugins.forEach(plugin => plugin.send(notification));
+        for (const plugin of this.plugins) {
+            plugin.send(notification);
+        }
     }
 
     public clearNotification(id: string): void {
@@ -98,18 +100,18 @@ export class NotificationManager {
 
     public clearAllNotifications(): void {
         // Clear all timeouts
-        this.timeouts.forEach((timeoutId) => {
+        for (const timeoutId of this.timeouts.values()) {
             clearTimeout(timeoutId);
-        });
+        }
         this.timeouts.clear();
 
         // Close all browser notifications
         const currentNotifications = get(notifications);
-        currentNotifications.forEach(notification => {
+        for (const notification of currentNotifications) {
             if (notification.browserNotification) {
                 notification.browserNotification.close();
             }
-        });
+        }
 
         // Clear the notifications store
         notifications.set([]);

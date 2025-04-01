@@ -126,8 +126,8 @@ export async function updateStreakAfterCompletion(
   
   // Calculate new streak values
   const currentDate = new Date().toISOString();
-  let newCurrentStreak = streakStatus.streakMaintained ? (streakInfo.currentStreak || 0) + 1 : 1;
-  let newLongestStreak = Math.max(newCurrentStreak, streakInfo.longestStreak || 0);
+  const newCurrentStreak = streakStatus.streakMaintained ? (streakInfo.currentStreak || 0) + 1 : 1;
+  const newLongestStreak = Math.max(newCurrentStreak, streakInfo.longestStreak || 0);
   
   // Update streak in database
   await db
