@@ -135,12 +135,3 @@ export async function cleanupTestDb() {
     DROP TABLE IF EXISTS user;
   `);
 }
-
-// Helper function to generate SQL schema from your drizzle schema
-// This is useful for keeping your test database in sync with your schema changes
-export async function generateSchemaFromDrizzle() {
-  // This is a placeholder for a more sophisticated approach
-  // In a real implementation, you might use drizzle-kit or another tool
-  // to generate SQL from your schema definitions
-  return "-- Schema generation not implemented";
-}
