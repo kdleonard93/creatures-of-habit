@@ -1,6 +1,5 @@
 <script lang="ts">
     import { Button } from "$lib/components/ui/button";
-    import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "$lib/components/ui/card";
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
     import { notificationManager } from '$lib/notifications/NotificationManager';
@@ -90,41 +89,37 @@
     }
 </script>
 
-<Card>
-    <CardHeader>
-        <CardTitle class="flex items-center gap-2">
-            <Bell size={18} />
-            Habit Reminder
-        </CardTitle>
-        <CardDescription>Set a daily reminder for this habit</CardDescription>
-    </CardHeader>
-    <CardContent>
-        {#if reminderEnabled}
-            <div class="space-y-4">
-                <div class="flex items-center gap-2 text-sm">
-                    <Clock size={16} />
-                    <span>Reminder set for {reminderTime}</span>
-                </div>
-                <Button variant="destructive" size="sm" on:click={removeReminder}>
-                    Remove Reminder
-                </Button>
+<div class="border-t pt-3 mt-3">
+    <div class="flex items-center gap-2 mb-2">
+        <Bell size={16} class="text-primary" />
+        <span class="text-sm font-medium">Reminder</span>
+    </div>
+    
+    {#if reminderEnabled}
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 text-sm">
+                <Clock size={14} />
+                <span>Set for {reminderTime}</span>
             </div>
-        {:else}
-            <div class="space-y-4">
-                <div class="space-y-2">
-                    <Label for="reminderTime">Reminder Time</Label>
-                    <div class="flex gap-2">
-                        <Input
-                            id="reminderTime"
-                            type="time"
-                            bind:value={reminderTime}
-                        />
-                        <Button on:click={scheduleReminder}>
-                            Set Reminder
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        {/if}
-    </CardContent>
-</Card>
+            <Button variant="destructive" size="sm" on:click={removeReminder} class="h-7 px-2 text-xs">
+                Remove
+            </Button>
+        </div>
+    {:else}
+        <div class="flex gap-2 items-center">
+            <Input
+                type="time"
+                bind:value={reminderTime}
+                class="h-8 w-32 text-sm"
+            />
+            <Button 
+                on:click={scheduleReminder} 
+                size="sm" 
+                variant="outline" 
+                class="h-8 text-xs"
+            >
+                Set Reminder
+            </Button>
+        </div>
+    {/if}
+</div>

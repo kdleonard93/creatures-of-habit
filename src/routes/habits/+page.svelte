@@ -112,39 +112,41 @@ async function completeHabit(habitId: string) {
                         </div>
                     </div>
                     
-                    <div class="flex gap-2">
-                        <Button 
-                            variant="outline"
-                            size="sm"
-                            onclick={() => editHabit(habit.id)}
-                            class="flex items-center gap-2"
-                        >
-                            <Pen class="h-4 w-4" />
-                            Edit
-                        </Button>
-                        <Button 
-                            variant="destructive"
-                            size="sm"
-                            onclick={() => deleteHabit(habit.id)}
-                            class="flex items-center gap-2"
-                        >
-                            <Trash2 class="h-4 w-4" />
-                            Delete
-                        </Button>
-                        <Button 
-                        variant="success"
-                        size="sm"
-                        onclick={() => completeHabit(habit.id)}
-                        disabled={habit.completedToday}
-                        class="flex items-center gap-2"
-                    >
-                        <CircleCheck class="h-4 w-4" />
-                        Complete
-                    </Button>
+                    <div class="flex flex-col gap-3">
+                        <div class="flex gap-2">
+                            <Button 
+                                variant="outline"
+                                size="sm"
+                                onclick={() => editHabit(habit.id)}
+                                class="flex items-center gap-2"
+                            >
+                                <Pen class="h-4 w-4" />
+                                Edit
+                            </Button>
+                            <Button 
+                                variant="destructive"
+                                size="sm"
+                                onclick={() => deleteHabit(habit.id)}
+                                class="flex items-center gap-2"
+                            >
+                                <Trash2 class="h-4 w-4" />
+                                Delete
+                            </Button>
+                            <Button 
+                                variant="success"
+                                size="sm"
+                                onclick={() => completeHabit(habit.id)}
+                                disabled={habit.completedToday}
+                                class="flex items-center gap-2"
+                            >
+                                <CircleCheck class="h-4 w-4" />
+                                Complete
+                            </Button>
+                        </div>
+                        <div class="w-full">
+                            <HabitReminder habitId={habit.id} habitTitle={habit.title} />
+                        </div>
                     </div>
-                </div>
-                <div class="mt-4 border-t pt-4">
-                    <HabitReminder habitId={habit.id} habitTitle={habit.title} />
                 </div>
             {/each}
         </div>
