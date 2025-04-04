@@ -84,52 +84,55 @@ async function completeHabit(habitId: string) {
     </div>
 
     {#if data.habits?.length > 0}
-        <div class="grid gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {#each data.habits as habit (habit.id)}
-                <div class="p-4 border rounded-lg flex justify-between items-start">
+                <div class="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col justify-between h-full bg-card">
                     <div>
-                        <h3 class="font-semibold">{habit.title}</h3>
+                        <h3 class="font-semibold text-lg">{habit.title}</h3>
                         {#if habit.description}
-                            <p class="text-sm text-gray-600">{habit.description}</p>
+                            <p class="text-sm text-muted-foreground mt-1">{habit.description}</p>
                         {/if}
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 mt-2">
                             {#if habit.completedToday}
-                                <Trophy class="h-4 w-4 text-success" />
+                                <div class="flex items-center gap-1 text-success">
+                                    <Trophy class="h-4 w-4" />
+                                    <span class="text-xs font-medium">Completed today</span>
+                                </div>
                             {/if}
                         </div>
-                        <div class="mt-2 flex gap-2 text-sm">
-                            <span class="capitalize px-2 py-1 bg-primary/10 rounded">
+                        <div class="mt-3 flex flex-wrap gap-2 text-sm">
+                            <span class="capitalize px-2 py-1 bg-primary/10 rounded-full text-xs">
                                 {habit.frequency === 'custom' && habit.customFrequency?.days ? 
                                     formatCustomDays(habit.customFrequency.days) : 
                                     habit.frequency}
                             </span>
-                            <span class="capitalize px-2 py-1 bg-primary/10 rounded">
+                            <span class="capitalize px-2 py-1 bg-primary/10 rounded-full text-xs">
                                 {habit.difficulty}
                             </span>
-                            <span class="capitalize px-2 py-1 bg-primary/10 rounded">
+                            <span class="capitalize px-2 py-1 bg-primary/10 rounded-full text-xs">
                                 {habit.category?.name ?? 'Uncategorized'}
                             </span>
                         </div>
                     </div>
                     
-                    <div class="flex flex-col gap-3">
-                        <div class="flex gap-2">
+                    <div class="mt-4">
+                        <div class="grid grid-cols-3 gap-2 mb-3">
                             <Button 
                                 variant="outline"
                                 size="sm"
                                 onclick={() => editHabit(habit.id)}
-                                class="flex items-center gap-2"
+                                class="flex items-center justify-center"
                             >
-                                <Pen class="h-4 w-4" />
+                                <Pen class="h-3 w-3 mr-1" />
                                 Edit
                             </Button>
                             <Button 
                                 variant="destructive"
                                 size="sm"
                                 onclick={() => deleteHabit(habit.id)}
-                                class="flex items-center gap-2"
+                                class="flex items-center justify-center"
                             >
-                                <Trash2 class="h-4 w-4" />
+                                <Trash2 class="h-3 w-3 mr-1" />
                                 Delete
                             </Button>
                             <Button 
@@ -137,9 +140,9 @@ async function completeHabit(habitId: string) {
                                 size="sm"
                                 onclick={() => completeHabit(habit.id)}
                                 disabled={habit.completedToday}
-                                class="flex items-center gap-2"
+                                class="flex items-center justify-center"
                             >
-                                <CircleCheck class="h-4 w-4" />
+                                <CircleCheck class="h-3 w-3 mr-1" />
                                 Complete
                             </Button>
                         </div>
