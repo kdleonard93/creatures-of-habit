@@ -3,6 +3,7 @@
  */
 import { invalidateAll } from '$app/navigation';
 import { toast } from 'svelte-sonner';
+import type { HabitData, HabitFrequency, HabitDifficulty } from '../types';
 import type { StreakUpdateResult } from '$lib/server/streaks/calculations';
 
 /**
@@ -74,7 +75,7 @@ export async function deleteHabit(habitId: string): Promise<boolean> {
       throw new Error(errorData.error || 'Failed to delete habit');
     }
 
-    toast.success(`Habit deleted successfully`);
+    toast.success('Habit deleted successfully');
     await invalidateAll();
     return true;
   } catch (error) {
@@ -89,7 +90,7 @@ export async function deleteHabit(habitId: string): Promise<boolean> {
  * @param habitData The habit data to create
  * @returns Promise with the created habit
  */
-export async function createHabit(habitData: any): Promise<any> {
+export async function createHabit(habitData: HabitData): Promise<string> {
   try {
     const response = await fetch('/api/habits', {
       method: 'POST',
@@ -120,7 +121,7 @@ export async function createHabit(habitData: any): Promise<any> {
  * @param habitData The updated habit data
  * @returns Promise with the updated habit
  */
-export async function updateHabit(habitId: string, habitData: any): Promise<any> {
+export async function updateHabit(habitId: string, habitData: HabitData): Promise<string> {
   try {
     const response = await fetch(`/api/habits/${habitId}`, {
       method: 'PUT',
