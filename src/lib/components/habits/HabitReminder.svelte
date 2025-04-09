@@ -1,7 +1,6 @@
 <script lang="ts">
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
-    import { Label } from "$lib/components/ui/label";
     import { notificationManager } from '$lib/notifications/NotificationManager';
     import { Bell, Clock } from "lucide-svelte";
     import { toast } from 'svelte-sonner';
