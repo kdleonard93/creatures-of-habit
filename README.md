@@ -125,6 +125,8 @@ The application will be available at `http://localhost:5173`.
 - `pnpm run lint`: Lint code
 - `pnpm run format`: Format code
 
+## Added CI
+
 ## Contributing
 
 Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) before getting started.
