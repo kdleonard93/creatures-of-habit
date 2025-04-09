@@ -2,10 +2,10 @@ name: Continuous Integration
 
 on:
   push:
-    branches: [ main, develop, 'feature/**', 'bugfix/**', 'hotfix/**', 'fix/**', 'task/**', 'release/**' ]
+    branches: [ main, 'feature/**', 'bugfix/**', 'hotfix/**', 'fix/**', 'task/**', 'release/**' ]
   pull_request:
     types: [opened, synchronize, closed]
-    branches: [ main, develop, 'feature/**', 'bugfix/**', 'hotfix/**', 'fix/**', 'task/**', 'release/**' ]
+    branches: [ main, 'feature/**', 'bugfix/**', 'hotfix/**', 'fix/**', 'task/**', 'release/**' ]
   workflow_dispatch:  # Allows manual triggering
 
 jobs:
