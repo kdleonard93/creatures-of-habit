@@ -56,6 +56,19 @@ jobs:
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install
+      - name: Create test environment
+        run: |
+          echo "TURSO_DATABASE_URL=libsql://mock-db.turso.io" > .env
+          echo "TURSO_AUTH_TOKEN=mock-token" >> .env
+      - name: Fix case sensitivity issues
+        run: |
+          # Symlinks for case-sensitive files
+          mkdir -p src/lib/components/character
+          if [ -f src/lib/components/character/XPBar.svelte ] && [ ! -f src/lib/components/character/XpBar.svelte ]; then
+            ln -s XPBar.svelte src/lib/components/character/XpBar.svelte
+          fi
+      - name: Generate SvelteKit files
+        run: pnpm run sync || pnpm run dev -- --build
       - name: Build application
         run: pnpm run build
       - name: Upload build artifacts
