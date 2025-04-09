@@ -31,6 +31,7 @@ jobs:
         run: |
           echo "TURSO_DATABASE_URL=libsql://mock-db.turso.io" > .env
           echo "TURSO_AUTH_TOKEN=mock-token" >> .env
+          echo "PUBLIC_POSTHOG_KEY=phc_mock_posthog_key_for_testing" >> .env
       - name: Run linting
         run: pnpm run lint
       - name: Run tests
@@ -60,6 +61,7 @@ jobs:
         run: |
           echo "TURSO_DATABASE_URL=libsql://mock-db.turso.io" > .env
           echo "TURSO_AUTH_TOKEN=mock-token" >> .env
+          echo "PUBLIC_POSTHOG_KEY=phc_mock_posthog_key_for_testing" >> .env
       - name: Fix case sensitivity issues
         run: |
           # Symlinks for case-sensitive files
