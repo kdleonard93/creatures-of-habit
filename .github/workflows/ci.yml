@@ -68,7 +68,7 @@ jobs:
             ln -s XPBar.svelte src/lib/components/character/XpBar.svelte
           fi
       - name: Generate SvelteKit files
-        run: pnpm run sync || pnpm run dev -- --build
+        run: npx svelte-kit sync
       - name: Build application
         run: pnpm run build
       - name: Upload build artifacts
