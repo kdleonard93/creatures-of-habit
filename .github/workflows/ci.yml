@@ -27,6 +27,10 @@ jobs:
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install
+      - name: Create test environment
+        run: |
+          echo "TURSO_DATABASE_URL=libsql://mock-db.turso.io" > .env
+          echo "TURSO_AUTH_TOKEN=mock-token" >> .env
       - name: Run linting
         run: pnpm run lint
       - name: Run tests
