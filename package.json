@@ -17,7 +17,8 @@
 		"db:local": "turso dev --db-file local-db.db",
 		"format": "biome format --write .",
 		"format:check": "biome check",
-		"lint": "biome lint ."
+		"lint": "biome lint .",
+		"prepare": "husky"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
@@ -32,6 +33,7 @@
 		"bits-ui": "^0.21.16",
 		"clsx": "^2.1.1",
 		"drizzle-kit": "^0.28.0",
+		"husky": "^9.1.7",
 		"jsdom": "^26.0.0",
 		"lucide-svelte": "^0.456.0",
 		"svelte": "^5.1.13",
