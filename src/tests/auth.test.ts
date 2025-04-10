@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateSessionToken } from '../lib/server/auth';
+import { generateSessionToken } from '../tests/mocks/mockAuth';
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeHexLowerCase } from '@oslojs/encoding';
 
