@@ -41,7 +41,7 @@ async function completeHabit(habitId: string) {
     toast.success(`Gained ${data.experienceEarned} XP!`);
     
     // Show level up toast if applicable
-    if (data.newLevel > data.previousLevel) {
+    if (data.leveledUp) {
       toast.success(`Level up! Now level ${data.newLevel}`);
     }
 
@@ -125,6 +125,7 @@ describe('Habit Completion Flow Integration Test', () => {
         experienceEarned: 20,
         previousLevel: 3,
         newLevel: 4, // Level up!
+        leveledUp: true,
         streakUpdate: {
           currentStreak: 6,
           longestStreak: 10,
