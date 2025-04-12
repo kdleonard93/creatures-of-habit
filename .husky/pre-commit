@@ -1,2 +1,5 @@
-# Need to get the test to exit so it doesn't hang
-# pnpm test
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "Running tests..."
+CI=true pnpm run test
