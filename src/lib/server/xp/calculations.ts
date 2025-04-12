@@ -1,19 +1,29 @@
 /**
  * Calculates XP required for a given level
- * Uses a common RPG progression curve
  */
 export function getXpRequiredForLevel(level: number): number {
-    // Base XP required for level 2
-    const baseXp = 100;
+    const baseXp = 25;
     
     if (level <= 1) return 0;
-    if (level === 2) return 100;
-    if (level === 3) return 300;
-    if (level === 4) return 600;
-    if (level === 10) return 3162;
+    if (level === 2) return baseXp;
+    if (level === 3) return baseXp * 2;
+    if (level === 4) return baseXp * 3;
+    if (level === 5) return baseXp * 4;
+    if (level === 6) return baseXp * 5;
+    if (level === 7) return baseXp * 6;
+    if (level === 8) return baseXp * 8;
+    if (level === 9) return baseXp * 10;  
+    if (level === 10) return baseXp * 12;
+    if (level === 11) return baseXp * 14;
+    if (level === 12) return baseXp * 16;
+    if (level === 13) return baseXp * 18;
+    if (level === 14) return baseXp * 20;
+    if (level === 15) return baseXp * 24;
+    if (level < 30) {
+      return Math.floor(baseXp * (level * 2));
+    }
     
-    // Level curve math for other levels
-    return Math.floor(baseXp * (level - 1) ** 2);
+    return Math.floor(baseXp * (level * 2.5));
   }
   
   /**
@@ -21,8 +31,6 @@ export function getXpRequiredForLevel(level: number): number {
    */
   export function getLevelFromXp(xp: number): number {
     if (xp < 0) return 1;
-    
-    if (xp >= 3000) return 9;
     
     let level = 1;
     while (getXpRequiredForLevel(level + 1) <= xp) {
@@ -47,7 +55,7 @@ export function getXpRequiredForLevel(level: number): number {
     const currentLevelXp = getXpRequiredForLevel(currentLevel);
     const nextLevelXp = getXpRequiredForLevel(currentLevel + 1);
     const xpProgress = xp - currentLevelXp;
-    const progressPercentage = Math.floor((xpProgress / (nextLevelXp - currentLevelXp)) * 100);
+    const progressPercentage = Math.min(100, Math.floor((xpProgress / (nextLevelXp - currentLevelXp)) * 100));
     
     return {
       currentLevel,
@@ -67,9 +75,9 @@ export function getXpRequiredForLevel(level: number): number {
     bonusMultiplier = 1.0
   ): number {
     const baseXp = {
-      'easy': 5,
-      'medium': 10,
-      'hard': 20
+      'easy': 10,
+      'medium': 20,
+      'hard': 40
     };
     
     const streakMultiplier = Math.min(1 + (streak * 0.05), 1.5);
