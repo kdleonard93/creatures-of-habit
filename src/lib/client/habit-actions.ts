@@ -15,6 +15,7 @@ export interface HabitCompletionResponse {
   previousLevel: number;
   newLevel: number;
   streakUpdate: StreakUpdateResult;
+  leveledUp: boolean;
 }
 
 /**
@@ -39,7 +40,7 @@ export async function completeHabit(habitId: string): Promise<HabitCompletionRes
     toast.success(`Gained ${data.experienceEarned} XP!`);
     
     // Show level up toast if applicable
-    if (data.newLevel > data.previousLevel) {
+    if (data.leveledUp) {
       toast.success(`Level up! Now level ${data.newLevel}`);
     }
 

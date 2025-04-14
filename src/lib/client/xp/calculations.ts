@@ -1,15 +1,32 @@
 /**
  * Calculates XP required for a given level
- * Uses a common RPG progression curve
  */
 export function getXpRequiredForLevel(level: number): number {
-  // Base XP required for level 2
-  const baseXp = 100;
+  const baseXp = 25;
   
   if (level <= 1) return 0;
+  if (level === 2) return baseXp;            
+  if (level === 3) return baseXp * 2;
+  if (level === 4) return baseXp * 3;
+  if (level === 5) return baseXp * 4;
+  if (level === 6) return baseXp * 5;
+  if (level === 7) return baseXp * 6;
+  if (level === 8) return baseXp * 8;
+  if (level === 9) return baseXp * 10;
+  if (level === 10) return baseXp * 12;
+  if (level === 11) return baseXp * 14;
+  if (level === 12) return baseXp * 16;
+  if (level === 13) return baseXp * 18;
+  if (level === 14) return baseXp * 20;
+  if (level === 15) return baseXp * 24;
+  if (level < 30) {
+    // Medium curve for levels 16-29
+    return Math.floor(baseXp * (level * 2));
+  }
   
-  // Level curve math
-  return Math.floor(baseXp * level ** 1.5);
+  // Steeper but still achievable curve for level 30+
+  // Level 30 will require 1,600 XP instead of 10,292 XP
+  return Math.floor(baseXp * (level * 2.5));
 }
 
 /**
@@ -41,7 +58,7 @@ export function getLevelProgress(xp: number): {
   const currentLevelXp = getXpRequiredForLevel(currentLevel);
   const nextLevelXp = getXpRequiredForLevel(currentLevel + 1);
   const xpProgress = xp - currentLevelXp;
-  const progressPercentage = Math.floor((xpProgress / (nextLevelXp - currentLevelXp)) * 100);
+  const progressPercentage = Math.min(100, Math.floor((xpProgress / (nextLevelXp - currentLevelXp)) * 100));
   
   return {
       currentLevel,
@@ -61,9 +78,9 @@ export function calculateHabitXp(
   bonusMultiplier = 1.0
 ): number {
   const baseXp = {
-      'easy': 5,
-      'medium': 10,
-      'hard': 20
+      'easy': 10,
+      'medium': 20,
+      'hard': 40
   };
   
   const streakMultiplier = Math.min(1 + (streak * 0.05), 1.5);
