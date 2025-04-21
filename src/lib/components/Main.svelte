@@ -26,7 +26,7 @@
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
-        <div class="flex items-center space-x-4 text-sm">
+        <!-- <div class="flex items-center space-x-4 text-sm">
           <div class="flex items-center">
             <CheckCircle className="mr-1 h-4 w-4 text-primary" />
             <span>Free to start</span>
@@ -39,7 +39,7 @@
             <CheckCircle className="mr-1 h-4 w-4 text-primary" />
             <span>Cancel anytime</span>
           </div>
-        </div>
+        </div> -->
       </div>
       <div class="flex items-center justify-center">
         <div class="relative w-full max-w-[500px]">
