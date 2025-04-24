@@ -35,6 +35,7 @@
   let isCheckingCreatureName = $state(false);
   let emailAvailable = $state<boolean | null>(null);
   let usernameAvailable = $state<boolean | null>(null);
+  let creatureAvailable = $state<boolean | null>(null);
 
   let formData = $state<RegistrationData>({
     email: "",
@@ -303,8 +304,8 @@
       }
     } catch (error) {
       console.error('Error checking email:', error);
-      errors.email = '';
-      emailAvailable = true;
+      errors.email = 'Error checking email availability';
+      emailAvailable = false;
     } finally {
       isCheckingEmail = false;
     }
@@ -338,8 +339,8 @@
       }
     } catch (error) {
       console.error('Error checking username:', error);
-      errors.username = '';
-      usernameAvailable = true;
+      errors.username = 'Error checking username availability';
+      usernameAvailable = false;
     } finally {
       isCheckingUsername = false;
     }
@@ -364,12 +365,15 @@
       
       if (!data.available) {
         errors.creature = '👎 This creature name is already taken. Please choose a different name.';
+        creatureAvailable = false;
       } else {
         errors.creature = '';
+        creatureAvailable = true;
       }
     } catch (error) {
       console.error('Error checking creature name:', error);
-      errors.creature = '';
+      errors.creature = 'Error checking creature name availability';
+      creatureAvailable = false;
     } finally {
       isCheckingCreatureName = false;
     }
