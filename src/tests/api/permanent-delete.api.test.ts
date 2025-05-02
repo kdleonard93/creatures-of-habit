@@ -37,7 +37,7 @@ describe('Permanent Delete Habit API Integration Tests', () => {
         json: async () => ({ error: 'Habit not found' })
       });
 
-      const response = await fetch(`/api/habits/non-existent-id/permanent-delete`, {
+      const response = await fetch('/api/habits/non-existent-id/permanent-delete', {
         method: 'DELETE',
       });
       const data = await response.json();
