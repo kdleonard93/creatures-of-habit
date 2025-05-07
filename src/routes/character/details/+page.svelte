@@ -278,8 +278,8 @@
                     <!-- Health -->
                     <div class="p-4 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30">
                         <div class="flex items-center justify-between">
-                            <h3 class="font-medium flex items-center gap-2">
-                                <Heart class="h-5 w-5 text-red-500" />
+                            <h3 class="font-medium flex items-center gap-2 text-red-500">
+                                <Heart class="h-5 w-5 text-red-500"  fill="currentColor"/>
                                 Health
                             </h3>
                             <span class="text-xl font-bold text-red-600 dark:text-red-400">{health}</span>
