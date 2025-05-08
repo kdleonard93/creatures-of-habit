@@ -4,72 +4,72 @@
 
 @layer base {
   :root {
-    --background: #121212;
-    --foreground: #FDFDFD;
-
-    --success: #10B981;
+    --background: #1A2238; /* Deep twilight blue */
+    --foreground: #F1F2EB; /* Soft ivory for text */
+    
+    --success: #00B894; /* Emerald green */
     --success-foreground: #FFFFFF;
-
-    --muted: #2D2D2D;
-    --muted-foreground: #9CA3AF;
-
-    --popover: #2D2D2D;
-    --popover-foreground: #FDFDFD;
-
-    --card: #2D2D2D;
-    --card-foreground: #FDFDFD;
-
-    --border: #3D3D3D;
-    --input: #3D3D3D;
-
-    --primary: #7209B7;
-    --primary-foreground: #FFFFFF;
-
-    --secondary: #4361EE;
+    
+    --muted: #2D3748; /* Deeper blue */
+    --muted-foreground: #A0AEC0; /* Muted silver */
+    
+    --popover: #2A3950; /* Slightly lighter than background */
+    --popover-foreground: #F1F2EB;
+    
+    --card: #2A3950; /* Slightly lighter blue for cards */
+    --card-foreground: #F1F2EB;
+    
+    --border: #3F4C6B; /* Border blue */
+    --input: #2D3748;
+    
+    --primary: #F7B801; /* Heroic gold */
+    --primary-foreground: #1A2238;
+    
+    --secondary: #CE1212; /* Brave red */
     --secondary-foreground: #FFFFFF;
-
-    --accent: #F72585;
+    
+    --accent: #4D80E4; /* Royal blue */
     --accent-foreground: #FFFFFF;
-
-    --destructive: #EF4444;
+    
+    --destructive: #E53E3E; /* Bright red */
     --destructive-foreground: #FFFFFF;
-
-    --ring: #7209B7;
+    
+    --ring: #F7B801;
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: #121212;
-    --foreground: #FDFDFD;
+    --background: #0F172A; /* Darker blue */
+    --foreground: #F1F2EB; /* Soft ivory */
 
-    --success: #10B981;
+    --success: #059669; /* Darker emerald */
     --success-foreground: #FFFFFF;
 
-    --muted: #2D2D2D;
-    --muted-foreground: #9CA3AF;
+    --muted: #1E293B; /* Very dark blue */
+    --muted-foreground: #94A3B8; /* Muted silver */
 
-    --popover: #2D2D2D;
-    --popover-foreground: #FDFDFD;
+    --popover: #1E293B; /* Very dark blue */
+    --popover-foreground: #F1F2EB;
 
-    --card: #2D2D2D;
-    --card-foreground: #FDFDFD;
+    --card: #1E293B; /* Very dark blue */
+    --card-foreground: #F1F2EB;
 
-    --border: #3D3D3D;
-    --input: #3D3D3D;
+    --border: #334155; /* Dark border */
+    --input: #1E293B;
 
-    --primary: #7209B7;
-    --primary-foreground: #FFFFFF;
+    --primary: #EAB308; /* Deeper gold */
+    --primary-foreground: #0F172A;
 
-    --secondary: #4361EE;
+    --secondary: #B91C1C; /* Deeper red */
     --secondary-foreground: #FFFFFF;
 
-    --accent: #F72585;
+    --accent: #3B82F6; /* Deeper blue */
     --accent-foreground: #FFFFFF;
 
-    --destructive: #EF4444;
+    --destructive: #DC2626; /* Deeper red */
     --destructive-foreground: #FFFFFF;
 
-    --ring: #7209B7;
+    --ring: #EAB308;
     --radius: 0.5rem;
   }
 }
