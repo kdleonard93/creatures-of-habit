@@ -64,17 +64,21 @@ export const load: PageServerLoad = async ({ locals }) => {
                 value: habitCompletion.value
             })
             .from(habitCompletion)
-            .where(eq(habitCompletion.completedAt, today));
+            .where(and(eq(habitCompletion.userId, session.user.id), eq(habitCompletion.completedAt, today)));
 
         // Add completion status to habits
         const habitsWithCompletions = habits.map((habit) => ({
             ...habit,
             frequency: habit.frequency || 'daily',
-            customFrequency: habit.customFrequency
-                ? {
-                        days: JSON.parse(habit.customFrequency)
-                    }
-                : undefined,
+            customFrequency: (() => {
+                if (!habit.customFrequency) return undefined;
+                try {
+                    return { days: JSON.parse(habit.customFrequency) };
+                } catch {
+                    console.warn('Invalid customFrequency JSON for habit', habit.id);
+                    return undefined;
+                }
+            })(),
             completedToday: completions.some((c) => c.habitId === habit.id)
         }));
 
