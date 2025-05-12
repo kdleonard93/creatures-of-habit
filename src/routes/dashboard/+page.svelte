@@ -11,18 +11,188 @@
 	import { classIcons } from '$lib/assets/classIcons';
 	import { raceIcons } from '$lib/assets/raceIcons';
 	import type { CreatureClassType, CreatureRaceType } from '$lib/types';
-	import { LogOut, ScanEye, ShieldAlert } from 'lucide-svelte';
+	import { LogOut, ScanEye, ShieldAlert, CircleCheck, Trophy, Plus, Filter, Calendar } from 'lucide-svelte';
 	import { enhance } from '$app/forms';
-	import XpBar from '$lib/components/character/XpBar.svelte';
+    import XPBar from '$lib/components/character/XPBar.svelte';
+	import { goto, invalidateAll } from '$app/navigation';
+	import { toast } from 'svelte-sonner';
+	import HabitProgressBar from '$lib/components/habits/HabitProgressBar.svelte';
 
 	const props = $props<{ data: PageData }>();
+	
+	// Calculate habit completion stats
+	const totalHabits = $derived(props.data.habits?.length || 0);
+	const completedHabits = $derived(props.data.habits?.filter((h: { completedToday: boolean }) => h.completedToday).length || 0);
+	const completionPercentage = $derived(totalHabits > 0 ? Math.round((completedHabits / totalHabits) * 100) : 0);
+	const formattedDate = $derived(new Date().toLocaleDateString('en-US', { 
+		weekday: 'long', 
+		year: 'numeric', 
+		month: 'long', 
+		day: 'numeric' 
+	}));
 
+	async function completeHabit(habitId: string) {
+		try {
+			const response = await fetch(`/api/habits/${habitId}/complete`, {
+				method: 'POST'
+			});
+
+			if (!response.ok) {
+				throw new Error('Failed to complete habit');
+			}
+
+			const data = await response.json();
+			
+			toast.success(`Gained ${data.experienceEarned} XP!`);
+			if (data.newLevel > data.previousLevel) {
+				toast.success(`Level up! Now level ${data.newLevel}`);
+			}
+
+			// Refresh the habits list
+			await invalidateAll();
+		} catch (error) {
+			console.error('Error completing habit:', error);
+			toast.error('Failed to complete habit');
+		}
+	}
+
+	function formatCustomDays(days: number[] | undefined): string {
+		if (!days || !days.length) return 'Custom';
+		const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+		return days.map(d => dayNames[d]).join(', ');
+	}
+
+	function getDifficultyColor(difficulty: string): string {
+		switch (difficulty.toLowerCase()) {
+			case 'easy':
+				return 'bg-success/20 text-success';
+			case 'medium':
+				return 'bg-primary/20 text-primary';
+			case 'hard':
+				return 'bg-secondary/20 text-secondary';
+			default:
+				return 'bg-primary/20 text-primary';
+		}
+	}
 </script>
 
 <div class="container mx-auto py-8 space-y-6">
-	<div class="flex justify-between items-center">
-		<h1 class="text-3xl font-bold">Welcome, {props.data.user.username}!</h1>
+	<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+		<div>
+			<h1 class="text-3xl font-bold">Welcome, {props.data.user.username}!</h1>
+			<p class="text-muted-foreground flex items-center gap-2">
+				<Calendar class="h-4 w-4" />
+				{formattedDate}
+			</p>
+		</div>
+		
+		<!-- Daily Progress Summary -->
+		<div class="bg-card p-3 rounded-lg border shadow-sm flex flex-col items-center">
+			<p class="text-sm font-medium mb-1">Today's Progress</p>
+			<div class="flex items-center gap-2">
+				<div class="text-2xl font-bold">{completionPercentage}%</div>
+				<div class="text-muted-foreground text-sm">({completedHabits}/{totalHabits})</div>
+			</div>
+		</div>
 	</div>
+
+	<!-- Today's Habits Section -->
+	<Card>
+		<CardHeader>
+			<div class="flex justify-between items-center">
+				<div>
+					<CardTitle>Today's Habits</CardTitle>
+					<CardDescription>Track your daily progress</CardDescription>
+				</div>
+				<div class="flex gap-2">
+					<Button 
+						variant="outline" 
+						size="sm" 
+						class="flex items-center gap-2"
+						onclick={() => goto('/habits')}
+					>
+						<Filter class="h-4 w-4" />
+						View All
+					</Button>
+					<Button 
+						variant="outline" 
+						size="sm" 
+						class="flex items-center gap-2"
+						onclick={() => goto('/habits/new')}
+					>
+						<Plus class="h-4 w-4" />
+						New Habit
+					</Button>
+				</div>
+			</div>
+		</CardHeader>
+		<CardContent>
+			<!-- Overall Progress Bar -->
+			<div class="mb-6">
+				<HabitProgressBar completed={completedHabits} total={totalHabits} size="lg" />
+			</div>
+			
+			{#if props.data.habits && props.data.habits.length > 0}
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+					{#each props.data.habits as habit (habit.id)}
+						<div class="p-4 border rounded-lg shadow-sm bg-card flex flex-col">
+							<div class="flex justify-between items-start mb-3">
+								<div class="flex flex-col">
+									<div class="flex items-center gap-2">
+										<h3 class="font-semibold">{habit.title}</h3>
+										{#if habit.completedToday}
+											<div class="text-success">
+												<Trophy class="h-4 w-4" />
+											</div>
+										{/if}
+									</div>
+									<div class="flex flex-wrap gap-2 mt-2">
+										<span class="capitalize px-2 py-0.5 rounded-full text-xs {getDifficultyColor(habit.difficulty)}">
+											{habit.difficulty}
+										</span>
+										<span class="capitalize px-2 py-0.5 bg-muted rounded-full text-xs">
+											{habit.frequency === 'custom' && habit.customFrequency?.days ? 
+												formatCustomDays(habit.customFrequency.days) : 
+												habit.frequency}
+										</span>
+									</div>
+								</div>
+								<Button 
+									variant={habit.completedToday ? "outline" : "success"}
+									size="sm"
+									onclick={() => completeHabit(habit.id)}
+									disabled={habit.completedToday}
+									class="flex items-center gap-2 min-w-24"
+								>
+									<CircleCheck class="h-4 w-4" />
+									{habit.completedToday ? 'Completed' : 'Complete'}
+								</Button>
+							</div>
+							
+							<div class="mt-auto">
+								<HabitProgressBar 
+									completed={habit.completedToday ? 1 : 0} 
+									total={1} 
+									size="sm" 
+								/>
+							</div>
+						</div>
+					{/each}
+				</div>
+			{:else}
+				<div class="text-center py-8">
+					<p class="text-muted-foreground">You don't have any habits yet.</p>
+					<Button 
+						variant="outline" 
+						class="mt-4"
+						onclick={() => goto('/habits/new')}
+					>
+						Create Your First Habit
+					</Button>
+				</div>
+			{/if}
+		</CardContent>
+	</Card>
 
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 		<!-- User Info Card -->
@@ -88,7 +258,7 @@
 						<!-- Add XP progress bar -->
 						<div class="pt-4 border-t">
 							<h4 class="font-medium mb-2">Experience</h4>
-							<XpBar experience={props.data.creature.experience} />
+							<XPBar experience={props.data.creature.experience} />
 						</div>
 
 						<!-- View Details -->
