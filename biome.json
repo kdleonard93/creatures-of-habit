@@ -13,7 +13,7 @@
 		"ignore": ["node_modules/**/*"]
 	},
 	"organizeImports": {
-		"enabled": true
+		"enabled": false
 	},
 	"linter": {
 		"enabled": true,
@@ -45,6 +45,6 @@
 	},
 	"overrides": [],
 	"files": {
-		"ignore": ["build/", ".svelte-kit/", "dist/", "**/*.svelte", "node_modules/"]
+		"ignore": ["build/", ".svelte-kit/", "dist/", "**/*.svelte", "node_modules/", "src/tests/**/*"]
 	}
 }

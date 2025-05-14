@@ -117,7 +117,7 @@ export function getEffectiveStats(
 	}
 
 	// Apply level-based increases (every 4 levels)
-	const statIncreases = Math.floor((level - 1) / 4);
+	const _statIncreases = Math.floor((level - 1) / 4);
 
 
 	// Apply equipment bonuses
@@ -142,7 +142,7 @@ export function calculateHealth(
 	classType: CreatureClassType
 ): number {
 	const constitutionModifier = calculateStatModifier(constitution);
-	const classInfo = classDefinitions[classType];
+	const _classInfo = classDefinitions[classType];
 
 	// Base health varies by class
 	const baseHealth =

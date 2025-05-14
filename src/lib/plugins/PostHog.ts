@@ -2,7 +2,7 @@ import type { PostHogConfig } from 'posthog-js';
 import { PUBLIC_POSTHOG_KEY } from '$env/static/public';
 
 
-console.log('🔍 PostHog: Config file loaded');
+console.info('🔍 PostHog: Config file loaded');
 
 export const posthogConfig: Partial<PostHogConfig> = {
     api_host: 'https://us.i.posthog.com',

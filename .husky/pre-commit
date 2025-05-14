@@ -1,2 +1,10 @@
-echo "Running tests..."
-CI=true pnpm run test
+echo "🔍 Checking TypeScript types..."
+pnpm run check || { echo "❌ TypeScript check failed"; exit 1; }
+
+echo "🧹 Running linting..."
+pnpm run lint || { echo "❌ Linting failed"; exit 1; }
+
+echo "🧪 Running tests..."
+CI=true pnpm run test || { echo "❌ Tests failed"; exit 1; }
+
+echo "✅ Pre-commit checks passed!"
