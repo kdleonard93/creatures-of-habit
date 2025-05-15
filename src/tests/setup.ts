@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+import './svelte.d.ts';
 
 // Configure Svelte for testing
 // This is needed for Svelte 5 compatibility
