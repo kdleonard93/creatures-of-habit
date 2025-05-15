@@ -6,13 +6,13 @@ echo "🔧 Fixing unused variables..."
 declare -a TEST_VARS=(mockFrequency mockStreak mockCompletion mockHabit)
 for var in "${TEST_VARS[@]}"; do
   find ./src/tests -type f -name "*.ts" \
-    -exec sed -i '' "s/const ${var}/const _${var}/g" {} \;
+    -exec sed "${SED_INPLACE[@]}" "s/const ${var}/const _${var}/g" {} \;
 done
-
+  
 # Fix unused variables in stats.ts
 declare -a STATS_VARS=(statIncreases firstLevelHealth classInfo)
 for var in "${STATS_VARS[@]}"; do
-  sed -i '' "s/const ${var}/const _${var}/g" ./src/lib/server/xp/stats.ts
+  sed "${SED_INPLACE[@]}" "s/const ${var}/const _${var}/g" ./src/lib/server/xp/stats.ts
 done
 
 echo "📝 Fixing console.log statements..."
@@ -25,6 +25,6 @@ else
   SED_INPLACE=(-i '')
 fi
 find ./src -type f -name "*.ts" -exec sed "${SED_INPLACE[@]}" 's/console\.log/console\.info/g' {} \;
-find ./drizzle.config.ts -type f -exec sed "${SED_INPLACE[@]}" 's/console\.log/console\.info/g' {}
+find ./drizzle.config.ts -type f -exec sed "${SED_INPLACE[@]}" 's/console\.log/console\.info/g' {} \;
 
 echo "✅ Lint fixes applied! You should now be able to commit."
