@@ -18,10 +18,6 @@ vi.mock('svelte-sonner', () => ({
   }
 }));
 
-// Import the component after mocking dependencies
-import { render, fireEvent } from '@testing-library/svelte';
-import HabitReminder from '$lib/components/habits/HabitReminder.svelte';
-
 // Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {};

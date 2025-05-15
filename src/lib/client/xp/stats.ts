@@ -147,15 +147,13 @@ export function calculateHealth(
 			engineer: 8
 		}[classType] || 8;
 
-	// First level gets max health
-	const firstLevelHealth = constitutionModifier;
 
 	// Additional levels get an average roll plus constitution modifier
 	const additionalLevels = level - 1;
 	const averageDiceRoll = Math.floor(baseHealth / 2) + 1;
 	const levelUpHealth = additionalLevels * (averageDiceRoll + constitutionModifier);
 
-    const level1Health = baseHealth + constitutionModifier;
-    const totalHealth = level1Health + levelUpHealth;
+	const level1Health = baseHealth + constitutionModifier;
+	const totalHealth = level1Health + levelUpHealth;
 	return Math.max(1, totalHealth);
 }

@@ -43,7 +43,7 @@
                             <p class="text-sm text-gray-600">{habit.description}</p>
                         {/if}
                         <div class="mt-2 text-sm text-gray-500">
-                            Completed on: {new Date(habit.completedAt).toLocaleDateString()}
+                            Completed on: {new Date(habit.updatedAt).toLocaleDateString()}
                         </div>
                     </div>
                     

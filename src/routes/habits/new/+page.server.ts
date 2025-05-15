@@ -36,7 +36,7 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
             }
 
             const data = await response.json();
-            console.log('Created categories:', data.categories);
+            console.info('Created categories:', data.categories);
             return {
                 categories: data.categories
             };

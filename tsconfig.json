@@ -13,5 +13,6 @@
 		"types": ["@sveltejs/kit"],
 		"moduleResolution": "bundler"
 	},
-	"include": ["src/**/*.ts", "src/**/*.svelte", "src/**/*.d.ts"]
+	"include": ["src/**/*.ts", "src/**/*.svelte", "src/**/*.d.ts"],
+	"exclude": ["src/tests/**/*", "**/*.test.ts"]
 }

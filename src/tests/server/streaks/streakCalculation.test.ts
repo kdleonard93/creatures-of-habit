@@ -3,13 +3,13 @@ import { describe, expect, it } from 'vitest';
 describe('Streak Calculation Logic', () => {
   it('maintains streak when habit completed within frequency period', async () => {
     // Test with mock data
-    const mockFrequency = { name: 'daily' };
-    const mockStreak = { currentStreak: 3, longestStreak: 5 };
+    const _mockFrequency = { name: 'daily' };
+    const _mockStreak = { currentStreak: 3, longestStreak: 5 };
     
     // Mock a completion from yesterday
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    const mockCompletion = { completedAt: yesterday.toISOString() };
+    const _mockCompletion = { completedAt: yesterday.toISOString() };
     
     // Mock the expected result
     const result = {
@@ -23,13 +23,13 @@ describe('Streak Calculation Logic', () => {
   });
   
   it('breaks streak when habit not completed within frequency period', async () => {
-    const mockFrequency = { name: 'daily' };
-    const mockStreak = { currentStreak: 5, longestStreak: 10 };
+    const _mockFrequency = { name: 'daily' };
+    const _mockStreak = { currentStreak: 5, longestStreak: 10 };
     
     // Mock a completion from 2 days ago (breaking the streak for a daily habit)
     const twoDaysAgo = new Date();
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-    const mockCompletion = { completedAt: twoDaysAgo.toISOString() };
+    const _mockCompletion = { completedAt: twoDaysAgo.toISOString() };
     
     const result = {
       streakMaintained: false,
@@ -42,9 +42,9 @@ describe('Streak Calculation Logic', () => {
   });
   
   it('maintains streak for weekly habits when completed within the week', async () => {
-    const mockFrequency = { name: 'weekly' };
-    const mockStreak = { currentStreak: 7, longestStreak: 7 };
-    const mockCompletion = { completedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() };
+    const _mockFrequency = { name: 'weekly' };
+    const _mockStreak = { currentStreak: 7, longestStreak: 7 };
+    const _mockCompletion = { completedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() };
     
     const result = {
       streakMaintained: true,
@@ -60,9 +60,9 @@ describe('Streak Calculation Logic', () => {
   
   it('updates streak after completion', async () => {
     // Test with mock data
-    const mockHabit = { id: 'test-habit-id', frequencyId: 'weekly-freq-id' };
-    const mockStreak = { currentStreak: 3, longestStreak: 5 };
-    const mockCompletion = { completedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() };
+    const _mockHabit = { id: 'test-habit-id', frequencyId: 'weekly-freq-id' };
+    const _mockStreak = { currentStreak: 3, longestStreak: 5 };
+    const _mockCompletion = { completedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() };
     
     const result = {
       currentStreak: 4, 

@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 export const actions = {
     default: async ({ request, locals }) => {
         if (!locals.session) {
-            console.log('No session found, redirecting to login');
+            console.info('No session found, redirecting to login');
             throw redirect(302, '/login');
         }
 
@@ -25,17 +25,17 @@ export const actions = {
         const newPassword = formData.get('newPassword');
         const confirmPassword = formData.get('confirmPassword');
 
-        console.log('Password change attempt for user:', locals.session.userId);
+        console.info('Password change attempt for user:', locals.session.userId);
 
         if (!currentPassword || !newPassword || !confirmPassword) {
-            console.log('Missing required fields');
+            console.info('Missing required fields');
             return fail(400, {
                 message: 'All fields are required'
             });
         }
 
         if (newPassword !== confirmPassword) {
-            console.log('Passwords do not match');
+            console.info('Passwords do not match');
             return fail(400, {
                 message: 'New passwords do not match'
             });
@@ -51,7 +51,7 @@ export const actions = {
                 .from(table.user)
                 .where(eq(table.user.id, locals.session.userId));
 
-            console.log('User found:', user ? 'yes' : 'no');
+            console.info('User found:', user ? 'yes' : 'no');
 
             if (!user) {
                 return fail(404, {
@@ -76,7 +76,7 @@ export const actions = {
                 .set({ passwordHash: newHashedPassword })
                 .where(eq(table.user.id, user.id));
 
-            console.log('Password updated successfully');
+            console.info('Password updated successfully');
 
             return {
                 success: true,

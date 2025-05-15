@@ -14,4 +14,4 @@ export default defineConfig({
 	out: './migrations',
 	dialect: 'turso',
 });
-console.log('Database URL:', process.env.TURSO_DATABASE_URL);
+console.info('Database URL:', process.env.TURSO_DATABASE_URL);

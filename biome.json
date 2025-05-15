@@ -9,8 +9,8 @@
 		"enabled": true,
 		"indentStyle": "tab",
 		"lineWidth": 100,
-		"include": ["scripts/**/*.js", "src/**/*.js"],
-		"ignore": ["scripts/**/*.js"]
+		"include": ["src/**/*.{js,ts,svelte}"],
+		"ignore": ["node_modules/**/*"]
 	},
 	"organizeImports": {
 		"enabled": false
@@ -18,7 +18,22 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"recommended": true,
+			"correctness": {
+				"noUnusedVariables": "error",
+				"noUndeclaredVariables": "error"
+			},
+			"suspicious": {
+				"noExplicitAny": "warn",
+				"noConsoleLog": "warn"
+			},
+			"style": {
+				"useConst": "error",
+				"useTemplate": "error"
+			},
+			"complexity": {
+				"useLiteralKeys": "error"
+			}
 		}
 	},
 	"javascript": {
@@ -30,6 +45,6 @@
 	},
 	"overrides": [],
 	"files": {
-		"ignore": ["build/", ".svelte-kit/", "dist/", "**/*.svelte"]
+		"ignore": ["build/", ".svelte-kit/", "dist/", "**/*.svelte", "node_modules/", "src/tests/**/*"]
 	}
 }

@@ -1,5 +1,3 @@
 <script lang="ts">
-    import type { PageData } from './$types';
-    
-    let { data }: PageData = $props();
+    // No data is needed for this page
 </script>

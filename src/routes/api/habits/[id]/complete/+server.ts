@@ -69,7 +69,7 @@ export const POST = (async ({ locals, params }) => {
 
         // Calculate new level
         const newExperience = (currentCreature.experience || 0) + experienceEarned;
-        const previousLevel = currentCreature.level;
+        const previousLevel = currentCreature.level || 1;
         const newLevel = getLevelFromXp(newExperience);
 
         // Update creature and mark habit as completed (archived)

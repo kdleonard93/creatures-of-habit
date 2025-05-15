@@ -1,5 +1,5 @@
 // Mock data for testing
-import { CreatureClass, CreatureRace } from '$lib/types';
+import { CreatureClass, CreatureRace } from '../../../src/lib/types';
 
 // Generate consistent timestamps for testing
 const NOW = new Date();

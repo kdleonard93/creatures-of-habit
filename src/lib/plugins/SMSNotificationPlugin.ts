@@ -3,6 +3,6 @@ import type { NotificationPlugin } from '$lib/notifications/NotificationManager'
 
 export class SMSNotificationPlugin implements NotificationPlugin {
     send(notification: Notifications): void {
-        console.log(`Sending SMS: ${notification.message}`);
+        console.info(`Sending SMS: ${notification.message}`);
     }
 }

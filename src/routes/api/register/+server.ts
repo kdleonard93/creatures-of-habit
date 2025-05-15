@@ -11,7 +11,7 @@ import type { RegistrationData } from '$lib/types';
 export const POST: RequestHandler = async (event) => {
   try {
     const data = await event.request.json() as RegistrationData;
-    console.log('Received registration data:', { ...data, password: '[REDACTED]', confirmPassword: '[REDACTED]' });
+    console.info('Received registration data:', { ...data, password: '[REDACTED]', confirmPassword: '[REDACTED]' });
 
     // Check if email already exists
     const existingUserByEmail = await db.select()
