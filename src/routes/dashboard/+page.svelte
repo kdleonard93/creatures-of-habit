@@ -16,20 +16,24 @@
     import XPBar from '$lib/components/character/XPBar.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
-	import HabitProgressBar from '$lib/components/habits/HabitProgressBar.svelte';
+	import DailyProgressSummary from '$lib/components/dashboard/DailyProgressSummary.svelte';
+	import { calculateDailyProgress } from '$lib/utils/dailyHabitProgress';
 
 	const props = $props<{ data: PageData }>();
 	
-	// Calculate habit completion stats
-	const totalHabits = $derived(props.data.habits?.length || 0);
-	const completedHabits = $derived(props.data.habits?.filter((h: { completedToday: boolean }) => h.completedToday).length || 0);
-	const completionPercentage = $derived(totalHabits > 0 ? Math.round((completedHabits / totalHabits) * 100) : 0);
+	// Date formatting for the dashboard header
 	const formattedDate = $derived(new Date().toLocaleDateString('en-US', { 
 		weekday: 'long', 
 		year: 'numeric', 
 		month: 'long', 
 		day: 'numeric' 
 	}));
+	
+	// Use the shared utility function to calculate stats
+	const stats = $derived(calculateDailyProgress(props.data?.habits));
+	const totalHabits = $derived(stats.total);
+	const completedHabits = $derived(stats.completed);
+	const completionPercentage = $derived(stats.percentage);
 
 	async function completeHabit(habitId: string) {
 		try {
@@ -87,13 +91,7 @@
 		</div>
 		
 		<!-- Daily Progress Summary -->
-		<div class="bg-card p-3 rounded-lg border shadow-sm flex flex-col items-center">
-			<p class="text-sm font-medium mb-1">Today's Progress</p>
-			<div class="flex items-center gap-2">
-				<div class="text-2xl font-bold">{completionPercentage}%</div>
-				<div class="text-muted-foreground text-sm">({completedHabits}/{totalHabits})</div>
-			</div>
-		</div>
+		<DailyProgressSummary data={props.data} />
 	</div>
 
 	<!-- Today's Habits Section -->
@@ -127,10 +125,6 @@
 			</div>
 		</CardHeader>
 		<CardContent>
-			<!-- Overall Progress Bar -->
-			<div class="mb-6">
-				<HabitProgressBar completed={completedHabits} total={totalHabits} size="lg" />
-			</div>
 			
 			{#if props.data.habits && props.data.habits.length > 0}
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -167,14 +161,6 @@
 									<CircleCheck class="h-4 w-4" />
 									{habit.completedToday ? 'Completed' : 'Complete'}
 								</Button>
-							</div>
-							
-							<div class="mt-auto">
-								<HabitProgressBar 
-									completed={habit.completedToday ? 1 : 0} 
-									total={1} 
-									size="sm" 
-								/>
 							</div>
 						</div>
 					{/each}
@@ -287,3 +273,4 @@
 		Logout
 	</Button>
 </form>
+
