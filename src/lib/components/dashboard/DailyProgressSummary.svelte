@@ -1,9 +1,13 @@
 <script lang="ts">
-import type { PageData } from '/Users/kdleo/code/creatures-of-habit/.svelte-kit/types/src/routes/dashboard/$types.d.ts';
+import type { HabitData } from '$lib/types';
+
+interface DashboardData {
+  habits: Array<HabitData & { completedToday: boolean }>
+}
 import { calculateDailyProgress } from '$lib/utils/dailyHabitProgress';
 import { Progress } from "$lib/components/ui/progress";
 
-const props = $props<{ data: PageData }>();
+const props = $props<{ data: DashboardData }>();
 
 // Use the shared utility function to calculate stats
 const stats = $derived(calculateDailyProgress(props.data?.habits));
