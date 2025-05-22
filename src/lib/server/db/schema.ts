@@ -161,6 +161,14 @@ export const userPreferences = sqliteTable('user_preferences', {
     updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+export const contacts = sqliteTable('contacts', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    name: text('name').notNull(),
+    email: text('email').notNull(),
+    message: text('message').notNull(),
+    createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // Type inference helpers
 export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;

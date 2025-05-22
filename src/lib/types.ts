@@ -127,6 +127,12 @@ export interface HabitData {
 	endDate?: string;
 }
 
+export interface ContactFormData {
+	name: string;
+	email: string;
+	message: string;
+}
+
 export type HabitFrequency = 'daily' | 'weekly' | 'custom';
 export type HabitDifficulty = 'easy' | 'medium' | 'hard';
 

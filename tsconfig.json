@@ -10,7 +10,7 @@
 		"sourceMap": true,
 		"strict": true,
 		"noImplicitAny": true,
-		"types": ["@sveltejs/kit"],
+		"types": ["@sveltejs/kit", "vite/client"],
 		"moduleResolution": "bundler"
 	},
 	"include": ["src/**/*.ts", "src/**/*.svelte", "src/**/*.d.ts"],
