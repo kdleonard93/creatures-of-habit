@@ -8,7 +8,11 @@ import {contacts} from "$lib/server/db/schema";
 
 const resendToken = process.env.RESEND_API_KEY;
 
-const resend = new Resend(resendToken);
+// Create Resend instance
+let resend: Resend | null = null;
+if (resendToken) {
+  resend = new Resend(resendToken);
+}
 
 export const actions = {
   default: async ({ request }) => {
@@ -33,17 +37,21 @@ export const actions = {
 
     try {
       // Send email using Resend
-      await resend.emails.send({
-        from: "Contact Form <no-reply@digitaldopamine.dev>",
-        to: "contact@digitaldopamine.dev",
-        subject: `New Contact Form Submission from ${name}`,
-        text: `
+      if (resend) {
+        await resend.emails.send({
+          from: "Contact Form <no-reply@digitaldopamine.dev>",
+          to: "contact@digitaldopamine.dev",
+          subject: `New Contact Form Submission from ${name}`,
+          text: `
 Name: ${name}
 Email: ${email}
 Message: ${message}
-                `,
-        replyTo: email,
-      });
+                  `,
+          replyTo: email,
+        });
+      } else {
+        console.info('Email sending skipped - Resend API key not configured');
+      }
 
         // Save to db
         await db.insert(contacts).values({
