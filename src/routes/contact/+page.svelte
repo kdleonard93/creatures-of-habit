@@ -39,7 +39,7 @@
                         if (result.type === 'success') {
                             // Track successful form submission in PostHog
                             posthog.capture('contact_form_submitted', {
-                                email_domain: formData.email.split('@')[1],
+                                email_domain: formData.email.includes('@') ? formData.email.split('@')[1] : 'invalid',
                                 timestamp: new Date().toISOString()
                             });
                             
