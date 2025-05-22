@@ -34,8 +34,8 @@ export const actions = {
     try {
       // Send email using Resend
       await resend.emails.send({
-        from: "Contact Form <no-reply@digitaldopamine.net>",
-        to: "contact@digitaldopamine.net",
+        from: "Contact Form <no-reply@digitaldopamine.dev>",
+        to: "contact@digitaldopamine.dev",
         subject: `New Contact Form Submission from ${name}`,
         text: `
 Name: ${name}

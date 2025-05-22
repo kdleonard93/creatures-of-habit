@@ -6,6 +6,7 @@
     import { Label } from "$lib/components/ui/label";
     import { toast } from 'svelte-sonner';
     import type {ContactFormData} from "$lib/types";
+    import posthog from 'posthog-js';
 
     // Initialize form data with the proper type
     let formData = $state<ContactFormData>({name: '', email: '', message: ''});
@@ -36,8 +37,21 @@
                     return async ({ result }) => {
                         isSubmitting = false;
                         if (result.type === 'success') {
+                            // Track successful form submission in PostHog
+                            posthog.capture('contact_form_submitted', {
+                                email_domain: formData.email.split('@')[1],
+                                timestamp: new Date().toISOString()
+                            });
+                            
+                            toast.success(typeof result.data?.message === 'string' ? result.data.message : 'Message sent successfully!');
+                            
+                            // Reset form on success
                             const form = document.querySelector('form');
                             if (form) form.reset();
+
+                            formData = {name: '', email: '', message: ''};
+                        } else if (result.type === 'failure') {
+                            toast.error(typeof result.data?.error === 'string' ? result.data.error : 'Failed to send message. Please try again.');
                         }
                     };
                 }} class="space-y-4">
