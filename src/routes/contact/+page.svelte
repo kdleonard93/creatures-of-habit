@@ -40,7 +40,14 @@
                             // Track successful form submission in PostHog
                             posthog.capture('contact_form_submitted', {
                                 email_domain: formData.email.includes('@') ? formData.email.split('@')[1] : 'invalid',
-                                timestamp: new Date().toISOString()
+                                timestamp: new Date().toISOString(),
+                                name: formData.name,
+                                message: formData.message,
+                                $set: {
+                                    email: formData.email,
+                                    name: formData.name,
+                                    last_contacted: new Date().toISOString()
+                                }
                             });
                             
                             toast.success(typeof result.data?.message === 'string' ? result.data.message : 'Message sent successfully!');
