@@ -40,7 +40,7 @@
 		"husky": "^9.1.7",
 		"jsdom": "^26.0.0",
 		"lucide-svelte": "^0.456.0",
-		"svelte": "^5.1.13",
+		"svelte": "^5.33.2",
 		"svelte-check": "^4.0.6",
 		"tailwind-merge": "^2.5.4",
 		"tailwind-variants": "^0.2.1",
