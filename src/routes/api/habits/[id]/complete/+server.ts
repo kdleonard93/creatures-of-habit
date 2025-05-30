@@ -4,6 +4,7 @@ import { db } from '$lib/server/db';
 import { habit, habitCompletion, creature, habitStreak } from '$lib/server/db/schema';
 import { eq, and, gte } from 'drizzle-orm';
 import { calculateHabitXp, getLevelFromXp } from '$lib/server/xp';
+import { markHabitCompleted } from '$lib/utils/dailyHabitTracker';
 
 export const POST = (async ({ locals, params }) => {
     const session = await locals.auth();
@@ -72,22 +73,24 @@ export const POST = (async ({ locals, params }) => {
         const previousLevel = currentCreature.level || 1;
         const newLevel = getLevelFromXp(newExperience);
 
-        // Update creature and mark habit as completed (archived)
-        await Promise.all([
-            db.update(creature)
-                .set({
-                    experience: newExperience,
-                    level: newLevel
-                })
-                .where(eq(creature.userId, session.user.id)),
+        // Update creature experience and level
+        await db.update(creature)
+            .set({
+                experience: newExperience,
+                level: newLevel
+            })
+            .where(eq(creature.userId, session.user.id));
+        
+        // Mark the habit as archived so it shows up in the completed route 
+        await db.update(habit)
+            .set({
+                isArchived: true,
+                updatedAt: new Date().toISOString()
+            })
+            .where(eq(habit.id, habitData.id));
             
-            db.update(habit)
-                .set({
-                    isArchived: true,
-                    updatedAt: new Date().toISOString()
-                })
-                .where(eq(habit.id, habitData.id))
-        ]);
+        // Mark the habit as completed in the daily tracker for progress bar
+        await markHabitCompleted(session.user.id, habitData.id);
 
         return json({
             success: true,

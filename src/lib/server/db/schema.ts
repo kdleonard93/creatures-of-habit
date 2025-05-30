@@ -169,7 +169,23 @@ export const contacts = sqliteTable('contacts', {
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// Daily habit tracker for progress bar
+export const dailyHabitTracker = sqliteTable('daily_habit_tracker', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text('user_id')
+        .notNull()
+        .references(() => user.id, { onDelete: 'cascade' }),
+    habitId: text('habit_id')
+        .notNull()
+        .references(() => habit.id, { onDelete: 'cascade' }),
+    date: text('date').notNull(), // YYYY-MM-DD format
+    completed: integer('completed', { mode: 'boolean' }).notNull().default(false),
+    createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+    updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // Type inference helpers
 export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
 export type UserPreferences = typeof userPreferences.$inferSelect;
+export type DailyHabitTracker = typeof dailyHabitTracker.$inferSelect;

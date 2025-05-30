@@ -3,17 +3,21 @@ import type { HabitData } from '$lib/types';
 
 interface DashboardData {
   habits: Array<HabitData & { completedToday: boolean }>
+  progressStats: {
+    total: number;
+    completed: number;
+    percentage: number;
+  }
 }
-import { calculateDailyProgress } from '$lib/utils/dailyHabitProgress';
+
 import { Progress } from "$lib/components/ui/progress";
 
 const props = $props<{ data: DashboardData }>();
 
-// Use the shared utility function to calculate stats
-const stats = $derived(calculateDailyProgress(props.data?.habits));
-const totalHabits = $derived(stats.total);
-const completedHabits = $derived(stats.completed);
-const completionPercentage = $derived(stats.percentage);
+// Use the progress stats from the server
+const totalHabits = $derived(props.data?.progressStats?.total || 0);
+const completedHabits = $derived(props.data?.progressStats?.completed || 0);
+const completionPercentage = $derived(props.data?.progressStats?.percentage || 0);
 </script>
 
 <div class="bg-card p-2 rounded-lg border shadow-sm flex flex-col items-center w-full" 

@@ -3,6 +3,7 @@ import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { user, creature, habit, habitFrequency, habitCategory, habitCompletion } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { ensureDailyTrackerEntries, getDailyProgressStats } from '$lib/utils/dailyHabitTracker';
 
 export const load: PageServerLoad = async ({ locals }) => {
     const session = await locals.auth();
@@ -82,10 +83,17 @@ export const load: PageServerLoad = async ({ locals }) => {
             completedToday: completions.some((c) => c.habitId === habit.id)
         }));
 
+        // Ensure all habits have tracker entries for today
+        await ensureDailyTrackerEntries(session.user.id);
+        
+        // Get daily progress stats from the tracker
+        const progressStats = await getDailyProgressStats(session.user.id);
+
         return {
             user: userInfo,
             creature: userCreature,
-            habits: habitsWithCompletions
+            habits: habitsWithCompletions,
+            progressStats
         };
     } catch (error) {
         console.error('Error loading dashboard data:', error);
