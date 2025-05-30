@@ -6,6 +6,20 @@ declare global {
             auth(): Promise<{ user: import('$lib/server/auth').SessionValidationResult['user']; session: import('$lib/server/auth').SessionValidationResult['session']; } | null>;
         }
     }
+    
+    namespace svelteHTML {
+        interface HTMLAttributes {
+            'aria-label'?: string;
+            'aria-labelledby'?: string;
+            'aria-describedby'?: string;
+            'aria-hidden'?: boolean | 'true' | 'false';
+            'aria-expanded'?: boolean | 'true' | 'false';
+            'aria-controls'?: string;
+            'aria-live'?: 'off' | 'polite' | 'assertive';
+            'aria-selected'?: boolean | 'true' | 'false';
+            'data-testid'?: string;
+        }
+    }
 }
 
 declare module 'svelte-sonner' {

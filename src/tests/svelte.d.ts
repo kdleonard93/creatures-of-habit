@@ -44,6 +44,21 @@ declare module '$lib/server/streaks/calculations' {
   ): Promise<StreakUpdateResult>;
 }
 
+declare module '$lib/utils/dailyHabitProgress' {
+  interface Habit {
+    id: string;
+    completedToday: boolean;
+  }
+  
+  interface DailyProgressStats {
+    total: number;
+    completed: number;
+    percentage: number;
+  }
+  
+  export function calculateDailyProgress(habits: Habit[] | undefined): DailyProgressStats;
+}
+
 declare module '$lib/server/db' {
   type MockFunction<T = any> = T & {
     mockReturnThis: () => MockFunction<T>;
