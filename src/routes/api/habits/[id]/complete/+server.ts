@@ -6,6 +6,7 @@ import { eq, and, gte } from 'drizzle-orm';
 import { calculateHabitXp, getLevelFromXp } from '$lib/server/xp';
 import { markHabitCompleted, DailyTrackerError } from '$lib/utils/dailyHabitTracker';
 import { logger } from '$lib/utils/logger';
+import { formatSqliteTimestamp } from '$lib/utils/date';
 
 export const POST: RequestHandler = async ({ locals, params }) => {
     const session = await locals.auth();
@@ -27,9 +28,6 @@ export const POST: RequestHandler = async ({ locals, params }) => {
             return json({ error: 'Habit not found' }, { status: 404 });
         }
 
-        // Mark the habit as completed in the daily tracker
-        // This will handle all authorization checks and database operations
-        await markHabitCompleted(session.user.id, habitData.id);
         
         // Get current streak data
         const [streakData] = await db
@@ -49,7 +47,7 @@ export const POST: RequestHandler = async ({ locals, params }) => {
             .values({
                 habitId: habitData.id,
                 userId: session.user.id,
-                completedAt: new Date().toISOString(),
+                completedAt: formatSqliteTimestamp(),
                 experienceEarned,
                 value: 100
             })
@@ -63,8 +61,8 @@ export const POST: RequestHandler = async ({ locals, params }) => {
             .set({
                 currentStreak: newStreakCount,
                 longestStreak: newLongestStreak,
-                lastCompletedAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                lastCompletedAt: formatSqliteTimestamp(),
+                updatedAt: formatSqliteTimestamp()
             })
             .where(eq(habitStreak.habitId, habitData.id));
 
@@ -90,7 +88,7 @@ export const POST: RequestHandler = async ({ locals, params }) => {
         await db.update(habit)
             .set({
                 isArchived: true,
-                updatedAt: new Date().toISOString()
+                updatedAt: formatSqliteTimestamp()
             })
             .where(eq(habit.id, habitData.id));
             

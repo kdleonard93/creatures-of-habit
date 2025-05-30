@@ -2,6 +2,7 @@ import { db } from '../server/db';
 import { dailyHabitTracker, habit, user } from '../server/db/schema';
 import { eq, and, sql, lt } from 'drizzle-orm';
 import { SQLiteTransaction } from 'drizzle-orm/sqlite-core';
+import { formatSqliteTimestamp, formatDateOnly } from './date';
 
 /**
  * Custom error class for daily tracker operations
@@ -62,7 +63,7 @@ async function verifyHabitBelongsToUser(userId: string, habitId: string): Promis
  * Get the current date in YYYY-MM-DD format
  */
 function getCurrentDate(): string {
-  return new Date().toISOString().split('T')[0];
+  return formatDateOnly();
 }
 
 /**
@@ -156,7 +157,7 @@ export async function markHabitCompleted(userId: string, habitId: string): Promi
           .update(dailyHabitTracker)
           .set({ 
             completed: true,
-            updatedAt: new Date().toISOString()
+            updatedAt: formatSqliteTimestamp()
           })
           .where(eq(dailyHabitTracker.id, existingEntry.id));
       } else {
