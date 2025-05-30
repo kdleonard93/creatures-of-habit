@@ -1,5 +1,5 @@
 import { relations, sql } from 'drizzle-orm';
-import { integer, sqliteTable, text, index } from 'drizzle-orm/sqlite-core';
+import { integer, sqliteTable, text, index, unique } from 'drizzle-orm/sqlite-core';
 import { CreatureClass, CreatureRace } from '../../types';
 
 export const user = sqliteTable('user', {
@@ -192,6 +192,12 @@ export const dailyHabitTracker = sqliteTable('daily_habit_tracker', {
         dateIdx: index('idx_daily_tracker_date').on(table.date),
         // Composite index for the common query pattern in markHabitCompleted
         userHabitDateIdx: index('idx_daily_tracker_user_habit_date').on(
+            table.userId,
+            table.habitId,
+            table.date
+        ),
+        // Define a unique constraint for the combination of userId, habitId, and date
+        uniqueUserHabitDate: unique('unique_user_habit_date').on(
             table.userId,
             table.habitId,
             table.date
