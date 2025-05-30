@@ -1,5 +1,5 @@
-import { sql } from "drizzle-orm";
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { relations, sql } from 'drizzle-orm';
+import { integer, sqliteTable, text, index } from 'drizzle-orm/sqlite-core';
 import { CreatureClass, CreatureRace } from '../../types';
 
 export const user = sqliteTable('user', {
@@ -182,6 +182,21 @@ export const dailyHabitTracker = sqliteTable('daily_habit_tracker', {
     completed: integer('completed', { mode: 'boolean' }).notNull().default(false),
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
     updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => {
+    return {
+        // Index for querying by user and date (most common query pattern)
+        userDateIdx: index('idx_daily_tracker_user_date').on(table.userId, table.date),
+        // Index for querying by habit ID
+        habitIdx: index('idx_daily_tracker_habit').on(table.habitId),
+        // Index for date-based queries (like cleanup)
+        dateIdx: index('idx_daily_tracker_date').on(table.date),
+        // Composite index for the common query pattern in markHabitCompleted
+        userHabitDateIdx: index('idx_daily_tracker_user_habit_date').on(
+            table.userId,
+            table.habitId,
+            table.date
+        ),
+    };
 });
 
 // Type inference helpers

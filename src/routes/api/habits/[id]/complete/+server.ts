@@ -4,9 +4,10 @@ import { db } from '$lib/server/db';
 import { habit, habitCompletion, creature, habitStreak } from '$lib/server/db/schema';
 import { eq, and, gte } from 'drizzle-orm';
 import { calculateHabitXp, getLevelFromXp } from '$lib/server/xp';
-import { markHabitCompleted } from '$lib/utils/dailyHabitTracker';
+import { markHabitCompleted, DailyTrackerError } from '$lib/utils/dailyHabitTracker';
+import { logger } from '$lib/utils/logger';
 
-export const POST = (async ({ locals, params }) => {
+export const POST: RequestHandler = async ({ locals, params }) => {
     const session = await locals.auth();
     
     if (!session?.user) {
@@ -26,6 +27,10 @@ export const POST = (async ({ locals, params }) => {
             return json({ error: 'Habit not found' }, { status: 404 });
         }
 
+        // Mark the habit as completed in the daily tracker
+        // This will handle all authorization checks and database operations
+        await markHabitCompleted(session.user.id, habitData.id);
+        
         // Get current streak data
         const [streakData] = await db
             .select()
@@ -101,7 +106,18 @@ export const POST = (async ({ locals, params }) => {
             leveledUp: newLevel > previousLevel
         });
     } catch (error) {
-        console.error('Error completing habit:', error);
+        if (error instanceof DailyTrackerError) {
+            // Handle specific tracker errors with appropriate status codes
+            logger.error(`Error completing habit: ${error.message}`, { code: error.code });
+            return json({ error: error.message }, { status: error.statusCode });
+        }
+        
+        // Handle other errors
+        logger.error('Error completing habit:', {
+            error: error instanceof Error ? error.message : String(error),
+            habitId: params.id,
+            userId: session.user.id
+        });
         return json({ error: 'Failed to complete habit' }, { status: 500 });
     }
-}) satisfies RequestHandler;
+};

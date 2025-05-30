@@ -1,9 +1,10 @@
-import { redirect } from '@sveltejs/kit';
+import { redirect, error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { user, creature, habit, habitFrequency, habitCategory, habitCompletion } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { ensureDailyTrackerEntries, getDailyProgressStats } from '$lib/utils/dailyHabitTracker';
+import { ensureDailyTrackerEntries, getDailyProgressStats, DailyTrackerError } from '$lib/utils/dailyHabitTracker';
+import { logger } from '$lib/utils/logger';
 
 export const load: PageServerLoad = async ({ locals }) => {
     const session = await locals.auth();
@@ -21,7 +22,8 @@ export const load: PageServerLoad = async ({ locals }) => {
             .then(rows => rows[0]);
 
         if (!userInfo) {
-            throw new Error('User not found');
+            logger.error(`User not found: ${session.user.id}`);
+            throw error(404, { message: 'User not found' });
         }
 
         // Get user's creature info
@@ -76,7 +78,7 @@ export const load: PageServerLoad = async ({ locals }) => {
                 try {
                     return { days: JSON.parse(habit.customFrequency) };
                 } catch {
-                    console.warn('Invalid customFrequency JSON for habit', habit.id);
+                    logger.warn('Invalid customFrequency JSON for habit', { habitId: habit.id });
                     return undefined;
                 }
             })(),
@@ -95,8 +97,17 @@ export const load: PageServerLoad = async ({ locals }) => {
             habits: habitsWithCompletions,
             progressStats
         };
-    } catch (error) {
-        console.error('Error loading dashboard data:', error);
-        throw error;
+    } catch (err) {
+        if (err instanceof DailyTrackerError) {
+            logger.error(`Dashboard tracker error: ${err.message}`, { code: err.code });
+            throw error(err.statusCode, { message: err.message });
+        }
+        
+        logger.error('Error loading dashboard data:', {
+            error: err instanceof Error ? err.message : String(err),
+            userId: session.user.id
+        });
+        
+        throw error(500, 'Failed to load dashboard data');
     }
 };
