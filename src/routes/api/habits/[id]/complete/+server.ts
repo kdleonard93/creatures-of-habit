@@ -4,8 +4,11 @@ import { db } from '$lib/server/db';
 import { habit, habitCompletion, creature, habitStreak } from '$lib/server/db/schema';
 import { eq, and, gte } from 'drizzle-orm';
 import { calculateHabitXp, getLevelFromXp } from '$lib/server/xp';
+import { markHabitCompleted, DailyTrackerError } from '$lib/utils/dailyHabitTracker';
+import { logger } from '$lib/utils/logger';
+import { formatSqliteTimestamp } from '$lib/utils/date';
 
-export const POST = (async ({ locals, params }) => {
+export const POST: RequestHandler = async ({ locals, params }) => {
     const session = await locals.auth();
     
     if (!session?.user) {
@@ -25,6 +28,7 @@ export const POST = (async ({ locals, params }) => {
             return json({ error: 'Habit not found' }, { status: 404 });
         }
 
+        
         // Get current streak data
         const [streakData] = await db
             .select()
@@ -43,7 +47,7 @@ export const POST = (async ({ locals, params }) => {
             .values({
                 habitId: habitData.id,
                 userId: session.user.id,
-                completedAt: new Date().toISOString(),
+                completedAt: formatSqliteTimestamp(),
                 experienceEarned,
                 value: 100
             })
@@ -57,8 +61,8 @@ export const POST = (async ({ locals, params }) => {
             .set({
                 currentStreak: newStreakCount,
                 longestStreak: newLongestStreak,
-                lastCompletedAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                lastCompletedAt: formatSqliteTimestamp(),
+                updatedAt: formatSqliteTimestamp()
             })
             .where(eq(habitStreak.habitId, habitData.id));
 
@@ -72,22 +76,24 @@ export const POST = (async ({ locals, params }) => {
         const previousLevel = currentCreature.level || 1;
         const newLevel = getLevelFromXp(newExperience);
 
-        // Update creature and mark habit as completed (archived)
-        await Promise.all([
-            db.update(creature)
-                .set({
-                    experience: newExperience,
-                    level: newLevel
-                })
-                .where(eq(creature.userId, session.user.id)),
+        // Update creature experience and level
+        await db.update(creature)
+            .set({
+                experience: newExperience,
+                level: newLevel
+            })
+            .where(eq(creature.userId, session.user.id));
+        
+        // Mark the habit as archived so it shows up in the completed route 
+        await db.update(habit)
+            .set({
+                isArchived: true,
+                updatedAt: formatSqliteTimestamp()
+            })
+            .where(eq(habit.id, habitData.id));
             
-            db.update(habit)
-                .set({
-                    isArchived: true,
-                    updatedAt: new Date().toISOString()
-                })
-                .where(eq(habit.id, habitData.id))
-        ]);
+        // Mark the habit as completed in the daily tracker for progress bar
+        await markHabitCompleted(session.user.id, habitData.id);
 
         return json({
             success: true,
@@ -98,7 +104,18 @@ export const POST = (async ({ locals, params }) => {
             leveledUp: newLevel > previousLevel
         });
     } catch (error) {
-        console.error('Error completing habit:', error);
+        if (error instanceof DailyTrackerError) {
+            // Handle specific tracker errors with appropriate status codes
+            logger.error(`Error completing habit: ${error.message}`, { code: error.code });
+            return json({ error: error.message }, { status: error.statusCode });
+        }
+        
+        // Handle other errors
+        logger.error('Error completing habit:', {
+            error: error instanceof Error ? error.message : String(error),
+            habitId: params.id,
+            userId: session.user.id
+        });
         return json({ error: 'Failed to complete habit' }, { status: 500 });
     }
-}) satisfies RequestHandler;
+};

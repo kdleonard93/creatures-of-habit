@@ -1,5 +1,5 @@
-import { sql } from "drizzle-orm";
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { relations, sql } from 'drizzle-orm';
+import { integer, sqliteTable, text, index, unique } from 'drizzle-orm/sqlite-core';
 import { CreatureClass, CreatureRace } from '../../types';
 
 export const user = sqliteTable('user', {
@@ -169,7 +169,44 @@ export const contacts = sqliteTable('contacts', {
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// Daily habit tracker for progress bar
+export const dailyHabitTracker = sqliteTable('daily_habit_tracker', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text('user_id')
+        .notNull()
+        .references(() => user.id, { onDelete: 'cascade' }),
+    habitId: text('habit_id')
+        .notNull()
+        .references(() => habit.id, { onDelete: 'cascade' }),
+    date: text('date').notNull(), // YYYY-MM-DD format
+    completed: integer('completed', { mode: 'boolean' }).notNull().default(false),
+    createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+    updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => {
+    return {
+        // Index for querying by user and date (most common query pattern)
+        userDateIdx: index('idx_daily_tracker_user_date').on(table.userId, table.date),
+        // Index for querying by habit ID
+        habitIdx: index('idx_daily_tracker_habit').on(table.habitId),
+        // Index for date-based queries (like cleanup)
+        dateIdx: index('idx_daily_tracker_date').on(table.date),
+        // Composite index for the common query pattern in markHabitCompleted
+        userHabitDateIdx: index('idx_daily_tracker_user_habit_date').on(
+            table.userId,
+            table.habitId,
+            table.date
+        ),
+        // Define a unique constraint for the combination of userId, habitId, and date
+        uniqueUserHabitDate: unique('unique_user_habit_date').on(
+            table.userId,
+            table.habitId,
+            table.date
+        ),
+    };
+});
+
 // Type inference helpers
 export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
 export type UserPreferences = typeof userPreferences.$inferSelect;
+export type DailyHabitTracker = typeof dailyHabitTracker.$inferSelect;
