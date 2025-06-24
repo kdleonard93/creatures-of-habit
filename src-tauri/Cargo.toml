@@ -1,10 +1,10 @@
 [package]
 name = "creatures-of-habit"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
+description = "A gamified habit tracking application that helps users build consistent routines"
+authors = ["kdleonard93"]
+license = "UNLICENSED"
+repository = "https://github.com/kdleonard93/creatures-of-habit"
 edition = "2021"
 rust-version = "1.77.2"
 
