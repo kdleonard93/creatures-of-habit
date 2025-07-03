@@ -2,7 +2,6 @@
 import { render, screen } from '@testing-library/svelte';
 import { describe, it, expect } from 'vitest';
 
-// @ts-ignore
 import Header from '$lib/components/Header.svelte';
 
 describe.skip('Header', () => {
