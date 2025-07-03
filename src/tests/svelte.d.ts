@@ -44,6 +44,23 @@ declare module '$lib/server/streaks/calculations' {
   ): Promise<StreakUpdateResult>;
 }
 
+declare module '$lib/server/xp/calculations' {
+  export function getXpRequiredForLevel(level: number): number;
+  export function getLevelFromXp(xp: number): number;
+  export function getLevelProgress(xp: number): { 
+    currentLevel: number; 
+    currentLevelXp: number; 
+    nextLevelXp: number; 
+    xpProgress: number;
+    progressPercentage: number;
+  };
+  export function calculateHabitXp(
+    difficulty: 'easy' | 'medium' | 'hard',
+    streak: number,
+    bonusMultiplier: number
+  ): number;
+}
+
 declare module '$lib/utils/dailyHabitProgress' {
   interface Habit {
     id: string;

@@ -57,18 +57,18 @@ describe('XP Calculations', () => {
 
   describe('calculateHabitXp', () => {
     it('should return base XP for each difficulty', () => {
-      expect(calculateHabitXp('easy')).toBe(10);
-      expect(calculateHabitXp('medium')).toBe(20);
-      expect(calculateHabitXp('hard')).toBe(40);
+      expect(calculateHabitXp('easy', 0, 1)).toBe(10);
+      expect(calculateHabitXp('medium', 0, 1)).toBe(20);
+      expect(calculateHabitXp('hard', 0, 1)).toBe(40);
     });
 
     it('should apply streak bonuses', () => {
-      expect(calculateHabitXp('medium', 2)).toBe(22); // 20 * (1 + 0.1)
-      expect(calculateHabitXp('hard', 5)).toBe(50); // 40 * (1 + 0.25)
+      expect(calculateHabitXp('medium', 2, 1)).toBe(22); // 20 * (1 + 0.1)
+      expect(calculateHabitXp('hard', 5, 1)).toBe(50); // 40 * (1 + 0.25)
     });
 
     it('should cap streak bonuses at 50%', () => {
-      expect(calculateHabitXp('medium', 20)).toBe(30); // 20 * 1.5 (capped)
+      expect(calculateHabitXp('medium', 20, 1)).toBe(30); // 20 * 1.5 (capped)
     });
 
     it('should apply bonus multipliers', () => {
