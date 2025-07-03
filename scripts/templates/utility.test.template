@@ -1,0 +1,16 @@
+import { describe, it, expect } from 'vitest';
+import { utilityFunction } from '$lib/utils/utility';
+
+describe('utilityFunction', () => {
+  it('should perform its operation correctly', () => {
+    // Example test
+    const result = utilityFunction('input');
+    expect(result).toBe('expected output');
+  });
+
+  it('should handle edge cases', () => {
+    // Test with different inputs
+    const result = utilityFunction('');
+    expect(result).toBe('expected output for empty string');
+  });
+});

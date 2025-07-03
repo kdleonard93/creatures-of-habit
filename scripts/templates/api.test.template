@@ -1,0 +1,36 @@
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { setupTestServer, teardownTestServer } from '$lib/test-utils/server';
+
+describe('API Endpoint Tests', () => {
+  beforeAll(async () => {
+    await setupTestServer();
+  });
+
+  afterAll(async () => {
+    await teardownTestServer();
+  });
+
+  it('GET /api/endpoint should return expected data', async () => {
+    // Mock any necessary dependencies (e.g., database calls)
+
+    // Make a request to the endpoint
+    const response = await fetch('http://localhost:5173/api/endpoint');
+    const data = await response.json();
+
+    // Assert the response
+    expect(response.status).toBe(200);
+    expect(data).toEqual({ expected: 'data' });
+  });
+
+  it('POST /api/endpoint should handle valid data', async () => {
+    const response = await fetch('http://localhost:5173/api/endpoint', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ key: 'value' }),
+    });
+
+    expect(response.status).toBe(201);
+  });
+});
