@@ -58,20 +58,6 @@
                 </div>
 
                 <div class="space-y-2">
-                    <label for="email" class="text-sm font-medium">
-                        Email
-                    </label>
-                    <Input
-                        type="email"
-                        id="email"
-                        name="email"
-                        required
-                        autocomplete="email"
-                        placeholder="Enter your email"
-                    />
-                </div>
-
-                <div class="space-y-2">
                     <label for="password" class="text-sm font-medium">
                         Password
                     </label>
