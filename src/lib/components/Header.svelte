@@ -76,7 +76,7 @@
                         <Button 
                             variant="ghost" 
                             size="icon" 
-                            on:click={() => menuOpen = !menuOpen}
+                            onclick={() => menuOpen = !menuOpen}
                             aria-expanded={menuOpen}
                             aria-controls="mobile-menu"
                         >
