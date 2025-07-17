@@ -43,10 +43,10 @@ export const actions = {
           to: "contact@digitaldopamine.dev",
           subject: `New Contact Form Submission from ${name}`,
           text: `
-Name: ${name}
-Email: ${email}
-Message: ${message}
-                  `,
+          Name: ${name}
+          Email: ${email}
+          Message: ${message}
+          `,
           replyTo: email,
         });
       } else {
