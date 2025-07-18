@@ -101,15 +101,15 @@ async function completeHabit(habitId: string) {
                             {/if}
                         </div>
                         <div class="mt-3 flex flex-wrap gap-2 text-sm">
-                            <span class="capitalize px-2 py-1 bg-primary/10 rounded-full text-xs">
+                            <span class="capitalize px-2 py-1 bg-badge rounded-full text-xs">
                                 {habit.frequency === 'custom' && habit.customFrequency?.days ? 
                                     formatCustomDays(habit.customFrequency.days) : 
                                     habit.frequency}
                             </span>
-                            <span class="capitalize px-2 py-1 bg-primary/10 rounded-full text-xs">
+                            <span class="capitalize px-2 py-1 bg-badge rounded-full text-xs">
                                 {habit.difficulty}
                             </span>
-                            <span class="capitalize px-2 py-1 bg-primary/10 rounded-full text-xs">
+                            <span class="capitalize px-2 py-1 bg-badge rounded-full text-xs">
                                 {habit.category?.name ?? 'Uncategorized'}
                             </span>
                         </div>

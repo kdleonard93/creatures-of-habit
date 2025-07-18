@@ -33,6 +33,9 @@
     
     --destructive: #E53E3E; /* Bright red */
     --destructive-foreground: #FFFFFF;
+
+    --badge: #8B5CF6;
+    --badge-foreground: #FFFFFF;
     
     --ring: #F7B801;
     --radius: 0.5rem;

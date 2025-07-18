@@ -52,6 +52,10 @@ const config: Config = {
           DEFAULT: "var(--card)",
           foreground: "var(--card-foreground)",
         },
+        badge: {
+          DEFAULT: "var(--badge)",
+          foreground: "var(--badge-foreground)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
