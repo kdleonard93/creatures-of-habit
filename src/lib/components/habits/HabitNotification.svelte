@@ -29,7 +29,7 @@
             case 'email':
                 return 'text-blue-500';
             case 'sms':
-                return 'text-yellow-500';
+                return 'text-primary-500';
             case 'in-app':
                 return 'text-purple-500';
             default:

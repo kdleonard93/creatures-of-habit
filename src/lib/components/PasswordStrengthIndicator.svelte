@@ -34,7 +34,7 @@
             <div 
                 class="h-1.5 flex-1 rounded-full transition-all duration-300"
                 class:bg-red-500={passwordStrength === 'weak' && i === 0}
-                class:bg-yellow-500={passwordStrength === 'fair' && i <= 1}
+                class:bg-primary-500={passwordStrength === 'fair' && i <= 1}
                 class:bg-blue-500={passwordStrength === 'good' && i <= 2}
                 class:bg-green-500={passwordStrength === 'strong' && i <= 3}
                 class:bg-gray-200={

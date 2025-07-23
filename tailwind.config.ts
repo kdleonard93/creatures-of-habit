@@ -15,47 +15,51 @@ const config: Config = {
     },
     extend: {
       colors: {
-        border: "var(--border)",
-        input: "var(--input)",
-        ring: "var(--ring)",
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        border: "#3F4C6B",
+        input: "#2D3748",
+        ring: "#F7B801",
+        background: "#1A2238",
+        foreground: "#F1F2EB",
         primary: {
-          DEFAULT: "var(--primary)",
-          foreground: "var(--primary-foreground)",
+          DEFAULT: "#FBEEC2", // Alexandria’s Lighthouse
+          foreground: "#1A2238",
         },
         secondary: {
-          DEFAULT: "var(--secondary)",
-          foreground: "var(--secondary-foreground)",
+          DEFAULT: "#CE1212", // Brave red
+          foreground: "#FFFFFF",
         },
         success: {
-          DEFAULT: "var(--success)",
-          foreground: "var(--success-foreground)",
+          DEFAULT: "#00B894", // Emerald green
+          foreground: "#FFFFFF",
         },
         destructive: {
-          DEFAULT: "var(--destructive)",
-          foreground: "var(--destructive-foreground)",
+          DEFAULT: "#E53E3E", // Bright red
+          foreground: "#FFFFFF",
         },
         muted: {
-          DEFAULT: "var(--muted)",
-          foreground: "var(--muted-foreground)",
+          DEFAULT: "#2D3748", // Deeper blue
+          foreground: "#A0AEC0", // Muted silver
         },
         accent: {
-          DEFAULT: "var(--accent)",
-          foreground: "var(--accent-foreground)",
+          DEFAULT: "#4D80E4", // Royal blue
+          foreground: "#FFFFFF",
         },
         popover: {
-          DEFAULT: "var(--popover)",
-          foreground: "var(--popover-foreground)",
+          DEFAULT: "#2A3950", // Slightly lighter than background
+          foreground: "#F1F2EB",
         },
         card: {
-          DEFAULT: "var(--card)",
-          foreground: "var(--card-foreground)",
+          DEFAULT: "#2A3950", // Slightly lighter blue for cards
+          foreground: "#F1F2EB",
         },
         badge: {
-          DEFAULT: "var(--badge)",
-          foreground: "var(--badge-foreground)",
+          DEFAULT: "#8B5CF6",
+          foreground: "#FFFFFF",
         },
+        icon: {
+          DEFAULT: "#FBEEC2",
+          foreground: "#1A2238",
+        }
       },
       borderRadius: {
         lg: "var(--radius)",
