@@ -207,7 +207,7 @@
 		<Card class="border-success/20">
 			<CardHeader class="pb-3">
 				<CardTitle class="text-lg flex items-center gap-2">
-					<div class="h-3 w-3 rounded-full bg-success"></div>
+					<div class="h-3 w-3 rounded-full bg-easy"></div>
 					Easy Habits
 				</CardTitle>
 			</CardHeader>
@@ -224,7 +224,7 @@
 		<Card class="border-primary/20">
 			<CardHeader class="pb-3">
 				<CardTitle class="text-lg flex items-center gap-2">
-					<div class="h-3 w-3 rounded-full bg-primary"></div>
+					<div class="h-3 w-3 rounded-full bg-medium"></div>
 					Medium Habits
 				</CardTitle>
 			</CardHeader>
@@ -232,7 +232,7 @@
 				<p class="text-sm text-muted-foreground mb-3">
 					Content
 				</p>
-				<div class="text-xs bg-primary/10 text-primary p-2 rounded">
+				<div class="text-xs bg-primary/10 text-medium p-2 rounded">
 					Reward: Medium XP, Balanced Challenge
 				</div>
 			</CardContent>
@@ -241,7 +241,7 @@
 		<Card class="border-secondary/20">
 			<CardHeader class="pb-3">
 				<CardTitle class="text-lg flex items-center gap-2">
-					<div class="h-3 w-3 rounded-full bg-secondary"></div>
+					<div class="h-3 w-3 rounded-full bg-hard"></div>
 					Hard Habits
 				</CardTitle>
 			</CardHeader>
@@ -249,7 +249,7 @@
 				<p class="text-sm text-muted-foreground mb-3">
 					Content
 				</p>
-				<div class="text-xs bg-secondary/10 text-secondary p-2 rounded">
+				<div class="text-xs bg-secondary/10 text-hard p-2 rounded">
 					Reward: High XP, Maximum Challenge
 				</div>
 			</CardContent>

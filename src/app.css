@@ -36,8 +36,17 @@
 
     --badge: #8B5CF6;
     --badge-foreground: #FFFFFF;
+
+    --easy: #10B981;
+    --easy-foreground: #FFFFFF;
     
-    --ring: #F7B801;
+    --medium: #F59E0B;
+    --medium-foreground: #1A2238;
+    
+    --hard: #E53E3E;
+    --hard-foreground: #FFFFFF;
+    
+    --ring: #FBEEC2;
     --radius: 0.5rem;
   }
 
@@ -72,7 +81,16 @@
     --destructive: #DC2626; /* Deeper red */
     --destructive-foreground: #FFFFFF;
 
-    --ring: #EAB308;
+    --easy: #10B981;
+    --easy-foreground: #FFFFFF;
+    
+    --medium: #F59E0B;
+    --medium-foreground: #1A2238;
+    
+    --hard: #E53E3E;
+    --hard-foreground: #FFFFFF;
+    
+    --ring: #FBEEC2;
     --radius: 0.5rem;
   }
 }

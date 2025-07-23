@@ -17,7 +17,7 @@ const config: Config = {
       colors: {
         border: "#3F4C6B",
         input: "#2D3748",
-        ring: "#F7B801",
+        ring: "#FBEEC2",
         background: "#1A2238",
         foreground: "#F1F2EB",
         primary: {
@@ -59,6 +59,18 @@ const config: Config = {
         icon: {
           DEFAULT: "#FBEEC2",
           foreground: "#1A2238",
+        },
+        easy: {
+          DEFAULT: "#10B981", // Emerald green
+          foreground: "#FFFFFF",
+        },
+        medium: {
+          DEFAULT: "#F59E0B", // Amber
+          foreground: "#1A2238",
+        },
+        hard: {
+          DEFAULT: "#EF4444", // Scarlet
+          foreground: "#FFFFFF",
         }
       },
       borderRadius: {
