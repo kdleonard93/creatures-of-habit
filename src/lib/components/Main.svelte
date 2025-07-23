@@ -44,7 +44,7 @@
               <div>
                 <h3 class="text-xl font-bold">Pixel Warrior</h3>
                 <div class="flex items-center text-sm text-muted-foreground">
-                  <Trophy class="mr-1 h-4 w-4 text-yellow-500" />
+                  <Trophy class="mr-1 h-4 w-4 text-primary" />
                   <span>Level 15 Habit Master</span>
                 </div>
               </div>

@@ -12,7 +12,7 @@ export const svgLogo = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200
            C150 115, 135 160, 100 170
            C65 160, 50 115, 50 55 Z"
         fill="none"
-        stroke="#F7B801"
+        stroke="#FBEEC2"
         stroke-width="3"/>
 
   <!-- Additional shield decorations -->
@@ -27,9 +27,9 @@ export const svgLogo = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200
   <!-- Pixel-style creature -->
   <g transform="translate(65, 70)">
     <!-- Body blocks -->
-    <rect x="15" y="0" width="40" height="40" fill="#F7B801"/>
-    <rect x="5" y="10" width="10" height="30" fill="#F7B801"/>
-    <rect x="55" y="10" width="10" height="30" fill="#F7B801"/>
+    <rect x="15" y="0" width="40" height="40" fill="#FBEEC2"/>
+    <rect x="5" y="10" width="10" height="30" fill="#FBEEC2"/>
+    <rect x="55" y="10" width="10" height="30" fill="#FBEEC2"/>
     <!-- Eyes -->
     <rect x="25" y="15" width="8" height="8" fill="#CE1212"/>
     <rect x="37" y="15" width="8" height="8" fill="#CE1212"/>
@@ -49,6 +49,6 @@ export const svgLogo = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200
     <!-- Background bars -->
     <rect x="0" y="-3" width="100" height="10" rx="2" fill="#2D3748"/>
     <!-- Progress indicators -->
-    <rect x="0" y="-3" width="50" height="10" rx="2" fill="#F7B801"/>
+    <rect x="0" y="-3" width="50" height="10" rx="2" fill="#FBEEC2"/>
   </g>
 </svg>`;
