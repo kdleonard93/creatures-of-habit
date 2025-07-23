@@ -12,7 +12,7 @@ export const svgLogo = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200
            C150 115, 135 160, 100 170
            C65 160, 50 115, 50 55 Z"
         fill="none"
-        stroke="#F7B801"
+        stroke="#FBEEC2"
         stroke-width="3"/>
 
   <!-- Additional shield decorations -->

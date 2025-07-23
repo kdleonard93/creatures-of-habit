@@ -25,24 +25,24 @@ const config: Config = {
           foreground: "#1A2238",
         },
         secondary: {
-          DEFAULT: "#CE1212", // Brave red
+          DEFAULT: "#E57373", // Soft coral red
           foreground: "#FFFFFF",
         },
         success: {
-          DEFAULT: "#00B894", // Emerald green
+          DEFAULT: "#81C784", // Soft sage green
           foreground: "#FFFFFF",
         },
         destructive: {
-          DEFAULT: "#E53E3E", // Bright red
-          foreground: "#FFFFFF",
+          DEFAULT: "#EF9A9A", // Soft rose red
+          foreground: "#1A2238",
         },
         muted: {
-          DEFAULT: "#2D3748", // Deeper blue
-          foreground: "#A0AEC0", // Muted silver
+          DEFAULT: "#2D3748", // Deeper blue (keep as is)
+          foreground: "#A0AEC0", // Muted silver (keep as is)
         },
         accent: {
-          DEFAULT: "#4D80E4", // Royal blue
-          foreground: "#FFFFFF",
+          DEFAULT: "#90CAF9", // Soft sky blue
+          foreground: "#1A2238",
         },
         popover: {
           DEFAULT: "#2A3950", // Slightly lighter than background
@@ -61,15 +61,15 @@ const config: Config = {
           foreground: "#1A2238",
         },
         easy: {
-          DEFAULT: "#10B981", // Emerald green
-          foreground: "#FFFFFF",
+          DEFAULT: "#A5D6A7", // Soft mint green
+          foreground: "#1A2238",
         },
         medium: {
-          DEFAULT: "#F59E0B", // Amber
+          DEFAULT: "#FFB74D", // Soft peach amber
           foreground: "#1A2238",
         },
         hard: {
-          DEFAULT: "#EF4444", // Scarlet
+          DEFAULT: "#fc7979", // Soft coral red
           foreground: "#FFFFFF",
         }
       },

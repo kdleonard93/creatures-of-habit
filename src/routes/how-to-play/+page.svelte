@@ -162,7 +162,7 @@
 		<CardHeader>
 			<div class="flex items-center gap-2">
 				<Sword class="h-6 w-6 text-secondary" />
-				<CardTitle class="text-2xl">Character System</CardTitle>
+				<CardTitle class="text-2xl">Character & Creature System</CardTitle>
 			</div>
 			<CardDescription>
 				Customize your avatar and choose your path
@@ -170,31 +170,31 @@
 		</CardHeader>
 		<CardContent>
 			<div class="grid md:grid-cols-2 gap-6">
-				<div class="space-y-4">
+                <div class="space-y-4">
 					<h3 class="font-semibold flex items-center gap-2">
-						<Shield class="h-5 w-5 text-primary" />
-						Races & Classes
+						<Sparkles class="h-5 w-5 text-secondary" />
+						Character Customization (User)
 					</h3>
 					<p class="text-sm text-muted-foreground">
-						Content
+						Customize your avatar and choose your path
 					</p>
-					<div class="grid grid-cols-2 gap-2">
-						<div class="bg-muted/50 p-2 rounded text-center text-sm">Race Example</div>
-						<div class="bg-muted/50 p-2 rounded text-center text-sm">Class Example</div>
-					</div>
 				</div>
 				<div class="space-y-4">
 					<h3 class="font-semibold flex items-center gap-2">
-						<Sparkles class="h-5 w-5 text-secondary" />
-						Customization
+						<Shield class="h-5 w-5 text-primary" />
+						Creature Customization (Your lil' buddy)
 					</h3>
 					<p class="text-sm text-muted-foreground">
-						Content
+						Choose your race and class to start your journey
 					</p>
-					<div class="bg-gradient-to-r from-primary/10 to-secondary/10 p-4 rounded-lg border border-primary/20">
+					<div class="grid grid-cols-2 gap-2">
+						<div class="bg-muted p-2 rounded text-center text-sm">Orc</div>
+						<div class="bg-muted p-2 rounded text-center text-sm">Warrior</div>
+					</div>
+                    <div class="bg-gradient-to-r from-primary/10 to-secondary/10 p-4 rounded-lg border border-primary/20">
 						<p class="text-sm font-medium">💡 Pro Tip</p>
 						<p class="text-xs text-muted-foreground mt-1">
-							Content
+							It's a good idea to appropriate your stats that best fit your race and class buffs for maximum grinding efficiency.
 						</p>
 					</div>
 				</div>
