@@ -12,7 +12,6 @@
         { label: 'FAQ', href: '/faq' }
       ],
       support: [
-        { label: 'Halp! 🦆', href: '/help' },
         { label: 'Terms of Service', href: '/terms' },
         { label: 'Privacy Policy', href: '/privacy' },
         { label: 'Contact', href: '/contact' }
