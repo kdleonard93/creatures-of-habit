@@ -3,7 +3,7 @@
     import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "$lib/components/ui/card";
     import { Progress } from "$lib/components/ui/progress";
     import { svgLogo } from '$lib/assets/appLogo';
-    import { ArrowRight, Award, Calendar, CheckCircle, Clock, Dumbbell, Sparkles, Target, Trophy, Users } from "lucide-svelte";
+    import { ArrowRight, Award, Calendar, CheckCircle, Clock, Dumbbell, Sparkles, Target, Trophy, Users } from "@lucide/svelte";
 </script>
 
 <!-- Hero Section -->

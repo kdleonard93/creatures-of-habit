@@ -17,7 +17,7 @@
 		Sparkles,
 		Crown,
 		ArrowRight
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 </script>
 
 <div class="container mx-auto py-8 space-y-8">
