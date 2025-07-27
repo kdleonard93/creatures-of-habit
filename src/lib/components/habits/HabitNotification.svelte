@@ -1,6 +1,6 @@
 <script lang="ts">
     import { fade, fly } from 'svelte/transition';
-    import { X, Bell, Vibrate, AlertTriangle, Info } from 'lucide-svelte';
+    import { X, Bell, Vibrate, AlertTriangle, Info } from '@lucide/svelte';
     import { Button } from "$lib/components/ui/button";
     import type { Notifications, NotificationType } from '$lib/types';
     

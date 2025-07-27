@@ -1,6 +1,6 @@
 <script lang="ts">
     import { fly, scale } from 'svelte/transition';
-    import { Bell } from 'lucide-svelte';
+    import { Bell } from '@lucide/svelte';
     import { notifications } from '$lib/notifications/NotificationStore';
     import HabitNotification from '$lib/components/habits/HabitNotification.svelte';
     import { Button } from "$lib/components/ui/button";

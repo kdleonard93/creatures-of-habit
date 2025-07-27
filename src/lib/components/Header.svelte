@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Button } from "$lib/components/ui/button";
     import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "$lib/components/ui/sheet";
-    import { Menu } from "lucide-svelte";
+    import { Menu } from "@lucide/svelte";
     import { page } from '$app/stores';
     import { svgLogo } from '$lib/assets/appLogo';
     import NotificationCenter from '$lib/components/notifications/NotificationCenter.svelte'

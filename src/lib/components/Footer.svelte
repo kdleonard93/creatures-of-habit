@@ -1,7 +1,7 @@
 <!-- src/lib/components/Footer.svelte -->
 <script lang="ts">
     import { Button } from "$lib/components/ui/button";
-    import { Github, Cloud, Bot } from "lucide-svelte";
+    import { Github, Cloud, Bot } from "@lucide/svelte";
   
     const currentYear = new Date().getFullYear();
   
