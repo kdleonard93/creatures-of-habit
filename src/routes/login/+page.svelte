@@ -36,6 +36,9 @@
                         isSubmitting = false;
                         
                         if (result.type === 'failure') {
+                            if (result.data) {
+                                toast.error(String(result.data.message));
+                            }
                             return;
                         } else if (result.type === 'redirect') {
                             window.location.href = result.location;
