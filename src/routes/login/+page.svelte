@@ -9,14 +9,6 @@
     const props = $props<{ form: ActionData }>();
     let isSubmitting = $state(false);
 
-    $effect(() => {
-        if (props.form?.message) {
-            toast.error(props.form.message, {
-                description: "Please check your credentials and try again",
-                duration: 5000
-            });
-        }
-    });
 </script>
 
 <div class="container mx-auto py-8 max-w-md">
@@ -36,6 +28,12 @@
                         isSubmitting = false;
                         
                         if (result.type === 'failure') {
+                            if (result.data) {
+                                toast.error(String(result.data.message), {
+                                    description: "Please check your credentials and try again.",
+                                    duration: 5000
+                                });
+                            }
                             return;
                         } else if (result.type === 'redirect') {
                             window.location.href = result.location;
