@@ -5,17 +5,20 @@
     import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "$lib/components/ui/card";
     import { toast } from 'svelte-sonner';
     import type { ActionData } from './$types';
+    import { page } from '$app/stores';
 
     const props = $props<{ form: ActionData }>();
     let isSubmitting = $state(false);
-
+    
+    // Get token from URL
+    let token = $derived($page.params.token);
 </script>
 
 <div class="container mx-auto py-8 max-w-md">
     <Card>
         <CardHeader>
-            <CardTitle>Login</CardTitle>
-            <CardDescription>Welcome back to Creatures of Habit!</CardDescription>
+            <CardTitle>Reset Password</CardTitle>
+            <CardDescription>Enter your new password below.</CardDescription>
         </CardHeader>
         <CardContent>
             <form 
@@ -30,64 +33,59 @@
                         if (result.type === 'failure') {
                             if (result.data) {
                                 toast.error(String(result.data.message), {
-                                    description: "Please check your credentials and try again.",
                                     duration: 5000
                                 });
                             }
                             return;
                         } else if (result.type === 'redirect') {
+                            toast.success("Password reset successfully!", {
+                                description: "You can now log in with your new password.",
+                                duration: 5000
+                            });
+                            // Redirect to login page
                             window.location.href = result.location;
                         }
                     };
                 })}
             >
-                <div class="space-y-2">
-                    <label for="username" class="text-sm font-medium">
-                        Username
-                    </label>
-                    <Input
-                        type="text"
-                        id="username"
-                        name="username"
-                        required
-                        autocomplete="username"
-                        placeholder="Enter your username"
-                    />
-                </div>
-
+                <!-- Hidden token field -->
+                <input type="hidden" name="token" value={token} />
+                
                 <div class="space-y-2">
                     <label for="password" class="text-sm font-medium">
-                        Password
+                        New Password
                     </label>
                     <Input
                         type="password"
                         id="password"
                         name="password"
                         required
-                        autocomplete="current-password"
-                        placeholder="Enter your password"
+                        placeholder="Enter your new password"
+                        minlength={8}
+                    />
+                    <p class="text-xs text-muted-foreground">Password must be at least 8 characters long.</p>
+                </div>
+                
+                <div class="space-y-2">
+                    <label for="confirmPassword" class="text-sm font-medium">
+                        Confirm New Password
+                    </label>
+                    <Input
+                        type="password"
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        required
+                        placeholder="Confirm your new password"
                     />
                 </div>
 
                 <Button type="submit" disabled={isSubmitting} class="w-full">
                     {#if isSubmitting}
-                        Logging in...
+                        Resetting...
                     {:else}
-                        Login
+                        Reset Password
                     {/if}
                 </Button>
-
-                <div class="text-center text-sm text-muted-foreground space-y-2">
-                    <div class="flex justify-center space-x-4">
-                        <a href="/forgot-username" class="text-primary hover:underline">Forgot username?</a>
-                        <span>•</span>
-                        <a href="/forgot-password" class="text-primary hover:underline">Forgot password?</a>
-                    </div>
-                    <p>
-                        Don't have an account? 
-                        <a href="/signup" class="text-primary hover:underline">Sign up</a>
-                    </p>
-                </div>
             </form>
         </CardContent>
     </Card>
