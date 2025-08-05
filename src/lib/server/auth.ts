@@ -114,7 +114,11 @@ export async function validatePasswordResetToken(token: string, dbInstance = db)
 	
 	const [result] = await dbInstance
 		.select({
-			user: table.user,
+			user: {
+				id: table.user.id,
+				email: table.user.email,
+				username: table.user.username
+			},
 			token: table.passwordResetToken
 		})
 		.from(table.passwordResetToken)

@@ -9,12 +9,18 @@ import { eq } from 'drizzle-orm';
 export const load: PageServerLoad = async ({ params }) => {
   // Validate token on page load
   const token = params.token;
-  const result = await auth.validatePasswordResetToken(token);
-  
-  if (!result) {
-    return fail(400, { message: 'Invalid or expired token' });
+  if (!token) {
+    return fail(400, { message: 'Reset token is required' });
   }
-  
+  const result = await auth.validatePasswordResetToken(token);
+
+  if (!result) {
+    return fail(400, {
+      message: 'Invalid or expired token',
+      description: 'Please request a new password reset link.'
+    });
+  }
+
   return {};
 };
 

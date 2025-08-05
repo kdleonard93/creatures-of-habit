@@ -6,12 +6,16 @@
     import { toast } from 'svelte-sonner';
     import type { ActionData } from './$types';
     import { page } from '$app/stores';
+    import { goto } from '$app/navigation';
 
     const props = $props<{ form: ActionData }>();
     let isSubmitting = $state(false);
     
     // Get token from URL
     let token = $derived($page.params.token);
+    let password = $state('');
+    let confirmPassword = $state('');
+    let passwordsMatch = $derived(password === confirmPassword);
 </script>
 
 <div class="container mx-auto py-8 max-w-md">
@@ -43,7 +47,7 @@
                                 duration: 5000
                             });
                             // Redirect to login page
-                            window.location.href = result.location;
+                            goto(result.location);
                         }
                     };
                 })}
@@ -59,6 +63,7 @@
                         type="password"
                         id="password"
                         name="password"
+                        bind:value={password}
                         required
                         placeholder="Enter your new password"
                         minlength={8}
@@ -74,9 +79,13 @@
                         type="password"
                         id="confirmPassword"
                         name="confirmPassword"
+                        bind:value={confirmPassword}
                         required
                         placeholder="Confirm your new password"
                     />
+                    {#if confirmPassword && !passwordsMatch}
+                        <p class="text-xs text-red-500">Passwords do not match</p>
+                    {/if}
                 </div>
 
                 <Button type="submit" disabled={isSubmitting} class="w-full">

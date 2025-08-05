@@ -19,6 +19,11 @@ export const actions = {
     if (!email) {
       return fail(400, { message: 'Email is required' });
     }
+    // Sanitize email
+    const sanitizedEmail = email.trim().toLowerCase();
+    if (!sanitizedEmail) {
+      return fail(400, { message: 'Email is required' });
+    }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -49,6 +54,7 @@ export const actions = {
             <h2>Your Username</h2>
             <p>Hello,</p>
             <p>Your username for Creatures of Habit is: <strong>${user.username}</strong></p>
+            <p><strong>Security Notice:</strong> If you did not request this information, someone may be trying to access your account. Please secure your account immediately.</p>
             <p>If you didn't request this information, you can safely ignore this email.</p>
             <p>Thank you for using Creatures of Habit!</p>
           `

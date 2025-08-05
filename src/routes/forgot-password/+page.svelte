@@ -27,9 +27,14 @@
                         isSubmitting = false;
                         
                         if (result.type === 'failure') {
-                            if (result.data) {
+                            if (result.data?.message) {
                                 toast.error(String(result.data.message), {
                                     description: "Please check your username and try again.",
+                                    duration: 5000
+                                });
+                            } else {
+                                toast.error("An error occurred", {
+                                    description: "Please try again later.",
                                     duration: 5000
                                 });
                             }
