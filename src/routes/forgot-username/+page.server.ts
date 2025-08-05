@@ -42,7 +42,7 @@ export const actions = {
     if (resend) {
       try {
         await resend.emails.send({
-          from: 'Creatures of Habit <noreply@creaturesofhabit.com>',
+          from: 'Creatures of Habit <onboarding@resend.dev>',
           to: email,
           subject: 'Your Username - Creatures of Habit',
           html: `

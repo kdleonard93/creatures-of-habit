@@ -43,7 +43,7 @@ export const actions = {
     if (resend) {
       try {
         await resend.emails.send({
-          from: 'Creatures of Habit <noreply@creaturesofhabit.com>',
+          from: 'Creatures of Habit <onboarding@resend.dev>',
           to: user.email,
           subject: 'Password Reset - Creatures of Habit',
           html: `
