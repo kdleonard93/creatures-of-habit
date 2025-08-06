@@ -8,14 +8,13 @@
 
     const props = $props<{ form: ActionData }>();
     let isSubmitting = $state(false);
-
 </script>
 
 <div class="container mx-auto py-8 max-w-md">
     <Card>
         <CardHeader>
-            <CardTitle>Login</CardTitle>
-            <CardDescription>Welcome back to Creatures of Habit!</CardDescription>
+            <CardTitle>Forgot Password</CardTitle>
+            <CardDescription>Enter your username and we'll send you a password reset link.</CardDescription>
         </CardHeader>
         <CardContent>
             <form 
@@ -28,15 +27,23 @@
                         isSubmitting = false;
                         
                         if (result.type === 'failure') {
-                            if (result.data) {
+                            if (result.data?.message) {
                                 toast.error(String(result.data.message), {
-                                    description: "Please check your credentials and try again.",
+                                    description: "Please check your username and try again.",
+                                    duration: 5000
+                                });
+                            } else {
+                                toast.error("An error occurred", {
+                                    description: "Please try again later.",
                                     duration: 5000
                                 });
                             }
                             return;
-                        } else if (result.type === 'redirect') {
-                            window.location.href = result.location;
+                        } else if (result.type === 'success') {
+                            toast.success("Reset link sent!", {
+                                description: "Check your email for password reset instructions.",
+                                duration: 5000
+                            });
                         }
                     };
                 })}
@@ -50,42 +57,22 @@
                         id="username"
                         name="username"
                         required
-                        autocomplete="username"
                         placeholder="Enter your username"
-                    />
-                </div>
-
-                <div class="space-y-2">
-                    <label for="password" class="text-sm font-medium">
-                        Password
-                    </label>
-                    <Input
-                        type="password"
-                        id="password"
-                        name="password"
-                        required
-                        autocomplete="current-password"
-                        placeholder="Enter your password"
                     />
                 </div>
 
                 <Button type="submit" disabled={isSubmitting} class="w-full">
                     {#if isSubmitting}
-                        Logging in...
+                        Sending...
                     {:else}
-                        Login
+                        Send Reset Link
                     {/if}
                 </Button>
 
-                <div class="text-center text-sm text-muted-foreground space-y-2">
-                    <div class="flex justify-center space-x-4">
-                        <a href="/forgot-username" class="text-primary hover:underline">Forgot username?</a>
-                        <span>•</span>
-                        <a href="/forgot-password" class="text-primary hover:underline">Forgot password?</a>
-                    </div>
+                <div class="text-center text-sm text-muted-foreground">
                     <p>
-                        Don't have an account? 
-                        <a href="/signup" class="text-primary hover:underline">Sign up</a>
+                        Remember your password? 
+                        <a href="/login" class="text-primary hover:underline">Login</a>
                     </p>
                 </div>
             </form>

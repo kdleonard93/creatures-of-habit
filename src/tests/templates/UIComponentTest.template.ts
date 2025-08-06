@@ -16,7 +16,7 @@ import { render, fireEvent, screen } from '@testing-library/svelte';
 
 // Mock dependencies before importing the component
 // Example:
-// vi.mock('lucide-svelte', () => ({
+// vi.mock('@lucide/svelte', () => ({
 //   Icon1: vi.fn(),
 //   Icon2: vi.fn()
 // }));

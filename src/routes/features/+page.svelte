@@ -25,7 +25,7 @@
 		Lock,
 		Palette,
 		Clock
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 </script>
 
 <div class="container mx-auto py-8 space-y-8">

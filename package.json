@@ -26,6 +26,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
+		"@lucide/svelte": "^0.526.0",
 		"@sveltejs/adapter-auto": "^3.3.1",
 		"@sveltejs/kit": "^2.21.1",
 		"@sveltejs/vite-plugin-svelte": "^4.0.0",
@@ -40,7 +41,6 @@
 		"drizzle-kit": "^0.28.0",
 		"husky": "^9.1.7",
 		"jsdom": "^26.0.0",
-		"lucide-svelte": "^0.456.0",
 		"svelte": "^5.33.2",
 		"svelte-check": "^4.0.6",
 		"tailwind-merge": "^2.5.4",
@@ -53,6 +53,7 @@
 	},
 	"dependencies": {
 		"@libsql/client": "^0.14.0",
+		"@lucide/svelte": "^0.526.0",
 		"@node-rs/argon2": "^2.0.0",
 		"@oslojs/crypto": "^1.0.1",
 		"@oslojs/encoding": "^1.1.0",

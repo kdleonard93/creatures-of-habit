@@ -12,7 +12,7 @@
     import { calculateStatModifier, calculateHealth, getLevelProgress, applyRacialBonuses, getClassStatModifiers } from '$lib/client/xp';
     import { Badge } from "$lib/components/ui/badge";
     import { Progress } from "$lib/components/ui/progress";
-    import { Swords, Sword, Brain, Heart, Clover, Wand, Target } from 'lucide-svelte';
+    import { Swords, Sword, Brain, Heart, Clover, Wand, Target } from '@lucide/svelte';
 
     const { data } = $props<{ data: PageData }>();
     

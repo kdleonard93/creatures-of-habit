@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Dialog as SheetPrimitive } from "bits-ui";
-	import X from "lucide-svelte/icons/x";
+	import X from "@lucide/svelte/icons/x";
 	import { fly } from "svelte/transition";
 	import {
 		SheetOverlay,

@@ -132,6 +132,14 @@ export const session = sqliteTable('session', {
     expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull()
 });
 
+export const passwordResetToken = sqliteTable('password_reset_token', {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+        .notNull()
+        .references(() => user.id, { onDelete: 'cascade' }),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull()
+});
+
 export const key = sqliteTable('user_key', {
     id: text('id').primaryKey(),
     userId: text('user_id')

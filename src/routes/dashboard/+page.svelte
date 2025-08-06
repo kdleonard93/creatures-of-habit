@@ -11,7 +11,7 @@
 	import { classIcons } from '$lib/assets/classIcons';
 	import { raceIcons } from '$lib/assets/raceIcons';
 	import type { CreatureClassType, CreatureRaceType } from '$lib/types';
-	import { LogOut, ScanEye, ShieldAlert, CircleCheck, Trophy, Plus, Filter, Calendar } from 'lucide-svelte';
+	import { LogOut, ScanEye, ShieldAlert, CircleCheck, Trophy, Plus, Filter, Calendar } from '@lucide/svelte';
 	import { enhance } from '$app/forms';
     import XPBar from '$lib/components/character/XPBar.svelte';
 	import { goto, invalidateAll } from '$app/navigation';

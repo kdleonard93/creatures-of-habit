@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Button } from "$lib/components/ui/button";
-    import { Trash2, Pen, CirclePlus, CircleCheck, Trophy, FolderCheck } from 'lucide-svelte';
+    import { Trash2, Pen, CirclePlus, CircleCheck, Trophy, FolderCheck } from '@lucide/svelte';
     import { goto, invalidateAll } from '$app/navigation';
     import type { PageData } from './$types';
     import { toast } from 'svelte-sonner';
