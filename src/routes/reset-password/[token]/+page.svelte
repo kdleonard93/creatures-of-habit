@@ -4,15 +4,14 @@
     import { Input } from "$lib/components/ui/input";
     import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "$lib/components/ui/card";
     import { toast } from 'svelte-sonner';
-    import type { ActionData } from './$types';
-    import { page } from '$app/stores';
+    import type { ActionData, PageData } from './$types';
     import { goto } from '$app/navigation';
 
-    const props = $props<{ form: ActionData }>();
+    const props = $props<{ form: ActionData; data: PageData }>();
     let isSubmitting = $state(false);
     
-    // Get token from URL
-    let token = $derived($page.params.token);
+    // Get token from load function data
+    let token = props.data.token;
     let password = $state('');
     let confirmPassword = $state('');
     let passwordsMatch = $derived(password === confirmPassword);
@@ -52,8 +51,7 @@
                     };
                 })}
             >
-                <!-- Hidden token field -->
-                <input type="hidden" name="token" value={token} />
+
                 
                 <div class="space-y-2">
                     <label for="password" class="text-sm font-medium">
