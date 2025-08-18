@@ -60,7 +60,17 @@
     general: "",
   });
 
-  let remainingStatPoints = $state(INITIAL_STAT_POINTS);
+  // Calculate initial remaining stat points based on current stats
+  // Use the same calculation as allocateStatPoints for consistency
+  let remainingStatPoints = $derived(
+    INITIAL_STAT_POINTS - 
+    (formData.creature.stats.strength - STAT_MIN) -
+    (formData.creature.stats.dexterity - STAT_MIN) -
+    (formData.creature.stats.constitution - STAT_MIN) -
+    (formData.creature.stats.intelligence - STAT_MIN) -
+    (formData.creature.stats.wisdom - STAT_MIN) -
+    (formData.creature.stats.charisma - STAT_MIN)
+  );
 
   // Update the stat modification function
   function modifyStat(stat: keyof CreatureStats, increment: boolean): void {
@@ -576,9 +586,6 @@
           <span class={remainingStatPoints > 0 ? 'font-bold text-primary-600' : 'font-bold text-green-600'}>
             {remainingStatPoints}
           </span>
-        </div>
-        <div class="text-xs text-gray-500 mb-2">
-          <p>Stats cost: 8-13 = 0-5 points, 14 = 7 points, 15 = 9 points</p>
         </div>
         <div class="grid grid-cols-2 gap-4 mt-2">
           {#each Object.entries(formData.creature.stats) as [stat, value]}

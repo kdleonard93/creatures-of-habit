@@ -24,6 +24,16 @@ export function calculateStatCost(currentValue: number): number {
 	return 0;
 }
 
+/**
+ * Allocate stat points for character creation
+ * Returns updated stats and remaining points
+ * 
+ * This function calculates the correct number of remaining stat points by:
+ * 1. Starting with the initial stat points (27)
+ * 2. Subtracting the cost of all current stats
+ * 3. When increasing a stat, subtracting the cost of the new value
+ * 4. When decreasing a stat, adding back the cost of the old value
+ */
 export function allocateStatPoints(
 	currentStats: CreatureStats,
 	statToModify: keyof CreatureStats,
@@ -38,17 +48,25 @@ export function allocateStatPoints(
 	}
 
 	const currentValue = newStats[statToModify];
-	const costOfChange = calculateStatCost(increment ? currentValue + 1 : currentValue - 1);
-	const costDifference = increment ? costOfChange : -calculateStatCost(currentValue);
+	if (increment) {
+		const newValue = currentValue + 1;
+		if (newValue > STAT_MAX) {
+			return { stats: currentStats, remainingPoints };
+		  }
+		const costOfNewValue = calculateStatCost(newValue);
 
-	if (increment && currentValue < STAT_MAX && remainingPoints >= costOfChange) {
-		newStats[statToModify]++;
-		remainingPoints -= costOfChange;
-	}
+		if (newValue <= STAT_MAX && remainingPoints >= costOfNewValue) {
+			newStats[statToModify] = newValue;
+			remainingPoints -= costOfNewValue;
+		}
+	} else {
+		const newValue = currentValue - 1;
+		const costOfCurrentValue = calculateStatCost(currentValue);
 
-	if (!increment && currentValue > STAT_MIN && remainingPoints + costDifference >= 0) {
-		newStats[statToModify]--;
-		remainingPoints += costDifference;
+		if (newValue >= STAT_MIN) {
+			newStats[statToModify] = newValue;
+			remainingPoints += costOfCurrentValue;
+		}
 	}
 
 	return { stats: newStats, remainingPoints };
