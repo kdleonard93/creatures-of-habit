@@ -17,13 +17,20 @@ export function createInitialStats(): CreatureStats {
 	};
 }
 
-export function calculateStatCost(currentValue: number): number {
-	if (currentValue <= 13) return currentValue - 8;
-	if (currentValue === 14) return 5;
-	if (currentValue === 15) return 7;
-	return 0;
+export function calculateStatCost(_currentValue: number): number {
+	return 1;
 }
 
+/**
+ * Allocate stat points for character creation
+ * Returns updated stats and remaining points
+ * 
+ * This function calculates the correct number of remaining stat points by:
+ * 1. Starting with the initial stat points (27)
+ * 2. Subtracting the cost of all current stats
+ * 3. When increasing a stat, subtracting the cost of the new value
+ * 4. When decreasing a stat, adding back the cost of the old value
+ */
 export function allocateStatPoints(
 	currentStats: CreatureStats,
 	statToModify: keyof CreatureStats,
@@ -34,21 +41,24 @@ export function allocateStatPoints(
 
 	// Calculate current total point cost
 	for (const value of Object.values(currentStats)) {
-		remainingPoints -= calculateStatCost(value);
+		remainingPoints -= Math.max(0, value - STAT_MIN)
 	}
 
 	const currentValue = newStats[statToModify];
-	const costOfChange = calculateStatCost(increment ? currentValue + 1 : currentValue - 1);
-	const costDifference = increment ? costOfChange : -calculateStatCost(currentValue);
-
-	if (increment && currentValue < STAT_MAX && remainingPoints >= costOfChange) {
-		newStats[statToModify]++;
-		remainingPoints -= costOfChange;
-	}
-
-	if (!increment && currentValue > STAT_MIN && remainingPoints + costDifference >= 0) {
-		newStats[statToModify]--;
-		remainingPoints += costDifference;
+	if (increment) {
+		const newValue = currentValue + 1;
+		if (newValue > STAT_MAX || remainingPoints <= 0) {
+			return { stats: currentStats, remainingPoints };
+		  }
+			newStats[statToModify] = newValue;
+			remainingPoints -= 1;
+	} else {
+		const newValue = currentValue - 1;
+		if (newValue < STAT_MIN) {
+			return { stats: currentStats, remainingPoints };
+		}
+		newStats[statToModify] = newValue;
+		remainingPoints += 1;
 	}
 
 	return { stats: newStats, remainingPoints };
@@ -60,7 +70,7 @@ export function calculateStatModifier(statValue: number): number {
 
 export function getTotalStatPoints(stats: CreatureStats): number {
 	return Object.values(stats).reduce((total, value) => {
-		return total + calculateStatCost(value);
+		return total + Math.max(0, value - STAT_MIN);
 	}, 0);
 }
 

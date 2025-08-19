@@ -60,7 +60,17 @@
     general: "",
   });
 
-  let remainingStatPoints = $state(INITIAL_STAT_POINTS);
+  // Calculate initial remaining stat points based on current stats
+  // Use the same calculation as allocateStatPoints for consistency
+  let remainingStatPoints = $derived(
+    INITIAL_STAT_POINTS - 
+    (formData.creature.stats.strength - STAT_MIN) -
+    (formData.creature.stats.dexterity - STAT_MIN) -
+    (formData.creature.stats.constitution - STAT_MIN) -
+    (formData.creature.stats.intelligence - STAT_MIN) -
+    (formData.creature.stats.wisdom - STAT_MIN) -
+    (formData.creature.stats.charisma - STAT_MIN)
+  );
 
   // Update the stat modification function
   function modifyStat(stat: keyof CreatureStats, increment: boolean): void {
@@ -69,8 +79,6 @@
     remainingStatPoints = result.remainingPoints;
     if (remainingStatPoints === 0) {
       statsWarning = "";
-    } else {
-      statsWarning = `You have ${remainingStatPoints} unused stat points. Are you sure you want to continue?`;
     }
   }
 
@@ -524,14 +532,6 @@
         {:else if errors.creature}
           <p class="text-red-500 text-sm mt-1">{errors.creature}</p>
         {/if}
-		{#if statsWarning}
-			<div class="mt-4 p-3 bg-primary-100 border border-primary-300 rounded-md text-primary-800">
-			  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
-				<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-			  </svg>
-			  {statsWarning}
-			</div>
-		  {/if}
       </div>
       <div class="mt-4">
         <Label>Choose Your Creature's Race</Label>
@@ -571,14 +571,19 @@
       </div>
       <div class="mt-4">
         <Label>Allocate Stats</Label>
+        {#if statsWarning}
+          <div class="mb-4 p-3 bg-primary-100 border border-primary-300 rounded-md text-primary-800">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            {statsWarning}
+          </div>
+        {/if}
         <div class="flex justify-between items-center mb-2">
           <span>Remaining Points:</span>
           <span class={remainingStatPoints > 0 ? 'font-bold text-primary-600' : 'font-bold text-green-600'}>
             {remainingStatPoints}
           </span>
-        </div>
-        <div class="text-xs text-gray-500 mb-2">
-          <p>Stats cost: 8-13 = 0-5 points, 14 = 7 points, 15 = 9 points</p>
         </div>
         <div class="grid grid-cols-2 gap-4 mt-2">
           {#each Object.entries(formData.creature.stats) as [stat, value]}
@@ -587,9 +592,6 @@
                 <span class="capitalize">{stat}</span>
                 <span class="text-xs text-gray-500">
                   Cost: {calculateStatCost(value)}
-                  {#if value > 13}
-                    <span class="text-primary-600">*</span>
-                  {/if}
                 </span>
               </div>
               <div class="flex items-center gap-2">
@@ -616,9 +618,6 @@
               </div>
             </div>
           {/each}
-        </div>
-        <div class="mt-2 text-xs text-gray-500">
-          <p>* Higher stats cost more points</p>
         </div>
       </div>
       {#if raceDefinitions[formData.creature.race]?.backgroundOptions}
