@@ -17,11 +17,8 @@ export function createInitialStats(): CreatureStats {
 	};
 }
 
-export function calculateStatCost(currentValue: number): number {
-	if (currentValue <= 13) return currentValue - 8;
-	if (currentValue === 14) return 5;
-	if (currentValue === 15) return 7;
-	return 0;
+export function calculateStatCost(_currentValue: number): number {
+	return 1;
 }
 
 /**
@@ -44,29 +41,24 @@ export function allocateStatPoints(
 
 	// Calculate current total point cost
 	for (const value of Object.values(currentStats)) {
-		remainingPoints -= calculateStatCost(value);
+		remainingPoints -= Math.max(0, value - STAT_MIN)
 	}
 
 	const currentValue = newStats[statToModify];
 	if (increment) {
 		const newValue = currentValue + 1;
-		if (newValue > STAT_MAX) {
+		if (newValue > STAT_MAX || remainingPoints <= 0) {
 			return { stats: currentStats, remainingPoints };
 		  }
-		const costOfNewValue = calculateStatCost(newValue);
-
-		if (newValue <= STAT_MAX && remainingPoints >= costOfNewValue) {
 			newStats[statToModify] = newValue;
-			remainingPoints -= costOfNewValue;
-		}
+			remainingPoints -= 1;
 	} else {
 		const newValue = currentValue - 1;
-		const costOfCurrentValue = calculateStatCost(currentValue);
-
-		if (newValue >= STAT_MIN) {
-			newStats[statToModify] = newValue;
-			remainingPoints += costOfCurrentValue;
+		if (newValue < STAT_MIN) {
+			return { stats: currentStats, remainingPoints };
 		}
+		newStats[statToModify] = newValue;
+		remainingPoints += 1;
 	}
 
 	return { stats: newStats, remainingPoints };
@@ -78,7 +70,7 @@ export function calculateStatModifier(statValue: number): number {
 
 export function getTotalStatPoints(stats: CreatureStats): number {
 	return Object.values(stats).reduce((total, value) => {
-		return total + calculateStatCost(value);
+		return total + Math.max(0, value - STAT_MIN);
 	}, 0);
 }
 

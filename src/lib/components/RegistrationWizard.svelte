@@ -77,7 +77,6 @@
     const result = allocateStatPoints(formData.creature.stats, stat, increment);
     formData.creature.stats = result.stats;
     remainingStatPoints = result.remainingPoints;
-    // Only show warning when trying to proceed, not during stat modification
     if (remainingStatPoints === 0) {
       statsWarning = "";
     }
@@ -593,9 +592,6 @@
                 <span class="capitalize">{stat}</span>
                 <span class="text-xs text-gray-500">
                   Cost: {calculateStatCost(value)}
-                  {#if value > 13}
-                    <span class="text-primary-600">*</span>
-                  {/if}
                 </span>
               </div>
               <div class="flex items-center gap-2">
@@ -622,9 +618,6 @@
               </div>
             </div>
           {/each}
-        </div>
-        <div class="mt-2 text-xs text-gray-500">
-          <p>* Higher stats cost more points</p>
         </div>
       </div>
       {#if raceDefinitions[formData.creature.race]?.backgroundOptions}
