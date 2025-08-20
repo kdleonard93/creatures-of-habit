@@ -1,5 +1,6 @@
 #!/usr/bin/env tsx
 
+import 'dotenv/config';
 import { execSync } from 'node:child_process';
 import { existsSync, copyFileSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -10,6 +11,7 @@ const __dirname = dirname(__filename);
 const PROJECT_ROOT = join(__dirname, '..');
 const DB_DIR = join(PROJECT_ROOT, '.db-branches');
 const MAIN_DB = join(PROJECT_ROOT, 'local.db');
+const useLocal = process.env.LOCAL_DATABASE_URL?.startsWith('file:') ?? false;
 
 // Ensure db-branches directory exists
 if (!existsSync(DB_DIR)) {
@@ -98,13 +100,19 @@ async function switchToBranch(targetBranch: string): Promise<void> {
     }
   }
 
-  // Check and apply migrations if needed
-  const migrationsUpToDate = await checkMigrations();
-  if (!migrationsUpToDate) {
+  // Apply migrations
+  if (useLocal) {
+    // In local dev, always push migrations to ensure tables exist
     await applyMigrations();
-    // Save the migrated state
+    // Save the migrated state for this branch DB
     if (existsSync(MAIN_DB)) {
       copyFileSync(MAIN_DB, targetDbPath);
+    }
+  } else {
+    // For non-local (e.g., Turso) just run if check indicates drift
+    const migrationsUpToDate = await checkMigrations();
+    if (!migrationsUpToDate) {
+      await applyMigrations();
     }
   }
 

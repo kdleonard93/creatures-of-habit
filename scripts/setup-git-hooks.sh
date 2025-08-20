@@ -23,9 +23,20 @@ else
     exit 1
 fi
 
+# Copy and make executable the post-merge hook
+if [ -f "$SCRIPTS_HOOKS_DIR/post-merge" ]; then
+    cp "$SCRIPTS_HOOKS_DIR/post-merge" "$HOOKS_DIR/post-merge"
+    chmod +x "$HOOKS_DIR/post-merge"
+    echo "✅ Installed post-merge hook"
+else
+    echo "❌ post-merge hook file not found"
+    exit 1
+fi
+
 echo "🎉 Git hooks setup complete!"
 echo ""
 echo "The following hooks are now active:"
 echo "  - post-checkout: Automatically switches database when changing branches"
+echo "  - post-merge: Ensures local DB is migrated after pulling changes on the same branch"
 echo ""
 echo "To test: git checkout -b test-branch"

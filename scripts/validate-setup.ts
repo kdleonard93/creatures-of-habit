@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 
@@ -22,8 +22,10 @@ const checks: ValidationCheck[] = [
     name: 'LOCAL_DATABASE_URL is set',
     check: () => {
       try {
-        const env = require('node:fs').readFileSync(join(PROJECT_ROOT, '.env'), 'utf8');
-        return env.includes('LOCAL_DATABASE_URL=');
+        const env = readFileSync(join(PROJECT_ROOT, '.env'), 'utf8');
+        // Needed to allow optional whitespace around key & equals, and require a non-empty value
+        const re = /^\s*LOCAL_DATABASE_URL\s*=\s*.+/m;
+        return re.test(env);
       } catch {
         return false;
       }
