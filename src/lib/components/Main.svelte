@@ -3,7 +3,7 @@
     import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "$lib/components/ui/card";
     import { Progress } from "$lib/components/ui/progress";
     import { svgLogo } from '$lib/assets/appLogo';
-    import { ArrowRight, Award, Calendar, CheckCircle, Clock, Dumbbell, Sparkles, Target, Trophy, Users } from "lucide-svelte";
+    import { ArrowRight, Award, Calendar, CheckCircle, Clock, Dumbbell, Sparkles, Target, Trophy, Users } from "@lucide/svelte";
 </script>
 
 <!-- Hero Section -->
@@ -44,7 +44,7 @@
               <div>
                 <h3 class="text-xl font-bold">Pixel Warrior</h3>
                 <div class="flex items-center text-sm text-muted-foreground">
-                  <Trophy class="mr-1 h-4 w-4 text-yellow-500" />
+                  <Trophy class="mr-1 h-4 w-4 text-primary" />
                   <span>Level 15 Habit Master</span>
                 </div>
               </div>

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mockNotificationManager, resetNotificationMocks } from '../mocks/notifications';
 
 // Mock dependencies before importing the component
-vi.mock('lucide-svelte', () => ({
+vi.mock('@lucide/svelte', () => ({
   Bell: vi.fn(),
   Clock: vi.fn()
 }));

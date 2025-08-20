@@ -7,7 +7,7 @@
     --background: #1A2238; /* Deep twilight blue */
     --foreground: #F1F2EB; /* Soft ivory for text */
     
-    --success: #00B894; /* Emerald green */
+    --success: #81C784; /* Soft sage green */
     --success-foreground: #FFFFFF;
     
     --muted: #2D3748; /* Deeper blue */
@@ -22,19 +22,31 @@
     --border: #3F4C6B; /* Border blue */
     --input: #2D3748;
     
-    --primary: #F7B801; /* Heroic gold */
+    --primary: #FBEEC2; /* Alexandria's Lighthouse */
     --primary-foreground: #1A2238;
     
-    --secondary: #CE1212; /* Brave red */
+    --secondary: #E57373; /* Soft coral red */
     --secondary-foreground: #FFFFFF;
     
-    --accent: #4D80E4; /* Royal blue */
-    --accent-foreground: #FFFFFF;
+    --accent: #90CAF9; /* Soft sky blue */
+    --accent-foreground: #1A2238;
     
-    --destructive: #E53E3E; /* Bright red */
-    --destructive-foreground: #FFFFFF;
+    --destructive: #EF9A9A; /* Soft rose red */
+    --destructive-foreground: #1A2238;
+
+    --badge: #8B5CF6;
+    --badge-foreground: #FFFFFF;
+
+    --easy: #A5D6A7;
+    --easy-foreground: #1A2238;
     
-    --ring: #F7B801;
+    --medium: #FFB74D;
+    --medium-foreground: #1A2238;
+    
+    --hard: #fc7979;
+    --hard-foreground: #1A2238;
+    
+    --ring: #FBEEC2;
     --radius: 0.5rem;
   }
 
@@ -57,7 +69,7 @@
     --border: #334155; /* Dark border */
     --input: #1E293B;
 
-    --primary: #EAB308; /* Deeper gold */
+    --primary: #FBEEC2; /* Alexandria’s Lighthouse */
     --primary-foreground: #0F172A;
 
     --secondary: #B91C1C; /* Deeper red */
@@ -69,7 +81,16 @@
     --destructive: #DC2626; /* Deeper red */
     --destructive-foreground: #FFFFFF;
 
-    --ring: #EAB308;
+    --easy: #A5D6A7;
+    --easy-foreground: #1A2238;
+    
+    --medium: #FFB74D;
+    --medium-foreground: #1A2238;
+    
+    --hard: #fc7979;
+    --hard-foreground: #1A2238;
+    
+    --ring: #FBEEC2;
     --radius: 0.5rem;
   }
 }

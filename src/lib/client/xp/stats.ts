@@ -23,21 +23,19 @@ export function createInitialStats(): CreatureStats {
 /**
  * Calculate cost for a particular stat value
  */
-export function calculateStatCost(currentValue: number): number {
-	if (currentValue < STAT_MIN || currentValue > STAT_MAX) {
-		throw new Error(
-			`Stat value ${currentValue} is outside the valid range (${STAT_MIN}-${STAT_MAX})`
-		);
-	}
-	if (currentValue <= 13) return currentValue - 8;
-	if (currentValue === 14) return 5;
-	if (currentValue === 15) return 7;
-	return 0;
+export function calculateStatCost(_currentValue: number): number {
+	return 1;
 }
 
 /**
  * Allocate stat points for character creation
  * Returns updated stats and remaining points
+ * 
+ * This function calculates the correct number of remaining stat points by:
+ * 1. Starting with the initial stat points (27)
+ * 2. Subtracting the cost of all current stats
+ * 3. When increasing a stat, subtracting the cost of the new value
+ * 4. When decreasing a stat, adding back the cost of the old value
  */
 export function allocateStatPoints(
 	currentStats: CreatureStats,
@@ -47,29 +45,27 @@ export function allocateStatPoints(
 	const newStats = { ...currentStats };
 	let remainingPoints = INITIAL_STAT_POINTS;
 
-	// Calculate current total point cost
+	// Calculate current total point cost (simple sum of all stats above minimum)
 	for (const value of Object.values(currentStats)) {
-		remainingPoints -= calculateStatCost(value);
+		remainingPoints -= value - STAT_MIN;
 	}
 
 	const currentValue = newStats[statToModify];
+	
 	if (increment) {
 		const newValue = currentValue + 1;
-		const incrementCost = calculateStatCost(newValue);
-
-		if (newValue <= STAT_MAX && remainingPoints >= incrementCost) {
-			newStats[statToModify] = newValue;
-			remainingPoints -= incrementCost;
+		if (newValue > STAT_MAX) {
+			return { stats: currentStats, remainingPoints };
 		}
-	}
-	else {
+		newStats[statToModify] = newValue;
+		remainingPoints -= 1;
+	} else {
 		const newValue = currentValue - 1;
-		const currentCost = calculateStatCost(currentValue);
-
-		if (newValue >= STAT_MIN) {
-			newStats[statToModify] = newValue;
-			remainingPoints += currentCost;
+		if (newValue < STAT_MIN) {
+			return { stats: currentStats, remainingPoints };
 		}
+		newStats[statToModify] = newValue;
+		remainingPoints += 1;
 	}
 
 	return { stats: newStats, remainingPoints };

@@ -15,43 +15,63 @@ const config: Config = {
     },
     extend: {
       colors: {
-        border: "var(--border)",
-        input: "var(--input)",
-        ring: "var(--ring)",
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        border: "#3F4C6B",
+        input: "#2D3748",
+        ring: "#FBEEC2",
+        background: "#1A2238",
+        foreground: "#F1F2EB",
         primary: {
-          DEFAULT: "var(--primary)",
-          foreground: "var(--primary-foreground)",
+          DEFAULT: "#FBEEC2", // Alexandria’s Lighthouse
+          foreground: "#1A2238",
         },
         secondary: {
-          DEFAULT: "var(--secondary)",
-          foreground: "var(--secondary-foreground)",
+          DEFAULT: "#E57373", // Soft coral red
+          foreground: "#FFFFFF",
         },
         success: {
-          DEFAULT: "var(--success)",
-          foreground: "var(--success-foreground)",
+          DEFAULT: "#81C784", // Soft sage green
+          foreground: "#FFFFFF",
         },
         destructive: {
-          DEFAULT: "var(--destructive)",
-          foreground: "var(--destructive-foreground)",
+          DEFAULT: "#EF9A9A", // Soft rose red
+          foreground: "#1A2238",
         },
         muted: {
-          DEFAULT: "var(--muted)",
-          foreground: "var(--muted-foreground)",
+          DEFAULT: "#2D3748", // Deeper blue (keep as is)
+          foreground: "#A0AEC0", // Muted silver (keep as is)
         },
         accent: {
-          DEFAULT: "var(--accent)",
-          foreground: "var(--accent-foreground)",
+          DEFAULT: "#90CAF9", // Soft sky blue
+          foreground: "#1A2238",
         },
         popover: {
-          DEFAULT: "var(--popover)",
-          foreground: "var(--popover-foreground)",
+          DEFAULT: "#2A3950", // Slightly lighter than background
+          foreground: "#F1F2EB",
         },
         card: {
-          DEFAULT: "var(--card)",
-          foreground: "var(--card-foreground)",
+          DEFAULT: "#2A3950", // Slightly lighter blue for cards
+          foreground: "#F1F2EB",
         },
+        badge: {
+          DEFAULT: "#8B5CF6",
+          foreground: "#FFFFFF",
+        },
+        icon: {
+          DEFAULT: "#FBEEC2",
+          foreground: "#1A2238",
+        },
+        easy: {
+          DEFAULT: "#A5D6A7", // Soft mint green
+          foreground: "#1A2238",
+        },
+        medium: {
+          DEFAULT: "#FFB74D", // Soft peach amber
+          foreground: "#1A2238",
+        },
+        hard: {
+          DEFAULT: "#fc7979", // Soft coral red
+          foreground: "#FFFFFF",
+        }
       },
       borderRadius: {
         lg: "var(--radius)",
