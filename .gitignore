@@ -23,6 +23,10 @@ vite.config.ts.timestamp-*
 # SQLite
 *.db
 local-db.*
+*.db-wal
+*.db-shm
+*.sqlite3-wal
+*.sqlite3-shm
 
 # Roadmap
 ROADMAP.md
