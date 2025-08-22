@@ -2,9 +2,9 @@
 
 import 'dotenv/config';
 import { execSync } from 'node:child_process';
-import { existsSync, copyFileSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs';
+import { existsSync, copyFileSync, mkdirSync, readdirSync, statSync, unlinkSync, renameSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -31,9 +31,22 @@ function getCurrentBranch(): string {
   }
 }
 
+function atomicCopy(source: string, destination: string): void {
+    const tempPath = `${destination}.tmp`;
+    try {
+        copyFileSync(source, tempPath);
+        renameSync(tempPath, destination);
+    } catch (error) {
+        if (existsSync(tempPath)) {
+            unlinkSync(tempPath)
+        }
+        throw error;
+    }
+}
+
 // Get safe filename for branch (replace special characters)
 function getSafeBranchName(branch: string): string {
-  return branch.replace(/[^a-zA-Z0-9-_]/g, '-');
+    return Buffer.from(branch).toString('base64url');
 }
 
 // Get database file path for a branch
@@ -47,7 +60,8 @@ async function checkMigrations(): Promise<boolean> {
   try {
     execSync('pnpm db:check', { 
       cwd: PROJECT_ROOT,
-      stdio: 'pipe'
+      stdio: 'pipe',
+      timeout: 30000
     });
     return true;
   } catch {
@@ -81,22 +95,22 @@ async function switchToBranch(targetBranch: string): Promise<void> {
   // Save current database state
   if (existsSync(MAIN_DB)) {
     console.info(`💾 Saving current database state for branch '${currentBranch}'`);
-    copyFileSync(MAIN_DB, currentDbPath);
+    atomicCopy(MAIN_DB, currentDbPath);
   }
 
   // Load target branch database or create new one
   if (existsSync(targetDbPath)) {
     console.info(`📂 Loading existing database for branch '${targetBranch}'`);
-    copyFileSync(targetDbPath, MAIN_DB);
+    atomicCopy(targetDbPath, MAIN_DB);
   } else {
     console.info(`🆕 Creating new database for branch '${targetBranch}'`);
     if (existsSync(currentDbPath)) {
       // Copy from current branch as starting point
-      copyFileSync(currentDbPath, targetDbPath);
-      copyFileSync(targetDbPath, MAIN_DB);
+      atomicCopy(currentDbPath, targetDbPath);
+      atomicCopy(targetDbPath, MAIN_DB);
     } else if (existsSync(MAIN_DB)) {
       // Use existing main db
-      copyFileSync(MAIN_DB, targetDbPath);
+      atomicCopy(MAIN_DB, targetDbPath);
     }
   }
 
@@ -139,7 +153,8 @@ function listBranchDatabases(): void {
   }
 
   for (const file of dbFiles) {
-    const branchName = file.replace('.db', '').replace(/-/g, '/');
+    const safeName = file.replace('.db', '');
+    const branchName = Buffer.from(safeName, 'base64url').toString('utf8')
     const filePath = join(DB_DIR, file);
     const stats = statSync(filePath);
     const size = (stats.size / 1024).toFixed(2);
@@ -263,7 +278,7 @@ Examples:
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
   main();
 }
 

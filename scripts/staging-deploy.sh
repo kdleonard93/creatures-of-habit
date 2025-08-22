@@ -38,6 +38,7 @@ TURSO_AUTH_TOKEN="$STAGING_TOKEN"
 RESEND_API_KEY=""
 PUBLIC_POSTHOG_KEY=""
 EOF
+chmod 600 "$PROJECT_ROOT/.env.staging"
 
 echo "✅ Staging environment configuration created: .env.staging"
 echo ""

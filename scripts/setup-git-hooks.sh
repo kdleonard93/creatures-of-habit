@@ -4,6 +4,11 @@
 
 set -e
 
+if ! git rev=parse -git-dir > /dev/null 2>&1; then
+    echo "❌ Error: Not in a git repository"
+    exit 1
+fi
+
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 HOOKS_DIR="$PROJECT_ROOT/.git/hooks"
 SCRIPTS_HOOKS_DIR="$PROJECT_ROOT/scripts/git-hooks"
@@ -15,6 +20,10 @@ mkdir -p "$HOOKS_DIR"
 
 # Copy and make executable the post-checkout hook
 if [ -f "$SCRIPTS_HOOKS_DIR/post-checkout" ]; then
+    if [ -f "$HOOKS_DIR/post-checkout" ]; then
+        echo "⚠️  Existing post-checkout hook found. Creating backup..."
+        cp "$HOOKS_DIR/post-checkout" "$HOOKS_DIR/post-checkout.backup"
+    fi
     cp "$SCRIPTS_HOOKS_DIR/post-checkout" "$HOOKS_DIR/post-checkout"
     chmod +x "$HOOKS_DIR/post-checkout"
     echo "✅ Installed post-checkout hook"
