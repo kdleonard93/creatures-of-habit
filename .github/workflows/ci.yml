@@ -29,14 +29,9 @@ jobs:
         run: pnpm install
       - name: Create test environment
         run: |
-          echo "LOCAL_DATABASE_URL=file:test.db" > .env
           echo "TURSO_DATABASE_URL=libsql://mock-db.turso.io" >> .env
           echo "TURSO_AUTH_TOKEN=mock-token" >> .env
           echo "PUBLIC_POSTHOG_KEY=phc_mock_posthog_key_for_testing" >> .env
-      - name: Initialize test database
-        run: |
-          pnpm db:generate
-          pnpm db:push
       - name: Check TypeScript types
         run: pnpm run check
       - name: Check code style with Biome
@@ -66,14 +61,9 @@ jobs:
         run: pnpm install
       - name: Create test environment
         run: |
-          echo "LOCAL_DATABASE_URL=file:build-test.db" > .env
           echo "TURSO_DATABASE_URL=libsql://mock-db.turso.io" >> .env
           echo "TURSO_AUTH_TOKEN=mock-token" >> .env
           echo "PUBLIC_POSTHOG_KEY=phc_mock_posthog_key_for_testing" >> .env
-      - name: Initialize build database
-        run: |
-          pnpm db:generate
-          pnpm db:push
       - name: Fix case sensitivity issues
         run: |
           # Symlinks for case-sensitive files
