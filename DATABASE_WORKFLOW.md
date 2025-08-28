@@ -1,201 +1,115 @@
-# Database Branch Workflow Guide
+# Database Workflow Guide
 
-This document explains the automated database workflow for branch-specific development with Drizzle ORM + Turso + SQLite.
+This document explains the simplified database workflow for solo development with Drizzle ORM + SQLite (local) / Turso (production).
 
 ## 🎯 Overview
 
-Each git branch automatically gets its own isolated SQLite database, allowing developers to:
-- Test schema changes without affecting other branches
-- Work with branch-specific data sets
-- Seamlessly switch between branches with proper database state
-- Run CI/CD tests with isolated databases
+This project uses a streamlined database workflow:
+- **Development**: Local SQLite database (`local.db`)
+- **Testing**: In-memory SQLite database (automatic in test environment)
+- **Production**: Turso database (cloud-based SQLite)
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Production    │    │     Staging     │    │ Local Development│
-│   (Turso)       │    │    (Turso)      │    │    (SQLite)     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                                        │
-                                               ┌─────────────────┐
-                                               │ Branch Databases │
-                                               │ .db-branches/    │
-                                               │ ├── main.db      │
-                                               │ ├── feature-*.db │
-                                               │ └── bugfix-*.db  │
-                                               └─────────────────┘
+┌─────────────────┐    ┌─────────────────┐
+│   Production    │    │  Local Dev/Test │
+│   (Turso)       │    │    (SQLite)     │
+└─────────────────┘    └─────────────────┘
+           │                    │
+           └────────────────────┘
+                    │
+            ┌───────┴───────┐
+            │  Drizzle ORM  │
+            └───────┬───────┘
+                    │
+           ┌────────┴────────┐
+    ┌──────▼──────┐  ┌───────▼───────┐
+    │  local.db   │  │  :memory:     │
+    │ (SQLite)    │  │ (Test Env)    │
+    └─────────────┘  └───────────────┘
 ```
 
-## 🚀 Quick Start
+## 🚀 Getting Started
 
-### Initial Setup
+### 1. Local Development Setup
 
 ```bash
-# 1. Set up the workflow (one-time setup)
-pnpm db:setup
-
-# 2. Configure your local environment
+# Copy the example environment file
 cp .env.example .env
-# Edit .env to add LOCAL_DATABASE_URL="file:local.db"
+
+# Start the development server
+pnpm dev
 ```
 
-### Daily Usage
+This will automatically create a `local.db` file in your project root.
 
-The workflow is **automatic** - just use git normally:
+### 2. Database Migrations
 
-```bash
-# Create a new feature branch
-git checkout -b feature/user-profiles
-# → Database automatically switches/creates for this branch
-
-# Switch back to main
-git checkout main  
-# → Database automatically switches back to main state
-
-# Work on a bugfix
-git checkout -b bugfix/login-issue
-# → New isolated database created
-```
-
-## 🛠️ Manual Commands
-
-| Command | Description |
-|---------|-------------|
-| `pnpm db:branch current` | Ensure database matches current branch |
-| `pnpm db:branch switch <branch>` | Switch to specific branch database |
-| `pnpm db:branch list` | Show all branch databases |
-| `pnpm db:branch cleanup` | Remove databases for deleted branches |
-| `pnpm db:branch init` | Initialize database for current branch |
-
-## 📝 Practical Examples
-
-### Example 1: Creating a New Feature
+When you make changes to your database schema:
 
 ```bash
-# Start new feature
-git checkout -b feature/habit-streaks
-
-# The post-checkout hook automatically:
-# 1. Saves current database state
-# 2. Creates/loads database for feature/habit-streaks
-# 3. Applies any pending migrations
-
-# Add new database columns
-# Edit src/lib/server/db/schema.ts
-export const habitStreaks = sqliteTable('habit_streaks', {
-  id: integer('id').primaryKey(),
-  habitId: integer('habit_id').references(() => habits.id),
-  currentStreak: integer('current_streak').default(0),
-  longestStreak: integer('longest_streak').default(0),
-});
-
-# Generate and apply migration
+# Generate a new migration
 pnpm db:generate
+
+# Apply migrations to your local database
 pnpm db:push
-
-# Your changes are isolated to this branch!
-# Other developers' branches are unaffected
 ```
 
-### Example 2: Testing Database Schema Changes
+## 🧪 Testing
+
+Tests automatically use an in-memory SQLite database. No setup is required.
 
 ```bash
-# Create experimental branch
-git checkout -b experiment/new-schema
-
-# Make breaking changes to schema
-# Test thoroughly with isolated data
-
-# If experiment fails:
-git checkout main
-# → Automatically switches back to stable database
-
-# If experiment succeeds:
-git checkout main
-git merge experiment/new-schema
-# → Bring changes to main with proper migration
-```
-
-### Example 3: Code Review Database State
-
-```bash
-# Reviewer wants to test a PR
-git fetch origin
-git checkout feature/user-analytics
-
-# Database automatically switches to match the branch
-# Reviewer can test with branch-specific data/schema
-# No need to manually manage database state
-```
-
-## 🔄 Migration Workflow
-
-### When Schema Changes
-
-1. **Make schema changes** in `src/lib/server/db/schema.ts`
-2. **Generate migration**: `pnpm db:generate`
-3. **Apply locally**: `pnpm db:push`
-4. **Test thoroughly** in your branch
-5. **Commit and push** both schema and migration files
-6. **Switch branches** - migrations auto-apply when needed
-
-### When Switching to Updated Branch
-
-```bash
-git checkout main
-git pull origin main
-# → Automatic migration check and application
-# → Your database is now up-to-date with main
-```
-
-## 🧪 Testing & CI/CD
-
-### Local Testing
-
-```bash
-# Tests automatically use isolated test database
+# Run tests
 pnpm test
-
-# Each test run gets a fresh database state
-# No interference between test runs
 ```
 
-### CI/CD Pipeline
+## 🚀 Production Deployment
 
-The CI pipeline automatically:
-1. Creates isolated test databases per job
-2. Applies migrations to test databases
-3. Runs tests against fresh database state
-4. Cleans up after completion
-
-No production database access required for testing!
-
-## 🔧 Configuration
-
-### Environment Variables
+For production, set these environment variables:
 
 ```bash
-# Local development (preferred)
-LOCAL_DATABASE_URL="file:local.db"
-
-# Production (required for production)
 TURSO_DATABASE_URL="libsql://your-db.turso.io"
 TURSO_AUTH_TOKEN="your-token"
 ```
 
-### Database Selection Logic
+## 🔄 Workflow
 
+### Development Workflow
+
+1. Make changes to `schema.ts`
+2. Generate and apply migrations
+3. Test your changes locally
+4. Commit your changes and push to your repository
+5. Deploy to production
+
+### Schema Changes
+
+1. Edit `src/lib/server/db/schema.ts`
+2. Generate a migration: `pnpm db:generate`
+3. Test the migration locally: `pnpm db:push`
+4. Commit both the schema changes and migration files
+5. Deploy to production
+
+## 🔧 Troubleshooting
+
+### Reset Local Database
+
+If you need to start fresh:
+
+```bash
+rm local.db
+pnpm db:push
 ```
-if (development mode && LOCAL_DATABASE_URL exists):
-    use SQLite file
-else:
-    use Turso (production/staging)
+
+### View Database
+
+Use a SQLite browser or the command line:
+
+```bash
+sqlite3 local.db
 ```
-
-## 📊 Branch Database Management
-
-### Database Storage
 
 ```
 .db-branches/
