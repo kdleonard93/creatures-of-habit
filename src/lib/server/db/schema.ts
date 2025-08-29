@@ -124,6 +124,43 @@ export const habitStreak = sqliteTable('habit_streak', {
     updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+export const questStatus = ['active', 'completed', 'failed', 'claimed'] as const;
+export type QuestStatus = (typeof questStatus)[number];
+
+export const questType = ['daily', 'weekly', 'achievement', 'story'] as const;
+export type QuestType = (typeof questType)[number];
+
+// Generated Quests
+export const generatedQuest = sqliteTable('generated_quest', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text('user_id')
+        .notNull()
+        .references(() => user.id, { onDelete: 'cascade' }),
+    habitId: text('habit_id')
+        .references(() => habit.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    description: text('description'),
+    type: text('type', { enum: questType }).notNull(),
+    status: text('status', { enum: questStatus }).notNull().default('active'),
+    difficulty: text('difficulty', { 
+        enum: ['easy', 'medium', 'hard'] 
+    }).notNull().default('medium'),
+    experienceReward: integer('experience_reward').notNull().default(10),
+    requiredCompletions: integer('required_completions').notNull().default(1),
+    currentCompletions: integer('current_completions').notNull().default(0),
+    startsAt: text('starts_at').notNull(),
+    expiresAt: text('expires_at'),
+    completedAt: text('completed_at'),
+    claimedAt: text('claimed_at'),
+    createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+    updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => {
+    return {
+        userStatusIdx: index('idx_quest_user_status').on(table.userId, table.status),
+        typeExpiresAtIdx: index('idx_quest_type_expires').on(table.type, table.expiresAt),
+    };
+});
+
 export const session = sqliteTable('session', {
     id: text('id').primaryKey(),
     userId: text('user_id')

@@ -76,24 +76,50 @@ declare module '$lib/utils/dailyHabitProgress' {
   export function calculateDailyProgress(habits: Habit[] | undefined): DailyProgressStats;
 }
 
+declare module '$lib/server/services/questService' {
+  export function generateDailyQuests(userId: string): Promise<number>;
+  export function completeQuest(questId: string, userId: string): Promise<any>;
+}
+
 declare module '$lib/server/db' {
-  type MockFunction<T = any> = T & {
+  type MockFunction<T> = T & {
     mockReturnThis: () => MockFunction<T>;
     mockImplementation: (fn: (...args: any[]) => any) => MockFunction<T>;
     mockImplementationOnce: (fn: (...args: any[]) => any) => MockFunction<T>;
     mockReturnValue: (value: any) => MockFunction<T>;
+    mockResolvedValue: (value: any) => MockFunction<T>;
+    mockRejectedValue: (value: any) => MockFunction<T>;
+    mock: {
+      calls: any[][];
+      results: Array<{ type: 'return' | 'throw'; value: any }>;
+    };
   };
 
-  type MockDB = {
-    select: MockFunction<() => MockDB>;
-    from: MockFunction<(table: any) => MockDB>;
-    where: MockFunction<(condition: any) => MockDB>;
-    orderBy: MockFunction<(field: any) => MockDB>;
-    limit: MockFunction<(num: number) => MockDB>;
-    update: MockFunction<(table: any) => MockDB>;
-    set: MockFunction<(data: any) => MockDB>;
-    execute: MockFunction<() => any[]>;
-  };
+  interface MockDB {
+    select: () => MockDB;
+    from: (table: any) => MockDB;
+    where: (condition: any) => MockDB;
+    and: (condition: any) => MockDB;
+    or: (condition: any) => MockDB;
+    eq: (column: any, value: any) => any;
+    gte: (column: any, value: any) => any;
+    lte: (column: any, value: any) => any;
+    orderBy: (field: any) => MockDB;
+    limit: (num: number) => MockDB;
+    update: (table: any) => MockDB;
+    set: (data: any) => MockDB;
+    delete: () => MockDB;
+    insert: (values: any) => MockDB & { returning: () => any };
+    values: any[];
+    execute: () => Promise<any[]>;
+    returning: () => any;
+  }
 
   export const db: MockDB;
+}
+
+declare module '$lib/server/db/schema' {
+  export const user: any;
+  export const habit: any;
+  export const generatedQuest: any;
 }
