@@ -4,6 +4,7 @@ import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { Resend } from "resend";
+import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 
 const resendToken = process.env.RESEND_API_KEY;
 let resend: Resend | null = null;
@@ -12,8 +13,11 @@ if (resendToken) {
 }
 
 export const actions = {
-  default: async ({ request }) => {
-    const formData = await request.formData();
+  default: async (event) => {
+    // Apply rate limiting for username recovery requests
+    await rateLimit(event, RateLimitPresets.PASSWORD_RESET);
+
+    const formData = await event.request.formData();
     const email = formData.get('email') as string | null;
 
     if (!email) {

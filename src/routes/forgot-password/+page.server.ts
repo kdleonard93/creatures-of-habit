@@ -5,6 +5,7 @@ import * as table from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { Resend } from "resend";
 import * as auth from '$lib/server/auth';
+import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 
 const resendToken = process.env.RESEND_API_KEY;
 let resend: Resend | null = null;
@@ -13,15 +14,16 @@ if (resendToken) {
 }
 
 export const actions = {
-  default: async ({ request, url }) => {
-    const formData = await request.formData();
+  default: async (event) => {
+    await rateLimit(event, RateLimitPresets.PASSWORD_RESET);
+
+    const formData = await event.request.formData();
     const username = formData.get('username') as string | null;
 
     if (!username) {
       return fail(400, { message: 'Username is required' });
     }
 
-    // Find user by username
     const [user] = await db
       .select()
       .from(table.user)
@@ -29,17 +31,12 @@ export const actions = {
       .limit(1);
 
     if (!user) {
-      // Don't reveal if username doesn't exist
       return { success: true };
     }
 
-    // Create password reset token
     const token = await auth.createPasswordResetToken(user.id);
     
-    // Generate reset link
-    const resetLink = `${url.origin}/reset-password/${token}`;
-
-    // Send email with reset link
+    const resetLink = `${event.url.origin}/reset-password/${token}`;
     if (resend) {
       try {
         await resend.emails.send({

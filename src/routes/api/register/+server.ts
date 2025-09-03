@@ -5,15 +5,17 @@ import { db } from '$lib/server/db';
 import * as schema from '$lib/server/db/schema';
 import { generateSessionToken, createSession, setSessionTokenCookie } from '$lib/server/auth';
 import { eq } from 'drizzle-orm';
-import bcrypt from 'bcrypt';
+import { hashPassword } from '$lib/server/password';
+import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 import type { RegistrationData } from '$lib/types';
 
 export const POST: RequestHandler = async (event) => {
   try {
+    await rateLimit(event, RateLimitPresets.AUTH);
+
     const data = await event.request.json() as RegistrationData;
     console.info('Received registration data:', { ...data, password: '[REDACTED]', confirmPassword: '[REDACTED]' });
 
-    // Check if email already exists
     const existingUserByEmail = await db.select()
       .from(schema.user)
       .where(eq(schema.user.email, data.email))
@@ -26,7 +28,6 @@ export const POST: RequestHandler = async (event) => {
       }, { status: 400 });
     }
 
-    // Check if username already exists
     const existingUserByUsername = await db.select()
       .from(schema.user)
       .where(eq(schema.user.username, data.username))
@@ -39,11 +40,8 @@ export const POST: RequestHandler = async (event) => {
       }, { status: 400 });
     }
 
-    // Hash password
-    const saltRounds = 10;
-    const passwordHash = await bcrypt.hash(data.password, saltRounds);
+    const passwordHash = await hashPassword(data.password);
 
-    // Create user
     const [newUser] = await db.insert(schema.user).values({
       email: data.email,
       username: data.username,
@@ -51,7 +49,6 @@ export const POST: RequestHandler = async (event) => {
       passwordHash
     }).returning();
 
-    // Create creature
     await db.insert(schema.creature).values({
       userId: newUser.id,
       name: data.creature.name,
@@ -59,11 +56,9 @@ export const POST: RequestHandler = async (event) => {
       race: data.creature.race
     });
 
-    // Create session
     const sessionToken = generateSessionToken();
     const session = await createSession(sessionToken, newUser.id);
     
-    // Set session cookie
     setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
     return json({ success: true, userId: newUser.id, redirectUrl: '/dashboard'  });

@@ -5,6 +5,7 @@ import * as table from '$lib/server/db/schema';
 import { verifyPassword } from '$lib/server/password';
 import { eq } from 'drizzle-orm';
 import * as auth from '$lib/server/auth';
+import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 
 export const load: PageServerLoad = async (event) => {
     if (event.locals.user) {
@@ -15,10 +16,11 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions = {
     default: async (event) => {
+        await rateLimit(event, RateLimitPresets.AUTH);
+
         const formData = await event.request.formData();
         const username = formData.get('username') as string | null;
         const password = formData.get('password') as string | null;
-        // const email = formData.get('email') as string | null;
 
         if (!username || !password) {
             return fail(400, { message: 'All fields are required' });

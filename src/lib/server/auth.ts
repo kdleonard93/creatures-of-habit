@@ -52,7 +52,7 @@ export async function validateSessionToken(token: string, dbInstance = db) {
 	// Renew session if close to expiration
 	const renewSession = Date.now() >= session.expiresAt.getTime() - DAY_IN_MS * 15;
 	if (renewSession) {
-		session.expiresAt = new Date(Date.now() - DAY_IN_MS * 15);
+		session.expiresAt = new Date(Date.now() + DAY_IN_MS * 30);
 		await dbInstance
 			.update(table.session)
 			.set({ expiresAt: session.expiresAt })
