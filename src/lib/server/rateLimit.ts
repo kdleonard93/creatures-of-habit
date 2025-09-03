@@ -43,9 +43,12 @@ export async function rateLimit(
 	const entry = rateLimitStore.get(key);
 
 	if (!entry || now > entry.resetTime) {
-		rateLimitStore.set(key, {
-			count: 1,
-			resetTime: now + windowMs
+		const resetTime = now + windowMs;
+		rateLimitStore.set(key, { count: 1, resetTime });
+		event.setHeaders({
+			'X-RateLimit-Limit': maxRequests.toString(),
+			'X-RateLimit-Remaining': (maxRequests - 1).toString(),
+			'X-RateLimit-Reset': resetTime.toString()
 		});
 		return;
 	}
@@ -72,14 +75,20 @@ export async function rateLimit(
 }
 
 function getClientIP(event: RequestEvent): string {
-	const forwarded = event.request.headers.get('x-forwarded-for');
-	if (forwarded) {
-		return forwarded.split(',')[0].trim();
-	}
+	const trustProxy = process.env.TRUST_PROXY === 'true';
+	if (trustProxy) {
+		const forwarded = event.request.headers.get('x-forwarded-for');
+		if (forwarded) {
+			const firstIP = forwarded.split(',')[0];
+			if (firstIP) {
+				return firstIP.trim();
+			}
+		}
 
-	const realIP = event.request.headers.get('x-real-ip');
-	if (realIP) {
-		return realIP;
+		const realIP = event.request.headers.get('x-real-ip');
+		if (realIP) {
+			return realIP;
+		}
 	}
 
 	return event.getClientAddress();

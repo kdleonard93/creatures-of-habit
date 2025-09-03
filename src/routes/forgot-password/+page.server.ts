@@ -36,7 +36,7 @@ export const actions = {
 
     const token = await auth.createPasswordResetToken(user.id);
     
-    const resetLink = `${event.url.origin}/reset-password/${token}`;
+    const resetLink = `${event.url.origin}/reset-password/${encodeURIComponent(token)}`;
     if (resend) {
       try {
         await resend.emails.send({
@@ -49,10 +49,10 @@ export const actions = {
             <p>You requested a password reset for your Creatures of Habit account.</p>
             <p><strong>Security Notice:</strong> If you did not request this password reset, please ignore this email and consider changing your password immediately.</p>
             <p>Click the link below to reset your password:</p>
-            <p><a href="${encodeURI(resetLink)}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a></p>
+            <p><a href="${resetLink}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a></p>
             <p>If you didn't request this, you can safely ignore this email.</p>
             <p><strong>Important:</strong> This link will expire in 1 hour for your security.</p>
-            <p>Link: ${encodeURI(resetLink)}</p>
+            <p>Link: ${resetLink}</p>
           `
         });
       } catch (error) {

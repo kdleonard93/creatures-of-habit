@@ -32,7 +32,7 @@ export interface SecurityHeadersConfig {
 const defaultConfig: SecurityHeadersConfig = {
 	csp: {
 		defaultSrc: ["'self'"],
-		scriptSrc: ["'self'", "'unsafe-inline'"],
+		scriptSrc: ["'self'"],
 		styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
 		imgSrc: ["'self'", "data:", "https:"],
 		fontSrc: ["'self'", "https://fonts.gstatic.com"],
@@ -85,20 +85,24 @@ function buildCSPHeader(csp: NonNullable<SecurityHeadersConfig['csp']>): string 
 	return directives.join('; ');
 }
 
+
 function buildPermissionsPolicyHeader(policy: Record<string, string[]>): string {
 	const directives: string[] = [];
-
 	for (const [feature, allowlist] of Object.entries(policy)) {
 		if (allowlist.length === 0) {
 			directives.push(`${feature}=()`);
 		} else {
-			const origins = allowlist.map(origin => 
-				origin === 'self' ? '"self"' : origin
-			).join(' ');
+			const origins = allowlist
+				.map((origin) => {
+					if (origin === 'self' || origin === '*') {
+						return origin;
+					}
+					return /^".*"$/.test(origin) ? origin : `"${origin}"`;
+				})
+				.join(' ');
 			directives.push(`${feature}=(${origins})`);
 		}
 	}
-
 	return directives.join(', ');
 }
 
