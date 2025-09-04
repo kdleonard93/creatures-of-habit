@@ -50,6 +50,8 @@ async function startTestServer(): Promise<void> {
 	console.log('🚀 Starting test server...');
 	
 	return new Promise((resolve, reject) => {
+		let resolved = false;
+		
 		serverProcess = spawn('pnpm', ['dev', '--port', TEST_PORT.toString()], {
 			env: {
 				...process.env,
@@ -64,9 +66,10 @@ async function startTestServer(): Promise<void> {
 		
 		serverProcess.stdout?.on('data', (data) => {
 			output += data.toString();
-			if (output.includes('Local:') && output.includes(TEST_PORT.toString())) {
+			if (!resolved && output.includes('Local:') && output.includes(TEST_PORT.toString())) {
+				resolved = true;
 				console.log('✅ Test server started');
-				setTimeout(resolve, 2000); // Give server time to fully initialize
+				setTimeout(resolve, 1000);
 			}
 		});
 
@@ -79,7 +82,6 @@ async function startTestServer(): Promise<void> {
 
 		serverProcess.on('error', reject);
 		
-		// Timeout after 30 seconds
 		setTimeout(() => {
 			reject(new Error('Server startup timeout'));
 		}, 30000);
@@ -154,32 +156,47 @@ async function testRateLimitEnforcement(): Promise<void> {
 	console.log('\n⚡ Testing Rate Limit Enforcement...');
 	console.log('Making multiple requests to trigger rate limiting...');
 
-	// Make requests to a non-existent endpoint to avoid database operations
-	const testEndpoint = '/api/test-rate-limit';
+	// Test with the login endpoint which has rate limiting configured
+	const testEndpoint = '/login';
 	
 	for (let i = 1; i <= 6; i++) {
 		console.log(`\nRequest ${i}:`);
-		const result = await makeRequest(testEndpoint, 'POST', { test: true });
 		
-		if (!isRequestResult(result)) {
-			console.log(`Error: ${result.error}`);
-			continue;
-		}
-
-		console.log(`Status: ${result.status}`);
+		const formData = new FormData();
+		formData.append('username', 'testuser');
+		formData.append('password', 'wrongpassword');
 		
-		// Check rate limit headers
-		if (result.headers['x-ratelimit-limit']) {
-			console.log(`Rate Limit: ${result.headers['x-ratelimit-remaining']}/${result.headers['x-ratelimit-limit']}`);
-		}
+		const options: RequestInit = {
+			method: 'POST',
+			body: formData
+		};
 		
-		if (result.headers['retry-after']) {
-			console.log(`Retry After: ${result.headers['retry-after']} seconds`);
-		}
-		
-		if (result.status === 429) {
-			console.log('✅ Rate limit enforced successfully!');
-			break;
+		try {
+			const response = await fetch(`${BASE_URL}${testEndpoint}`, options);
+			const result = {
+				status: response.status,
+				headers: Object.fromEntries(response.headers.entries()),
+				body: await response.text()
+			};
+			
+			console.log(`Status: ${result.status}`);
+			
+			// Check rate limit headers
+			if (result.headers['x-ratelimit-limit']) {
+				console.log(`Rate Limit: ${result.headers['x-ratelimit-remaining']}/${result.headers['x-ratelimit-limit']}`);
+			}
+			
+			if (result.headers['retry-after']) {
+				console.log(`Retry After: ${result.headers['retry-after']} seconds`);
+			}
+			
+			if (result.status === 429) {
+				console.log('✅ Rate limit enforced successfully!');
+				break;
+			}
+			
+		} catch (error) {
+			console.log(`Error: ${error instanceof Error ? error.message : String(error)}`);
 		}
 		
 		// Small delay between requests
@@ -190,12 +207,27 @@ async function testRateLimitEnforcement(): Promise<void> {
 async function cleanup(): Promise<void> {
 	console.log('\n🧹 Cleaning up...');
 	
-	if (serverProcess) {
+	if (serverProcess && !serverProcess.killed) {
 		serverProcess.kill('SIGTERM');
+		await new Promise<void>((resolve) => {
+			const timeout = setTimeout(() => {
+				if (serverProcess && !serverProcess.killed) {
+					serverProcess.kill('SIGKILL');
+				}
+				resolve();
+			}, 3000);
+			
+			serverProcess?.on('exit', () => {
+				clearTimeout(timeout);
+				resolve();
+			});
+		});
 		console.log('✅ Test server stopped');
+		serverProcess = null;
 	}
 	
-	// Clean up test files
+	await new Promise(resolve => setTimeout(resolve, 500));
+	
 	try {
 		if (existsSync('.env.test')) {
 			unlinkSync('.env.test');
@@ -206,9 +238,19 @@ async function cleanup(): Promise<void> {
 			unlinkSync(TEST_DB_PATH);
 			console.log('✅ Removed test database');
 		}
+		
+		const dbFiles = [TEST_DB_PATH + '-wal', TEST_DB_PATH + '-shm'];
+		for (const file of dbFiles) {
+			if (existsSync(file)) {
+				unlinkSync(file);
+				console.log(`✅ Removed ${file}`);
+			}
+		}
 	} catch (error) {
 		console.log('⚠️  Cleanup warning:', error instanceof Error ? error.message : String(error));
 	}
+	
+	console.log('✅ Cleanup completed');
 }
 
 async function main(): Promise<void> {
@@ -225,9 +267,11 @@ async function main(): Promise<void> {
 		
 	} catch (error) {
 		console.error('\n❌ Test failed:', error instanceof Error ? error.message : String(error));
+		await cleanup();
 		process.exit(1);
 	} finally {
 		await cleanup();
+		process.exit(0);
 	}
 }
 
