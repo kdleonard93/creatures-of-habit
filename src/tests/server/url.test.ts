@@ -77,26 +77,26 @@ describe('URL Utilities', () => {
 
 	describe('Security Properties', () => {
 		it('should not be vulnerable to Host header injection', () => {
-			// Even if an attacker controls the Host header, our canonical URL is fixed
 			process.env.CANONICAL_BASE_URL = 'https://legitimate-site.com';
 			
-			// This simulates what would happen regardless of Host header value
 			const resetUrl = buildPasswordResetUrl('token123');
 			
 			expect(resetUrl).toBe('https://legitimate-site.com/reset-password/token123');
-			expect(resetUrl).not.toContain('evil-site.com');
-			expect(resetUrl).not.toContain('attacker.com');
 		});
 
 		it('should always use configured canonical URL over any external input', () => {
 			process.env.CANONICAL_BASE_URL = 'https://secure-app.com';
 			
-			// No matter what external input might be, we always use our configured URL
 			const url1 = buildPasswordResetUrl('token1');
 			const url2 = buildPasswordResetUrl('token2');
 			
-			expect(url1.startsWith('https://secure-app.com')).toBe(true);
-			expect(url2.startsWith('https://secure-app.com')).toBe(true);
+			const parsedUrl1 = new URL(url1);
+			const parsedUrl2 = new URL(url2);
+			
+			expect(parsedUrl1.origin).toBe('https://secure-app.com');
+			expect(parsedUrl2.origin).toBe('https://secure-app.com');
+			expect(parsedUrl1.hostname).toBe('secure-app.com');
+			expect(parsedUrl2.hostname).toBe('secure-app.com');
 		});
 	});
 });
