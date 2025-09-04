@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 import { Resend } from "resend";
 import * as auth from '$lib/server/auth';
 import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
+import { buildPasswordResetUrl } from '$lib/utils/url';
 
 const resendToken = process.env.RESEND_API_KEY;
 let resend: Resend | null = null;
@@ -46,7 +47,7 @@ export const actions = {
 
     const token = await auth.createPasswordResetToken(user.id);
     
-    const resetLink = `${event.url.origin}/reset-password/${encodeURIComponent(token)}`;
+    const resetLink = buildPasswordResetUrl(token);
     if (resend) {
       try {
         const safeUsername = escapeHtml(user.username);

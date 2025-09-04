@@ -1,7 +1,7 @@
 import { fail, redirect, error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import * as auth from '$lib/server/auth';
-import { hashPassword } from '$lib/server/password';
+import { hashPassword } from '$lib/utils/password';
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';

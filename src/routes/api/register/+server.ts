@@ -5,7 +5,7 @@ import { db } from '$lib/server/db';
 import * as schema from '$lib/server/db/schema';
 import { generateSessionToken, createSession, setSessionTokenCookie } from '$lib/server/auth';
 import { eq } from 'drizzle-orm';
-import { hashPassword } from '$lib/server/password';
+import { hashPassword } from '$lib/utils/password';
 import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 import type { RegistrationData } from '$lib/types';
 

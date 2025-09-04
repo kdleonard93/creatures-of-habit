@@ -4,7 +4,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { user, userPreferences } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import { hashPassword, verifyPassword } from '$lib/server/password';
+import { hashPassword, verifyPassword } from '$lib/utils/password';
 
 export const load: PageServerLoad = async ({ locals }) => {
     const session = await locals.auth();

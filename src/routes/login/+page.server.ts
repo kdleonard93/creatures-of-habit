@@ -2,7 +2,7 @@ import { redirect, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
-import { verifyPassword } from '$lib/server/password';
+import { verifyPassword } from '$lib/utils/password';
 import { eq } from 'drizzle-orm';
 import * as auth from '$lib/server/auth';
 import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
