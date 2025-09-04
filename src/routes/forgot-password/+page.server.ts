@@ -13,6 +13,16 @@ if (resendToken) {
   resend = new Resend(resendToken);
 }
 
+function escapeHtml(str: string): string {
+  return str.replace(/[&<>"']/g, (ch) => (
+    ch === '&' ? '&amp;' :
+    ch === '<' ? '&lt;'  :
+    ch === '>' ? '&gt;'  :
+    ch === '"' ? '&quot;':
+                 '&#39;'
+  ));
+}
+
 export const actions = {
   default: async (event) => {
     await rateLimit(event, RateLimitPresets.PASSWORD_RESET);
@@ -39,13 +49,14 @@ export const actions = {
     const resetLink = `${event.url.origin}/reset-password/${encodeURIComponent(token)}`;
     if (resend) {
       try {
+        const safeUsername = escapeHtml(user.username);
         await resend.emails.send({
           from: 'Creatures of Habit <onboarding@resend.dev>',
           to: user.email,
           subject: 'Password Reset - Creatures of Habit',
           html: `
             <h2>Password Reset</h2>
-            <p>Hello ${user.username},</p>
+            <p>Hello ${safeUsername},</p>
             <p>You requested a password reset for your Creatures of Habit account.</p>
             <p><strong>Security Notice:</strong> If you did not request this password reset, please ignore this email and consider changing your password immediately.</p>
             <p>Click the link below to reset your password:</p>
@@ -57,11 +68,11 @@ export const actions = {
         });
       } catch (error) {
         console.error('Failed to send password reset email:', error);
-        return fail(500, { message: 'Failed to send email. Please try again later.' });
+        return {success: true}
       }
     } else {
       console.info('Email sending skipped - Resend API key not configured');
-      return fail(500, { message: 'Email service not configured. Please contact support.' });
+      return {success: true}
     }
 
     return { success: true };

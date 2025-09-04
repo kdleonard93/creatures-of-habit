@@ -31,7 +31,7 @@ export const actions = {
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(sanitizedEmail)) {
       return fail(400, { message: 'Please enter a valid email address' });
     }
 
@@ -52,7 +52,7 @@ export const actions = {
       try {
         await resend.emails.send({
           from: 'Creatures of Habit <onboarding@resend.dev>',
-          to: email,
+          to: sanitizedEmail,
           subject: 'Your Username - Creatures of Habit',
           html: `
             <h2>Your Username</h2>
