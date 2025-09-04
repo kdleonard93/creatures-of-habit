@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { getCanonicalBaseUrl, buildCanonicalUrl, buildPasswordResetUrl } from '../../lib/utils/url';
+import { getCanonicalBaseUrl, buildPasswordResetUrl } from '../../lib/utils/url';
 
 describe('URL Utilities', () => {
 	const originalEnv = process.env;
@@ -44,32 +44,6 @@ describe('URL Utilities', () => {
 		});
 	});
 
-	describe('buildCanonicalUrl', () => {
-		beforeEach(() => {
-			process.env.CANONICAL_BASE_URL = 'https://example.com';
-		});
-
-		it('should build URL with path starting with slash', () => {
-			expect(buildCanonicalUrl('/reset-password')).toBe('https://example.com/reset-password');
-		});
-
-		it('should add leading slash if path does not start with one', () => {
-			expect(buildCanonicalUrl('reset-password')).toBe('https://example.com/reset-password');
-		});
-
-		it('should append params when provided', () => {
-			expect(buildCanonicalUrl('/reset-password', '?token=abc123')).toBe('https://example.com/reset-password?token=abc123');
-		});
-
-		it('should handle complex paths correctly', () => {
-			expect(buildCanonicalUrl('/api/v1/users/123')).toBe('https://example.com/api/v1/users/123');
-		});
-
-		it('should not create double slashes', () => {
-			process.env.CANONICAL_BASE_URL = 'https://example.com/';
-			expect(buildCanonicalUrl('/reset-password')).toBe('https://example.com/reset-password');
-		});
-	});
 
 	describe('buildPasswordResetUrl', () => {
 		beforeEach(() => {
@@ -118,8 +92,8 @@ describe('URL Utilities', () => {
 			process.env.CANONICAL_BASE_URL = 'https://secure-app.com';
 			
 			// No matter what external input might be, we always use our configured URL
-			const url1 = buildCanonicalUrl('/reset-password/token1');
-			const url2 = buildCanonicalUrl('/reset-password/token2');
+			const url1 = buildPasswordResetUrl('token1');
+			const url2 = buildPasswordResetUrl('token2');
 			
 			expect(url1.startsWith('https://secure-app.com')).toBe(true);
 			expect(url2.startsWith('https://secure-app.com')).toBe(true);

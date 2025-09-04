@@ -50,33 +50,39 @@ export async function rateLimit(
 	if (!entry || now > entry.resetTime) {
 		const resetTime = now + windowMs;
 		rateLimitStore.set(key, { count: 1, resetTime });
-		event.setHeaders({
-			'X-RateLimit-Limit': maxRequests.toString(),
-			'X-RateLimit-Remaining': (maxRequests - 1).toString(),
-			'X-RateLimit-Reset': resetTime.toString()
-		});
+		setRateLimitHeaders(event, maxRequests, maxRequests - 1, resetTime);
 		return;
 	}
 
 	if (entry.count >= maxRequests) {
 		const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
-		event.setHeaders({
-			'X-RateLimit-Limit': maxRequests.toString(),
-			'X-RateLimit-Remaining': '0',
-			'X-RateLimit-Reset': entry.resetTime.toString(),
-			'Retry-After': retryAfter.toString()
-		});
-
+		setRateLimitHeaders(event, maxRequests, 0, entry.resetTime, retryAfter);
 		throw error(statusCode, message);
 	}
 
 	entry.count++;
 	rateLimitStore.set(key, entry);
-	event.setHeaders({
-		'X-RateLimit-Limit': maxRequests.toString(),
-		'X-RateLimit-Remaining': (maxRequests - entry.count).toString(),
-		'X-RateLimit-Reset': entry.resetTime.toString()
-	});
+	setRateLimitHeaders(event, maxRequests, maxRequests - entry.count, entry.resetTime);
+}
+
+function setRateLimitHeaders(
+	event: RequestEvent, 
+	limit: number, 
+	remaining: number, 
+	resetTime: number, 
+	retryAfter?: number
+): void {
+	const headers: Record<string, string> = {
+		'X-RateLimit-Limit': limit.toString(),
+		'X-RateLimit-Remaining': remaining.toString(),
+		'X-RateLimit-Reset': resetTime.toString()
+	};
+	
+	if (retryAfter !== undefined) {
+		headers['Retry-After'] = retryAfter.toString();
+	}
+	
+	event.setHeaders(headers);
 }
 
 function getClientIP(event: RequestEvent): string {

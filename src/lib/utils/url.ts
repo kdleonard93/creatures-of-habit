@@ -25,25 +25,10 @@ export function getCanonicalBaseUrl(): string {
 }
 
 /**
- * Safely constructs a full URL using the canonical base URL
- * @param path - The path to append (should start with /)
- * @param params - Optional query parameters or URL fragments
- */
-export function buildCanonicalUrl(path: string, params?: string): string {
-	const baseUrl = getCanonicalBaseUrl();
-	
-	// Ensure path starts with / and doesn't have double slashes
-	const cleanPath = path.startsWith('/') ? path : `/${path}`;
-	
-	const url = `${baseUrl}${cleanPath}`;
-	
-	return params ? `${url}${params}` : url;
-}
-
-/**
  * Constructs a password reset URL safely using canonical base URL
  * @param token - The password reset token (will be URL encoded)
  */
 export function buildPasswordResetUrl(token: string): string {
-	return buildCanonicalUrl(`/reset-password/${encodeURIComponent(token)}`);
+	const baseUrl = getCanonicalBaseUrl();
+	return `${baseUrl}/reset-password/${encodeURIComponent(token)}`;
 }
