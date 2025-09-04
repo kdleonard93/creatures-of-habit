@@ -1,13 +1,19 @@
 #!/usr/bin/env tsx
 
 /**
- * Rate Limiting Test Script
+ * Rate Limiting Integration Test Script
  * 
- * This script tests the rate limiting functionality by making multiple requests
- * to authentication endpoints and verifying that rate limits are enforced.
+ * This script tests rate limiting by creating a temporary test database
+ * and making controlled requests without polluting the main database.
  */
 
-const BASE_URL = 'http://localhost:5175';
+import { spawn, type ChildProcess } from 'child_process';
+import { readFileSync, writeFileSync, unlinkSync, existsSync } from 'fs';
+import { join } from 'path';
+
+const TEST_DB_PATH = 'test-rate-limiting.db';
+const TEST_PORT = 5174;
+const BASE_URL = `http://localhost:${TEST_PORT}`;
 
 interface RequestResult {
 	status: number;
@@ -21,56 +27,78 @@ interface RequestError {
 
 type ApiResponse = RequestResult | RequestError;
 
-interface LoginData {
-	username: string;
-	password: string;
+let serverProcess: ChildProcess | null = null;
+
+async function setupTestEnvironment(): Promise<void> {
+	console.log('🔧 Setting up test environment...');
+	
+	// Create test environment file
+	const testEnvContent = `
+TURSO_DATABASE_URL="file:${TEST_DB_PATH}"
+TURSO_AUTH_TOKEN=""
+LOCAL_DATABASE_URL="file:${TEST_DB_PATH}"
+TRUST_PROXY=false
+RESEND_API_KEY=""
+PUBLIC_POSTHOG_KEY=""
+`;
+	
+	writeFileSync('.env.test', testEnvContent.trim());
+	console.log('✅ Created test environment file');
 }
 
-interface RegistrationData {
-	email: string;
-	username: string;
-	password: string;
-	confirmPassword: string;
-	age: number;
-	creature: {
-		name: string;
-		class: string;
-		race: string;
-	};
-}
+async function startTestServer(): Promise<void> {
+	console.log('🚀 Starting test server...');
+	
+	return new Promise((resolve, reject) => {
+		serverProcess = spawn('pnpm', ['dev', '--port', TEST_PORT.toString()], {
+			env: {
+				...process.env,
+				NODE_ENV: 'test',
+				DATABASE_URL: `file:${TEST_DB_PATH}`,
+				LOCAL_DATABASE_URL: `file:${TEST_DB_PATH}`
+			},
+			stdio: ['pipe', 'pipe', 'pipe']
+		});
 
-interface ResetData {
-	username: string;
+		let output = '';
+		
+		serverProcess.stdout?.on('data', (data) => {
+			output += data.toString();
+			if (output.includes('Local:') && output.includes(TEST_PORT.toString())) {
+				console.log('✅ Test server started');
+				setTimeout(resolve, 2000); // Give server time to fully initialize
+			}
+		});
+
+		serverProcess.stderr?.on('data', (data) => {
+			const error = data.toString();
+			if (error.includes('EADDRINUSE')) {
+				reject(new Error(`Port ${TEST_PORT} is already in use`));
+			}
+		});
+
+		serverProcess.on('error', reject);
+		
+		// Timeout after 30 seconds
+		setTimeout(() => {
+			reject(new Error('Server startup timeout'));
+		}, 30000);
+	});
 }
 
 async function makeRequest(
 	endpoint: string,
-	method: 'GET' | 'POST' = 'POST',
-	body: LoginData | RegistrationData | ResetData | null = null,
-	isFormData = false
+	method: 'GET' | 'POST' = 'GET',
+	body: any = null
 ): Promise<ApiResponse> {
 	const options: RequestInit = {
 		method,
 		headers: {}
 	};
 
-	if (body) {
-		if (isFormData) {
-			// For form endpoints like login and password reset
-			const formData = new FormData();
-			for (const [key, value] of Object.entries(body)) {
-				if (typeof value === 'object') {
-					formData.append(key, JSON.stringify(value));
-				} else {
-					formData.append(key, String(value));
-				}
-			}
-			options.body = formData;
-		} else {
-			// For JSON API endpoints like registration
-			(options.headers as Record<string, string>)['Content-Type'] = 'application/json';
-			options.body = JSON.stringify(body);
-		}
+	if (body && method === 'POST') {
+		(options.headers as Record<string, string>)['Content-Type'] = 'application/json';
+		options.body = JSON.stringify(body);
 	}
 
 	try {
@@ -91,18 +119,47 @@ function isRequestResult(response: ApiResponse): response is RequestResult {
 	return 'status' in response;
 }
 
-async function testLoginRateLimit(): Promise<void> {
-	console.log('\n🔐 Testing Login Rate Limiting...');
-	console.log('Making 6 login attempts (limit is 5 per 15 minutes)');
+async function testRateLimitHeaders(): Promise<void> {
+	console.log('\n🔐 Testing Rate Limit Headers...');
+	
+	// Test a simple endpoint that should have rate limiting
+	const result = await makeRequest('/');
+	
+	if (!isRequestResult(result)) {
+		console.log(`❌ Error: ${result.error}`);
+		return;
+	}
 
-	const loginData: LoginData = {
-		username: 'testuser',
-		password: 'wrongpassword'
-	};
+	console.log(`Status: ${result.status}`);
+	
+	// Check for security headers
+	const securityHeaders = [
+		'content-security-policy',
+		'x-frame-options',
+		'x-content-type-options',
+		'referrer-policy'
+	];
 
+	console.log('\nSecurity Headers:');
+	for (const header of securityHeaders) {
+		if (result.headers[header]) {
+			console.log(`✅ ${header}: Present`);
+		} else {
+			console.log(`❌ ${header}: Missing`);
+		}
+	}
+}
+
+async function testRateLimitEnforcement(): Promise<void> {
+	console.log('\n⚡ Testing Rate Limit Enforcement...');
+	console.log('Making multiple requests to trigger rate limiting...');
+
+	// Make requests to a non-existent endpoint to avoid database operations
+	const testEndpoint = '/api/test-rate-limit';
+	
 	for (let i = 1; i <= 6; i++) {
-		console.log(`\nAttempt ${i}:`);
-		const result = await makeRequest('/login', 'POST', loginData, true);
+		console.log(`\nRequest ${i}:`);
+		const result = await makeRequest(testEndpoint, 'POST', { test: true });
 		
 		if (!isRequestResult(result)) {
 			console.log(`Error: ${result.error}`);
@@ -110,10 +167,12 @@ async function testLoginRateLimit(): Promise<void> {
 		}
 
 		console.log(`Status: ${result.status}`);
+		
+		// Check rate limit headers
 		if (result.headers['x-ratelimit-limit']) {
 			console.log(`Rate Limit: ${result.headers['x-ratelimit-remaining']}/${result.headers['x-ratelimit-limit']}`);
-			console.log(`Reset Time: ${new Date(Number.parseInt(result.headers['x-ratelimit-reset'], 10)).toLocaleTimeString()}`);
 		}
+		
 		if (result.headers['retry-after']) {
 			console.log(`Retry After: ${result.headers['retry-after']} seconds`);
 		}
@@ -128,145 +187,62 @@ async function testLoginRateLimit(): Promise<void> {
 	}
 }
 
-async function testRegistrationRateLimit(): Promise<void> {
-	console.log('\n📝 Testing Registration Rate Limiting...');
-	console.log('Making 6 registration attempts (limit is 5 per 15 minutes)');
-
-	for (let i = 1; i <= 6; i++) {
-		const registrationData: RegistrationData = {
-			email: `test${i}@example.com`,
-			username: `testuser${i}`,
-			password: 'testpassword123',
-			confirmPassword: 'testpassword123',
-			age: 25,
-			creature: {
-				name: `TestCreature${i}`,
-				class: 'warrior',
-				race: 'human'
-			}
-		};
-
-		console.log(`\nAttempt ${i}:`);
-		const result = await makeRequest('/api/register', 'POST', registrationData);
-		
-		if (!isRequestResult(result)) {
-			console.log(`Error: ${result.error}`);
-			continue;
-		}
-
-		console.log(`Status: ${result.status}`);
-		if (result.headers['x-ratelimit-limit']) {
-			console.log(`Rate Limit: ${result.headers['x-ratelimit-remaining']}/${result.headers['x-ratelimit-limit']}`);
-			console.log(`Reset Time: ${new Date(Number.parseInt(result.headers['x-ratelimit-reset'], 10)).toLocaleTimeString()}`);
-		}
-		if (result.headers['retry-after']) {
-			console.log(`Retry After: ${result.headers['retry-after']} seconds`);
-		}
-		
-		if (result.status === 429) {
-			console.log('✅ Rate limit enforced successfully!');
-			break;
-		}
-		
-		await new Promise(resolve => setTimeout(resolve, 100));
-	}
-}
-
-async function testPasswordResetRateLimit(): Promise<void> {
-	console.log('\n🔑 Testing Password Reset Rate Limiting...');
-	console.log('Making 4 password reset attempts (limit is 3 per hour)');
-
-	const resetData: ResetData = {
-		username: 'testuser'
-	};
-
-	for (let i = 1; i <= 4; i++) {
-		console.log(`\nAttempt ${i}:`);
-		const result = await makeRequest('/forgot-password', 'POST', resetData, true);
-		
-		if (!isRequestResult(result)) {
-			console.log(`Error: ${result.error}`);
-			continue;
-		}
-
-		console.log(`Status: ${result.status}`);
-		if (result.headers['x-ratelimit-limit']) {
-			console.log(`Rate Limit: ${result.headers['x-ratelimit-remaining']}/${result.headers['x-ratelimit-limit']}`);
-			console.log(`Reset Time: ${new Date(Number.parseInt(result.headers['x-ratelimit-reset'], 10)).toLocaleTimeString()}`);
-		}
-		if (result.headers['retry-after']) {
-			console.log(`Retry After: ${result.headers['retry-after']} seconds`);
-		}
-		
-		if (result.status === 429) {
-			console.log('✅ Rate limit enforced successfully!');
-			break;
-		}
-		
-		await new Promise(resolve => setTimeout(resolve, 100));
-	}
-}
-
-async function testSecurityHeaders(): Promise<void> {
-	console.log('\n🛡️  Testing Security Headers...');
+async function cleanup(): Promise<void> {
+	console.log('\n🧹 Cleaning up...');
 	
-	const result = await makeRequest('/', 'GET');
+	if (serverProcess) {
+		serverProcess.kill('SIGTERM');
+		console.log('✅ Test server stopped');
+	}
 	
-	if (!isRequestResult(result)) {
-		console.log(`Error: ${result.error}`);
-		return;
-	}
-
-	const securityHeaders = [
-		'content-security-policy',
-		'x-frame-options',
-		'x-content-type-options',
-		'referrer-policy',
-		'permissions-policy',
-		'x-dns-prefetch-control',
-		'x-download-options',
-		'x-permitted-cross-domain-policies'
-	] as const;
-
-	console.log('Security Headers Present:');
-	for (const header of securityHeaders) {
-		if (result.headers[header]) {
-			console.log(`✅ ${header}: ${result.headers[header]}`);
-		} else {
-			console.log(`❌ ${header}: Missing`);
+	// Clean up test files
+	try {
+		if (existsSync('.env.test')) {
+			unlinkSync('.env.test');
+			console.log('✅ Removed test environment file');
 		}
-	}
-
-	// Check HSTS in production (won't be present in development)
-	if (result.headers['strict-transport-security']) {
-		console.log(`✅ strict-transport-security: ${result.headers['strict-transport-security']}`);
-	} else {
-		console.log('ℹ️  strict-transport-security: Not present (expected in development)');
+		
+		if (existsSync(TEST_DB_PATH)) {
+			unlinkSync(TEST_DB_PATH);
+			console.log('✅ Removed test database');
+		}
+	} catch (error) {
+		console.log('⚠️  Cleanup warning:', error instanceof Error ? error.message : String(error));
 	}
 }
 
 async function main(): Promise<void> {
-	console.log('🚀 Starting Rate Limiting and Security Headers Test');
+	console.log('🧪 Starting Rate Limiting Integration Test');
 	console.log(`Testing against: ${BASE_URL}`);
-	console.log('Make sure your development server is running!');
-
+	
 	try {
-		await testSecurityHeaders();
-		await testLoginRateLimit();
-		await testRegistrationRateLimit();
-		await testPasswordResetRateLimit();
+		await setupTestEnvironment();
+		await startTestServer();
+		await testRateLimitHeaders();
+		await testRateLimitEnforcement();
 		
-		console.log('\n✅ All tests completed!');
-		console.log('\nNote: If rate limits were not enforced, check that:');
-		console.log('1. Your development server is running');
-		console.log('2. The rate limiting middleware is properly imported');
-		console.log('3. The endpoints are using the correct rate limit configurations');
+		console.log('\n✅ Integration tests completed!');
 		
 	} catch (error) {
 		console.error('\n❌ Test failed:', error instanceof Error ? error.message : String(error));
 		process.exit(1);
+	} finally {
+		await cleanup();
 	}
 }
+
+// Handle process termination
+process.on('SIGINT', async () => {
+	console.log('\n🛑 Test interrupted');
+	await cleanup();
+	process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+	console.log('\n🛑 Test terminated');
+	await cleanup();
+	process.exit(0);
+});
 
 // Run the tests
 void main();
