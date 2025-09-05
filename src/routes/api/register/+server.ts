@@ -75,6 +75,25 @@ export const POST: RequestHandler = async (event) => {
     return json({ success: true, userId: newUser.id, redirectUrl: '/dashboard'  });
   } catch (error) {
     console.error('Registration error:', error);
+    
+    if (error && typeof error === 'object' && 'status' in error && 'body' in error) {
+      throw error;
+    }
+    
+    // Handle database unique constraint violations
+    if (error && typeof error === 'object' && 'message' in error) {
+      const message = String(error.message).toLowerCase();
+      if (message.includes('unique') || message.includes('constraint')) {
+        return json(
+          { 
+            success: false, 
+            error: 'An account with this email or username already exists.' 
+          }, 
+          { status: 400 }
+        );
+      }
+    }
+    
     return json(
       { 
         success: false, 
