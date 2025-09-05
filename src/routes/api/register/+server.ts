@@ -14,7 +14,14 @@ export const POST: RequestHandler = async (event) => {
     await rateLimit(event, RateLimitPresets.AUTH);
 
     const data = await event.request.json() as RegistrationData;
-    console.info('Received registration data:', { ...data, password: '[REDACTED]', confirmPassword: '[REDACTED]' });
+    console.info('Received registration request', { email: data.email, username: data.username, password: '[REDACTED]', confirmPassword: '[REDACTED]' });
+
+    if (!data.password || data.password.length < 8) {
+      return json({ success: false, error: 'Password must be at least 8 characters long' }, { status: 400 });
+    }
+    if (data.password !== data.confirmPassword) {
+      return json({ success: false, error: 'Passwords do not match' }, { status: 400 });
+    }
 
     const existingUserByEmail = await db.select()
       .from(schema.user)

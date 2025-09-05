@@ -84,24 +84,18 @@ function setRateLimitHeaders(
 	
 	event.setHeaders(headers);
 }
-
+import { isIP } from 'node:net';
 function getClientIP(event: RequestEvent): string {
 	const trustProxy = process.env.TRUST_PROXY === 'true';
 	if (trustProxy) {
 		const forwarded = event.request.headers.get('x-forwarded-for');
 		if (forwarded) {
-			const firstIP = forwarded.split(',')[0];
-			if (firstIP) {
-				return firstIP.trim();
-			}
+			const firstIP = forwarded.split(',')[0]?.trim();
+			if (firstIP && isIP(firstIP)) return firstIP;
 		}
-
 		const realIP = event.request.headers.get('x-real-ip');
-		if (realIP) {
-			return realIP;
-		}
+		if (realIP && isIP(realIP)) return realIP;
 	}
-
 	return event.getClientAddress();
 }
 

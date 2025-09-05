@@ -68,11 +68,17 @@ export async function invalidateSession(sessionId: string, dbInstance = db): Pro
 	await dbInstance.delete(table.session).where(eq(table.session.id, sessionId));
 }
 
+export function isSecureRequest(event: RequestEvent): boolean {
+	const xfProto = event.request.headers.get('x-forwarded-proto');
+	if (xfProto) return xfProto.split(',')[0].trim().toLowerCase() === 'https';
+	return event.url.protocol === 'https:';
+}
+
 export function setSessionTokenCookie(event: RequestEvent, token: string, expiresAt: Date): void {
 	event.cookies.set(sessionCookieName, token, {
 		httpOnly: true,
 		sameSite: "lax",
-		secure: event.url.protocol === "https:",
+		secure: isSecureRequest(event),
 		expires: expiresAt,
 		path: '/'
 	});
@@ -82,7 +88,7 @@ export function deleteSessionTokenCookie(event: RequestEvent): void {
 	event.cookies.delete(sessionCookieName, {
 		httpOnly: true,
 		sameSite: "lax",
-		secure: event.url.protocol === "https:",
+		secure: isSecureRequest(event),
 		maxAge: 0,
 		path: '/'
 	});
