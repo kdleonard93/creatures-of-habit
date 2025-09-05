@@ -45,6 +45,14 @@
 	},
 	"overrides": [],
 	"files": {
-		"ignore": ["build/", ".svelte-kit/", "dist/", "**/*.svelte", "node_modules/", "src/tests/**/*"]
+		"ignore": [
+			"build/",
+			".svelte-kit/",
+			"dist/",
+			"**/*.svelte",
+			"node_modules/",
+			"src/tests/**/*",
+			"scripts/**/*"
+		]
 	}
 }

@@ -2,6 +2,7 @@ import * as auth from '$lib/server/auth.js';
 import type { Handle } from '@sveltejs/kit';
 import { initializeScheduler } from '$lib/server/tasks/scheduler';
 import { logger } from '$lib/utils/logger';
+import { setSecurityHeaders } from '$lib/server/securityHeaders';
 
 // Initialize the task scheduler when the server starts
 try {
@@ -14,6 +15,9 @@ try {
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
+    // Apply security headers to all responses
+    setSecurityHeaders(event);
+
     // Attach the auth function to locals
     event.locals.auth = async () => {
         const sessionToken = event.cookies.get(auth.sessionCookieName);
