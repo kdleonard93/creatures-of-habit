@@ -231,7 +231,7 @@ async function testRateLimitEnforcement(): Promise<void> {
 			console.log(`Retry After: ${result.headers['retry-after']} seconds`);
 		}
 		
-		if (result.status === 429 || result.status === 500) {
+		if (result.status === 429) {
 			console.log('✅ Rate limit enforced successfully!');
 			enforced = true;
 		}

@@ -70,6 +70,6 @@ export const actions = {
       return fail(500, { message: 'An error occurred. Please try again.' });
     }
     
-    return redirect(302, '/login');
+    throw redirect(302, '/login');
   }
 } satisfies Actions;

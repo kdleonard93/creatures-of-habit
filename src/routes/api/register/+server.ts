@@ -14,7 +14,7 @@ export const POST: RequestHandler = async (event) => {
     await rateLimit(event, RateLimitPresets.AUTH);
 
     const data = await event.request.json() as RegistrationData;
-    console.info('Received registration request', { email: data.email, username: data.username, password: '[REDACTED]', confirmPassword: '[REDACTED]' });
+    console.info('Received registration request');
 
     if (!data.password || data.password.length < 8) {
       return json({ success: false, error: 'Password must be at least 8 characters long' }, { status: 400 });
@@ -49,18 +49,22 @@ export const POST: RequestHandler = async (event) => {
 
     const passwordHash = await hashPassword(data.password);
 
-    const [newUser] = await db.insert(schema.user).values({
-      email: data.email,
-      username: data.username,
-      age: data.age,
-      passwordHash
-    }).returning();
+    const newUser = await db.transaction(async (tx) => {
+      const [user] = await tx.insert(schema.user).values({
+        email: data.email,
+        username: data.username,
+        age: data.age,
+        passwordHash
+      }).returning();
 
-    await db.insert(schema.creature).values({
-      userId: newUser.id,
-      name: data.creature.name,
-      class: data.creature.class,
-      race: data.creature.race
+      await tx.insert(schema.creature).values({
+        userId: user.id,
+        name: data.creature.name,
+        class: data.creature.class,
+        race: data.creature.race
+      });
+
+      return user;
     });
 
     const sessionToken = generateSessionToken();
