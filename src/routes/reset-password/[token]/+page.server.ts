@@ -1,7 +1,7 @@
 import { fail, redirect, error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import * as auth from '$lib/server/auth';
-import { hashPassword } from '$lib/server/password';
+import { hashPassword } from '$lib/utils/password';
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
@@ -58,22 +58,18 @@ export const actions = {
       // Hash new password
       const passwordHash = await hashPassword(password);
       
-      // Update user password
-      await db.update(table.user)
-        .set({ passwordHash })
-        .where(eq(table.user.id, user.id));
-      
-      // Delete all sessions for this user to log them out from all devices
-      await db.delete(table.session).where(eq(table.session.userId, user.id));
-      
-      // Invalidate the reset token
+      await db.transaction(async (tx) => {
+        await tx.update(table.user)
+          .set({ passwordHash })
+          .where(eq(table.user.id, user.id));
+        await tx.delete(table.session).where(eq(table.session.userId, user.id));
+      });
       await auth.invalidatePasswordResetToken(tokenId);
     } catch (error) {
       console.error('Password reset error:', error);
       return fail(500, { message: 'An error occurred. Please try again.' });
     }
     
-    // Redirect to login (outside try/catch since redirect throws)
-    return redirect(302, '/login');
+    throw redirect(302, '/login');
   }
 } satisfies Actions;

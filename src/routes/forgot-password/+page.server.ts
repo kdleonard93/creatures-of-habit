@@ -5,6 +5,8 @@ import * as table from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { Resend } from "resend";
 import * as auth from '$lib/server/auth';
+import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
+import { buildPasswordResetUrl } from '$lib/utils/url';
 
 const resendToken = process.env.RESEND_API_KEY;
 let resend: Resend | null = null;
@@ -12,16 +14,27 @@ if (resendToken) {
   resend = new Resend(resendToken);
 }
 
+function escapeHtml(str: string): string {
+  return str.replace(/[&<>"']/g, (ch) => (
+    ch === '&' ? '&amp;' :
+    ch === '<' ? '&lt;'  :
+    ch === '>' ? '&gt;'  :
+    ch === '"' ? '&quot;':
+                 '&#39;'
+  ));
+}
+
 export const actions = {
-  default: async ({ request, url }) => {
-    const formData = await request.formData();
+  default: async (event) => {
+    await rateLimit(event, RateLimitPresets.PASSWORD_RESET);
+
+    const formData = await event.request.formData();
     const username = formData.get('username') as string | null;
 
     if (!username) {
       return fail(400, { message: 'Username is required' });
     }
 
-    // Find user by username
     const [user] = await db
       .select()
       .from(table.user)
@@ -29,42 +42,38 @@ export const actions = {
       .limit(1);
 
     if (!user) {
-      // Don't reveal if username doesn't exist
       return { success: true };
     }
 
-    // Create password reset token
     const token = await auth.createPasswordResetToken(user.id);
     
-    // Generate reset link
-    const resetLink = `${url.origin}/reset-password/${token}`;
-
-    // Send email with reset link
+    const resetLink = buildPasswordResetUrl(token);
     if (resend) {
       try {
+        const safeUsername = escapeHtml(user.username);
         await resend.emails.send({
           from: 'Creatures of Habit <onboarding@resend.dev>',
           to: user.email,
           subject: 'Password Reset - Creatures of Habit',
           html: `
             <h2>Password Reset</h2>
-            <p>Hello ${user.username},</p>
+            <p>Hello ${safeUsername},</p>
             <p>You requested a password reset for your Creatures of Habit account.</p>
             <p><strong>Security Notice:</strong> If you did not request this password reset, please ignore this email and consider changing your password immediately.</p>
             <p>Click the link below to reset your password:</p>
-            <p><a href="${encodeURI(resetLink)}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a></p>
+            <p><a href="${resetLink}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a></p>
             <p>If you didn't request this, you can safely ignore this email.</p>
             <p><strong>Important:</strong> This link will expire in 1 hour for your security.</p>
-            <p>Link: ${encodeURI(resetLink)}</p>
+            <p>Link: ${resetLink}</p>
           `
         });
       } catch (error) {
         console.error('Failed to send password reset email:', error);
-        return fail(500, { message: 'Failed to send email. Please try again later.' });
+        return {success: true}
       }
     } else {
       console.info('Email sending skipped - Resend API key not configured');
-      return fail(500, { message: 'Email service not configured. Please contact support.' });
+      return {success: true}
     }
 
     return { success: true };

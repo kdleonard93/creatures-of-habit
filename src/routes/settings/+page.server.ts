@@ -2,18 +2,18 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
-import { user, userPreferences } from '$lib/server/db/schema';
+import { user, userPreferences, session } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import { hashPassword, verifyPassword } from '$lib/server/password';
+import { hashPassword, verifyPassword } from '$lib/utils/password';
 
 export const load: PageServerLoad = async ({ locals }) => {
-    const session = await locals.auth();
-    if (!session?.user) {
+    const authSession = await locals.auth();
+    if (!authSession?.user) {
         return { preferences: null };
     }
 
     const preferences = await db.query.userPreferences.findFirst({
-        where: eq(userPreferences.userId, session.user.id)
+        where: eq(userPreferences.userId, authSession.user.id)
     });
 
     return {
@@ -23,8 +23,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
     updatePassword: async ({ request, locals }) => {
-        const session = await locals.auth();
-        if (!session?.user) {
+        const authSession = await locals.auth();
+        if (!authSession?.user) {
             return fail(401, { message: 'Unauthorized' });
         }
 
@@ -36,8 +36,12 @@ export const actions: Actions = {
             return fail(400, { message: 'Missing required fields' });
         }
 
+        if (newPassword.toString().length < 8) {
+            return fail(400, { message: 'Password must be at least 8 characters long' });
+        }
+
         const foundUser = await db.query.user.findFirst({
-            where: eq(user.id, session.user.id)
+            where: eq(user.id, authSession.user.id)
         });
 
         if (!foundUser) {
@@ -53,14 +57,19 @@ export const actions: Actions = {
         await db
             .update(user)
             .set({ passwordHash: hashedPassword })
-            .where(eq(user.id, session.user.id));
+            .where(eq(user.id, authSession.user.id));
+        
+        // Invalidate all sessions for this user after password change
+        await db
+            .delete(session)
+            .where(eq(session.userId, authSession.user.id));
 
         return { success: true };
     },
 
     updateNotifications: async ({ request, locals }) => {
-        const session = await locals.auth();
-        if (!session?.user) {
+        const authSession = await locals.auth();
+        if (!authSession?.user) {
             return fail(401, { message: 'Unauthorized' });
         }
 
@@ -76,14 +85,14 @@ export const actions: Actions = {
                 pushNotifications,
                 reminderNotifications
             })
-            .where(eq(userPreferences.userId, session.user.id));
+            .where(eq(userPreferences.userId, authSession.user.id));
 
         return { success: true };
     },
 
     updatePrivacy: async ({ request, locals }) => {
-        const session = await locals.auth();
-        if (!session?.user) {
+        const authSession = await locals.auth();
+        if (!authSession?.user) {
             return fail(401, { message: 'Unauthorized' });
         }
 
@@ -99,7 +108,7 @@ export const actions: Actions = {
                 activitySharing,
                 statsSharing
             })
-            .where(eq(userPreferences.userId, session.user.id));
+            .where(eq(userPreferences.userId, authSession.user.id));
 
         return { success: true };
     }

@@ -52,7 +52,7 @@ export async function validateSessionToken(token: string, dbInstance = db) {
 	// Renew session if close to expiration
 	const renewSession = Date.now() >= session.expiresAt.getTime() - DAY_IN_MS * 15;
 	if (renewSession) {
-		session.expiresAt = new Date(Date.now() - DAY_IN_MS * 15);
+		session.expiresAt = new Date(Date.now() + DAY_IN_MS * 30);
 		await dbInstance
 			.update(table.session)
 			.set({ expiresAt: session.expiresAt })
@@ -68,10 +68,17 @@ export async function invalidateSession(sessionId: string, dbInstance = db): Pro
 	await dbInstance.delete(table.session).where(eq(table.session.id, sessionId));
 }
 
+export function isSecureRequest(event: RequestEvent): boolean {
+	const xfProto = event.request.headers.get('x-forwarded-proto');
+	if (xfProto) return xfProto.split(',')[0].trim().toLowerCase() === 'https';
+	return event.url.protocol === 'https:';
+}
+
 export function setSessionTokenCookie(event: RequestEvent, token: string, expiresAt: Date): void {
 	event.cookies.set(sessionCookieName, token, {
 		httpOnly: true,
 		sameSite: "lax",
+		secure: isSecureRequest(event),
 		expires: expiresAt,
 		path: '/'
 	});
@@ -81,6 +88,7 @@ export function deleteSessionTokenCookie(event: RequestEvent): void {
 	event.cookies.delete(sessionCookieName, {
 		httpOnly: true,
 		sameSite: "lax",
+		secure: isSecureRequest(event),
 		maxAge: 0,
 		path: '/'
 	});
