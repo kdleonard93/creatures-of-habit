@@ -391,10 +391,7 @@
     if (validateCurrentStep()) {
       if (currentStep === totalSteps) {
         if (statsWarning) {
-          const confirmProceed = confirm(statsWarning);
-          if (!confirmProceed) {
-            return;
-          }
+            return; 
         }
         isSubmitting = true;
         handleSubmit(formData).finally(() => {
