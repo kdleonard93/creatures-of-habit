@@ -77,8 +77,10 @@ declare module '$lib/utils/dailyHabitProgress' {
 }
 
 declare module '$lib/server/services/questService' {
-  export function generateDailyQuests(userId: string): Promise<number>;
-  export function completeQuest(questId: string, userId: string): Promise<any>;
+  export function getDailyQuest(userId: string): Promise<any>;
+  export function activateQuest(questId: string, userId: string): Promise<any>;
+  export function answerQuestion(questId: string, questionId: string, choice: 'A' | 'B', userId: string): Promise<any>;
+  export function spendStatBoostPoints(userId: string, stat: string, points: number): Promise<any>;
 }
 
 declare module '$lib/server/db' {
@@ -121,5 +123,10 @@ declare module '$lib/server/db' {
 declare module '$lib/server/db/schema' {
   export const user: any;
   export const habit: any;
-  export const generatedQuest: any;
+  export const creature: any;
+  export const creatureStats: any;
+  export const questTemplates: any;
+  export const questInstances: any;
+  export const questQuestions: any;
+  export const questAnswers: any;
 }

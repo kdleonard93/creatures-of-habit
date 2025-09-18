@@ -35,6 +35,7 @@ export const creatureStats = sqliteTable('creature_stats', {
     intelligence: integer('intelligence').notNull().default(10),
     wisdom: integer('wisdom').notNull().default(10),
     charisma: integer('charisma').notNull().default(10),
+    statBoostPoints: integer('stat_boost_points').notNull().default(0),
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
     updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
@@ -124,40 +125,85 @@ export const habitStreak = sqliteTable('habit_streak', {
     updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
-export const questStatus = ['active', 'completed', 'failed', 'claimed'] as const;
-export type QuestStatus = (typeof questStatus)[number];
+// Quest System Tables
+export const questTemplates = sqliteTable('quest_templates', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    title: text('title').notNull(),
+    description: text('description').notNull(),
+    setting: text('setting').notNull(), // 'forest', 'dungeon', 'city', etc.
+    difficulty: text('difficulty', { 
+        enum: ['easy', 'medium', 'hard'] 
+    }).notNull(),
+    createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
 
-export const questType = ['daily', 'weekly', 'achievement', 'story'] as const;
-export type QuestType = (typeof questType)[number];
-
-// Generated Quests
-export const generatedQuest = sqliteTable('generated_quest', {
+export const questInstances = sqliteTable('quest_instances', {
     id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
     userId: text('user_id')
         .notNull()
         .references(() => user.id, { onDelete: 'cascade' }),
-    habitId: text('habit_id')
-        .references(() => habit.id, { onDelete: 'cascade' }),
+    templateId: text('template_id')
+        .references(() => questTemplates.id, { onDelete: 'cascade' }),
     title: text('title').notNull(),
-    description: text('description'),
-    type: text('type', { enum: questType }).notNull(),
-    status: text('status', { enum: questStatus }).notNull().default('active'),
-    difficulty: text('difficulty', { 
-        enum: ['easy', 'medium', 'hard'] 
-    }).notNull().default('medium'),
-    experienceReward: integer('experience_reward').notNull().default(10),
-    requiredCompletions: integer('required_completions').notNull().default(1),
-    currentCompletions: integer('current_completions').notNull().default(0),
-    startsAt: text('starts_at').notNull(),
-    expiresAt: text('expires_at'),
+    description: text('description').notNull(),
+    narrative: text('narrative').notNull(), // Generated story text
+    status: text('status', { 
+        enum: ['available', 'active', 'completed'] 
+    }).notNull().default('available'),
+    currentQuestion: integer('current_question').notNull().default(0),
+    correctAnswers: integer('correct_answers').notNull().default(0),
+    totalQuestions: integer('total_questions').notNull().default(5),
+    expRewardBase: integer('exp_reward_base').notNull().default(50),
+    expRewardBonus: integer('exp_reward_bonus').notNull().default(100),
+    activatedAt: text('activated_at'),
     completedAt: text('completed_at'),
-    claimedAt: text('claimed_at'),
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
-    updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 }, (table) => {
     return {
-        userStatusIdx: index('idx_quest_user_status').on(table.userId, table.status),
-        typeExpiresAtIdx: index('idx_quest_type_expires').on(table.type, table.expiresAt),
+        userStatusIdx: index('idx_quest_instances_user_status').on(table.userId, table.status),
+        userCreatedIdx: index('idx_quest_instances_user_created').on(table.userId, table.createdAt),
+    };
+});
+
+export const questQuestions = sqliteTable('quest_questions', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    questInstanceId: text('quest_instance_id')
+        .notNull()
+        .references(() => questInstances.id, { onDelete: 'cascade' }),
+    questionNumber: integer('question_number').notNull(),
+    questionText: text('question_text').notNull(),
+    choiceA: text('choice_a').notNull(),
+    choiceB: text('choice_b').notNull(),
+    correctChoice: text('correct_choice', { 
+        enum: ['A', 'B'] 
+    }).notNull(),
+    requiredStat: text('required_stat', {
+        enum: ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma']
+    }).notNull(),
+    difficultyThreshold: integer('difficulty_threshold').notNull(),
+    createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => {
+    return {
+        questQuestionIdx: index('idx_quest_questions_instance').on(table.questInstanceId, table.questionNumber),
+    };
+});
+
+export const questAnswers = sqliteTable('quest_answers', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    questInstanceId: text('quest_instance_id')
+        .notNull()
+        .references(() => questInstances.id, { onDelete: 'cascade' }),
+    questionId: text('question_id')
+        .notNull()
+        .references(() => questQuestions.id, { onDelete: 'cascade' }),
+    userChoice: text('user_choice', { 
+        enum: ['A', 'B'] 
+    }).notNull(),
+    wasCorrect: integer('was_correct', { mode: 'boolean' }).notNull(),
+    answeredAt: text('answered_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => {
+    return {
+        questAnswerIdx: index('idx_quest_answers_instance').on(table.questInstanceId),
     };
 });
 
