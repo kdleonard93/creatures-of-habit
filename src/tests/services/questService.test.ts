@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getDailyQuest, activateQuest, answerQuestion, spendStatBoostPoints } from '$lib/server/services/questService';
+import { getDailyQuest, activateQuest, answerQuestion, spendStatBoostPoints } from '../../lib/server/services/questService';
 
 describe('Quest Service', () => {
     const mockUserId = 'test-user-id';
