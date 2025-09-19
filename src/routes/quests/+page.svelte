@@ -115,7 +115,7 @@
 			await loadQuestData();
 			
 			// If quest is completed, show stat boost panel
-			if (result.questCompleted) {
+			if (result.questComplete || result.questCompleted) {
 				showQuestion = false;
 				showStatBoost = true;
 			}

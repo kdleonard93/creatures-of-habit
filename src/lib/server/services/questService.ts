@@ -1,8 +1,23 @@
 import { db } from '$lib/server/db';
 import { questInstances, questTemplates, questQuestions, questAnswers, creatureStats, creature } from '$lib/server/db/schema';
-import { and, eq, isNull, gte, lte, sql, or, desc } from 'drizzle-orm';
+import { and, eq, isNull, gte, lte, sql, or, desc, asc } from 'drizzle-orm';
 import { formatDateOnly } from '$lib/utils/date';
 import { generateQuestQuestions as generateQuestionTemplates } from '$lib/utils/questHelpers';
+
+/**
+ * Helper function to strip sensitive fields from question data
+ */
+function toSafeQuestion(question: typeof questQuestions.$inferSelect) {
+    return {
+        id: question.id,
+        questInstanceId: question.questInstanceId,
+        questionNumber: question.questionNumber,
+        questionText: question.questionText,
+        choiceA: question.choiceA,
+        choiceB: question.choiceB,
+        createdAt: question.createdAt
+    };
+}
 
 /**
  * Get the daily quest for a user (creates one if none exists)
@@ -150,7 +165,7 @@ export async function activateQuest(questId: string, userId: string) {
 
     return {
         quest: updatedQuest,
-        firstQuestion: firstQuestion[0] || null
+        firstQuestion: firstQuestion[0] ? toSafeQuestion(firstQuestion[0]) : null
     };
 }
 
@@ -236,9 +251,10 @@ export async function answerQuestion(questId: string, questionId: string, choice
                     eq(questQuestions.questionNumber, totalAnswered + 1)
                 )
             )
+            .orderBy(asc(questQuestions.questionNumber))
             .limit(1);
         
-        nextQuestion = nextQuestions[0] || null;
+        nextQuestion = nextQuestions[0] ? toSafeQuestion(nextQuestions[0]) : null;
     }
 
     return {

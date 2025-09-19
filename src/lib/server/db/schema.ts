@@ -28,6 +28,7 @@ export const creatureStats = sqliteTable('creature_stats', {
     id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
     creatureId: text('creature_id')
         .notNull()
+        .unique()
         .references(() => creature.id, { onDelete: 'cascade' }),
     strength: integer('strength').notNull().default(10),
     dexterity: integer('dexterity').notNull().default(10),

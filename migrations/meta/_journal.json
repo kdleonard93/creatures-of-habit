@@ -148,6 +148,20 @@
       "when": 1757556260367,
       "tag": "0020_curious_charles_xavier",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1758247014905,
+      "tag": "0021_noisy_gravity",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1758247488949,
+      "tag": "0022_foamy_lord_hawal",
+      "breakpoints": true
     }
   ]
 }
