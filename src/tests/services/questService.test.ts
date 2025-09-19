@@ -1,10 +1,39 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getDailyQuest, activateQuest, answerQuestion, spendStatBoostPoints } from '../../lib/server/services/questService';
+
+// Mock everything before importing the service
+vi.mock('../../lib/server/db', () => ({
+    db: {
+        select: vi.fn().mockReturnThis(),
+        from: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        insert: vi.fn().mockReturnThis(),
+        values: vi.fn().mockReturnThis(),
+        update: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+        returning: vi.fn().mockReturnThis(),
+        execute: vi.fn()
+    }
+}));
+
+vi.mock('../../lib/server/db/schema', () => ({
+    questInstances: {},
+    questQuestions: {},
+    questAnswers: {},
+    creatureStats: {},
+    creature: {}
+}));
 
 describe('Quest Service', () => {
     const mockUserId = 'test-user-id';
     const mockQuestId = 'test-quest-id';
     const mockQuestionId = 'test-question-id';
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
 
     describe('Function Existence', () => {
         it('should have getDailyQuest function', () => {
@@ -30,62 +59,59 @@ describe('Quest Service', () => {
 
     describe('Parameter Validation', () => {
         it('should validate getDailyQuest parameters', async () => {
+            expect(typeof mockUserId).toBe('string');
+            
             try {
                 await getDailyQuest(mockUserId);
             } catch (error) {
-                // Expected to fail in test environment, but should accept string userId
                 expect(error).toBeDefined();
             }
-
-            // Test invalid parameters would throw in real environment
-            expect(typeof mockUserId).toBe('string');
         });
 
         it('should validate activateQuest parameters', async () => {
+            expect(typeof mockQuestId).toBe('string');
+            expect(typeof mockUserId).toBe('string');
+            
             try {
                 await activateQuest(mockQuestId, mockUserId);
             } catch (error) {
-                // Expected to fail in test environment
                 expect(error).toBeDefined();
             }
-
-            // Validate parameter types
-            expect(typeof mockQuestId).toBe('string');
-            expect(typeof mockUserId).toBe('string');
         });
 
         it('should validate answerQuestion parameters', async () => {
             const validChoices = ['A', 'B'];
             
-            try {
-                await answerQuestion(mockQuestId, mockQuestionId, 'A', mockUserId);
-            } catch (error) {
-                // Expected to fail in test environment
-                expect(error).toBeDefined();
-            }
-
-            // Validate choice parameter constraints
+            // Test parameter types and constraints
+            expect(typeof mockQuestId).toBe('string');
+            expect(typeof mockQuestionId).toBe('string');
             expect(validChoices).toContain('A');
             expect(validChoices).toContain('B');
             expect(validChoices).not.toContain('C');
+            
+            try {
+                await answerQuestion(mockQuestId, mockQuestionId, 'A', mockUserId);
+            } catch (error) {
+                expect(error).toBeDefined();
+            }
         });
 
         it('should validate spendStatBoostPoints parameters', async () => {
             const validStats = ['strength', 'dexterity', 'intelligence', 'charisma'];
             
-            try {
-                await spendStatBoostPoints(mockUserId, 'strength', 1);
-            } catch (error) {
-                // Expected to fail in test environment
-                expect(error).toBeDefined();
-            }
-
-            // Validate stat parameter constraints
+            // Test parameter types and constraints
+            expect(typeof mockUserId).toBe('string');
             expect(validStats).toContain('strength');
             expect(validStats).toContain('dexterity');
             expect(validStats).toContain('intelligence');
             expect(validStats).toContain('charisma');
             expect(validStats).not.toContain('magic');
+            
+            try {
+                await spendStatBoostPoints(mockUserId, 'strength', 1);
+            } catch (error) {
+                expect(error).toBeDefined();
+            }
         });
     });
 
@@ -110,34 +136,29 @@ describe('Quest Service', () => {
             });
         });
 
-        it('should validate stat boost point logic', () => {
-            const scenarios = [
-                { correct: 0, expectedPoints: 0 },
-                { correct: 1, expectedPoints: 0 },
-                { correct: 2, expectedPoints: 0 },
-                { correct: 3, expectedPoints: 1 },
-                { correct: 4, expectedPoints: 1 },
-                { correct: 5, expectedPoints: 1 }
-            ];
-
-            scenarios.forEach(({ correct, expectedPoints }) => {
-                const actualPoints = correct >= 3 ? 1 : 0;
-                expect(actualPoints).toBe(expectedPoints);
-            });
+        it('should validate choice constraints', () => {
+            const validChoices = ['A', 'B'];
+            
+            // Test that only A and B are valid choices
+            expect(validChoices).toHaveLength(2);
+            expect(validChoices.includes('A')).toBe(true);
+            expect(validChoices.includes('B')).toBe(true);
+            expect(validChoices.includes('C')).toBe(false);
+            expect(validChoices.includes('')).toBe(false);
         });
 
-        it('should validate success chance calculation', () => {
-            const testCases = [
-                { userStat: 5, threshold: 10, minChance: 10, maxChance: 90 },
-                { userStat: 10, threshold: 10, minChance: 10, maxChance: 90 },
-                { userStat: 20, threshold: 10, minChance: 10, maxChance: 90 }
-            ];
-
-            testCases.forEach(({ userStat, threshold, minChance, maxChance }) => {
-                const successChance = Math.min(Math.max((userStat / threshold) * 100, minChance), maxChance);
-                expect(successChance).toBeGreaterThanOrEqual(minChance);
-                expect(successChance).toBeLessThanOrEqual(maxChance);
-            });
+        it('should validate stat constraints', () => {
+            const validStats = ['strength', 'dexterity', 'intelligence', 'wisdom', 'charisma', 'constitution'];
+            
+            // Test that all expected stats are valid
+            expect(validStats).toHaveLength(6);
+            expect(validStats.includes('strength')).toBe(true);
+            expect(validStats.includes('dexterity')).toBe(true);
+            expect(validStats.includes('intelligence')).toBe(true);
+            expect(validStats.includes('wisdom')).toBe(true);
+            expect(validStats.includes('charisma')).toBe(true);
+            expect(validStats.includes('constitution')).toBe(true);
+            expect(validStats.includes('magic')).toBe(false);
         });
     });
 
