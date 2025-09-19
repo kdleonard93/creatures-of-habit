@@ -12,6 +12,7 @@
 		"test": "pnpm run test:unit -- --run",
 		"test:rate-limit": "tsx scripts/test-rate-limiting.ts",
 		"test:rate-limit:unit": "vitest src/tests/server/rateLimit.test.ts",
+		"test:generate-quest-content": "tsx scripts/generate-quest-content.ts",
 		"db:push": "drizzle-kit push",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",

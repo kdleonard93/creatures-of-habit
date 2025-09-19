@@ -5,8 +5,22 @@
  * Generates initial quest templates, questions, and narrative fragments
  */
 
-import { db } from '../src/lib/server/db';
-import { questTemplates } from '../src/lib/server/db/schema';
+import 'dotenv/config';
+import { createClient } from '@libsql/client';
+import { drizzle } from 'drizzle-orm/libsql';
+import * as schema from '../src/lib/server/db/schema';
+
+const dbUrl = process.env.TURSO_DATABASE_URL || process.env.LOCAL_DATABASE_URL || 'file:local.db';
+const authToken = process.env.TURSO_AUTH_TOKEN;
+
+const client = createClient({ 
+  url: dbUrl, 
+  ...(authToken ? { authToken } : {}) 
+});
+
+const db = drizzle(client, { schema });
+const { questTemplates } = schema;
+import { eq, and } from 'drizzle-orm';
 
 interface QuestTemplate {
     title: string;
@@ -265,20 +279,37 @@ async function generateQuestContent() {
 
         // Insert quest templates
         const insertedTemplates = [];
-        for (const template of QUEST_TEMPLATES) {
-            const [inserted] = await db
-                .insert(questTemplates)
-                .values({
-                    title: template.title,
-                    description: template.description,
-                    setting: template.setting,
-                    difficulty: template.difficulty
-                })
-                .returning();
-            
-            insertedTemplates.push(inserted);
-            console.log(`Created quest template: "${template.title}"`);
-        }
+        await db.transaction(async (tx) => {
+            for (const template of QUEST_TEMPLATES) {
+                // idempotency: skip if same (title, setting, difficulty) exists
+                const existing = await tx
+                    .select({ id: questTemplates.id })
+                    .from(questTemplates)
+                    .where(
+                        and(
+                            eq(questTemplates.title, template.title),
+                            eq(questTemplates.setting, template.setting),
+                            eq(questTemplates.difficulty, template.difficulty)
+                        )
+                    )
+                    .limit(1);
+                if (existing.length) {
+                    console.log(`Skipping existing template: "${template.title}" [${template.setting}/${template.difficulty}]`);
+                    continue;
+                }
+                const [inserted] = await tx
+                    .insert(questTemplates)
+                    .values({
+                        title: template.title,
+                        description: template.description,
+                        setting: template.setting,
+                        difficulty: template.difficulty
+                    })
+                    .returning();
+                insertedTemplates.push(inserted);
+                console.log(`Created quest template: "${template.title}"`);
+            }
+        });
 
         console.log(`\nSuccessfully generated ${insertedTemplates.length} quest templates!`);
         console.log('\nContent Summary:');

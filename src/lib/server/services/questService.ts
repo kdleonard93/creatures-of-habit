@@ -406,12 +406,32 @@ export async function spendStatBoostPoints(userId: string, stat: string, points:
     }
 
     // Update the stat and reduce boost points
+    const updateObj: Record<string, unknown> = {
+        statBoostPoints: sql`${creatureStats.statBoostPoints} - ${points}`
+    };
+    switch (stat) {
+        case 'strength':
+            updateObj.strength = sql`${creatureStats.strength} + ${points}`;
+            break;
+        case 'dexterity':
+            updateObj.dexterity = sql`${creatureStats.dexterity} + ${points}`;
+            break;
+        case 'constitution':
+            updateObj.constitution = sql`${creatureStats.constitution} + ${points}`;
+            break;
+        case 'intelligence':
+            updateObj.intelligence = sql`${creatureStats.intelligence} + ${points}`;
+            break;
+        case 'wisdom':
+            updateObj.wisdom = sql`${creatureStats.wisdom} + ${points}`;
+            break;
+        case 'charisma':
+            updateObj.charisma = sql`${creatureStats.charisma} + ${points}`;
+            break;
+    }
     await db
         .update(creatureStats)
-        .set({
-            [stat]: sql`${creatureStats[stat as keyof typeof creatureStats]} + ${points}`,
-            statBoostPoints: sql`${creatureStats.statBoostPoints} - ${points}`
-        })
+        .set(updateObj)
         .where(eq(creatureStats.id, currentStats.id));
 
     // Return updated values
