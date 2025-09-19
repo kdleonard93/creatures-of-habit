@@ -6,57 +6,39 @@ describe('Quest Service Integration Tests', () => {
     const mockQuestId = 'test-quest-id';
     const mockQuestionId = 'test-question-id';
 
-    // Skip integration tests unless explicitly enabled
-    describe.skipIf(process.env.INTEGRATION_DB !== '1')('Database Integration', () => {
-        it('should validate getDailyQuest parameters with real database', async () => {
-            try {
-                await getDailyQuest(mockUserId);
-            } catch (error) {
-                expect(error).toBeDefined();
-            }
 
-            expect(typeof mockUserId).toBe('string');
+    describe('Database Integration', () => {
+        it('getDailyQuest returns a quest (requires seeded DB)', async () => {
+            try {
+                const result = await getDailyQuest(mockUserId);
+                expect(result).toBeDefined();
+            } catch (error) {
+                if (error instanceof Error && (
+                    error.message.includes('FOREIGN KEY constraint failed') ||
+                    error.message.includes('No quest templates available')
+                )) {
+                    console.info('Skipping test - database not seeded. Run seeding scripts first.');
+                    return;
+                }
+                throw error;
+            }
         });
 
-        it('should validate activateQuest parameters with real database', async () => {
-            try {
-                await activateQuest(mockQuestId, mockUserId);
-            } catch (error) {
-                expect(error).toBeDefined();
-            }
-
-            expect(typeof mockQuestId).toBe('string');
-            expect(typeof mockUserId).toBe('string');
+        it('activateQuest rejects when quest is missing or not available', async () => {
+            await expect(activateQuest(mockQuestId, mockUserId))
+                .rejects.toThrow('Quest not found or already activated');
         });
 
-        it('should validate answerQuestion parameters with real database', async () => {
-            const validChoices = ['A', 'B'];
-            
-            try {
-                await answerQuestion(mockQuestId, mockQuestionId, 'A', mockUserId);
-            } catch (error) {
-                expect(error).toBeDefined();
-            }
-
-            expect(validChoices).toContain('A');
-            expect(validChoices).toContain('B');
-            expect(validChoices).not.toContain('C');
+        it('answerQuestion rejects when question does not exist', async () => {
+            await expect(answerQuestion(mockQuestId, mockQuestionId, 'A', mockUserId))
+                .rejects.toThrow('Quest not found or access denied');
         });
 
-        it('should validate spendStatBoostPoints parameters with real database', async () => {
-            const validStats = ['strength', 'dexterity', 'intelligence', 'charisma'];
-            
-            try {
-                await spendStatBoostPoints(mockUserId, 'strength', 1);
-            } catch (error) {
-                expect(error).toBeDefined();
-            }
-
-            expect(validStats).toContain('strength');
-            expect(validStats).toContain('dexterity');
-            expect(validStats).toContain('intelligence');
-            expect(validStats).toContain('charisma');
-            expect(validStats).not.toContain('magic');
+        it('spendStatBoostPoints validates input and rejects invalid cases', async () => {
+            await expect(spendStatBoostPoints(mockUserId, 'magic', 1))
+                .rejects.toThrow('Invalid stat type');
+            await expect(spendStatBoostPoints(mockUserId, 'strength', 0))
+                .rejects.toThrow('Points must be positive');
         });
     });
 
