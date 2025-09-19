@@ -171,21 +171,69 @@ export async function activateQuest(questId: string, userId: string) {
 
 /**
  * Answer a quest question
+ * All authorization and data integrity checks are performed within this function
+ * Uses individual queries with database constraints instead of explicit transactions
  */
 export async function answerQuestion(questId: string, questionId: string, choice: 'A' | 'B', userId: string) {
-    // Get the question and user stats
+    // Validate that the quest exists and belongs to the user
+    const [questInstance] = await db
+        .select()
+        .from(questInstances)
+        .where(
+            and(
+                eq(questInstances.id, questId),
+                eq(questInstances.userId, userId)
+            )
+        )
+        .limit(1);
+
+    if (!questInstance) {
+        throw new Error('Quest not found or access denied');
+    }
+
+    if (questInstance.status !== 'active') {
+        throw new Error('Quest is not active');
+    }
+
+    // Validate that the question belongs to this quest and is the next expected question
     const [question] = await db
         .select()
         .from(questQuestions)
-        .where(eq(questQuestions.id, questionId))
+        .where(
+            and(
+                eq(questQuestions.id, questionId),
+                eq(questQuestions.questInstanceId, questId)
+            )
+        )
         .limit(1);
 
     if (!question) {
-        throw new Error('Question not found');
+        throw new Error('Question not found or does not belong to this quest');
     }
 
-    // Get user's stats
-    const userStats = await db
+    const expectedQuestionNumber = questInstance.currentQuestion + 1;
+    if (question.questionNumber !== expectedQuestionNumber) {
+        throw new Error(`Expected question ${expectedQuestionNumber}, but received question ${question.questionNumber}`);
+    }
+
+    // Ensure the question has not already been answered
+    const existingAnswer = await db
+        .select()
+        .from(questAnswers)
+        .where(
+            and(
+                eq(questAnswers.questInstanceId, questId),
+                eq(questAnswers.questionId, questionId)
+            )
+        )
+        .limit(1);
+
+    if (existingAnswer.length > 0) {
+        throw new Error('Question has already been answered');
+    }
+
+        // Get user's stats
+        const userStats = await db
         .select()
         .from(creatureStats)
         .innerJoin(creature, eq(creature.id, creatureStats.creatureId))
@@ -200,43 +248,44 @@ export async function answerQuestion(questId: string, questionId: string, choice
     // Determine if answer was correct
     let wasCorrect = false;
     if (choice === question.correctChoice) {
-        // Check if user's stat meets the threshold
         const userStatValue = stats[question.requiredStat as keyof typeof stats] as number;
         wasCorrect = userStatValue >= question.difficultyThreshold;
     }
 
-    // Record the answer
-    await db.insert(questAnswers).values({
-        questInstanceId: questId,
-        questionId,
-        userChoice: choice,
-        wasCorrect
-    });
+    // Record the answer - use try-catch to handle unique constraint violations
+    try {
+        await db.insert(questAnswers).values({
+            questInstanceId: questId,
+            questionId,
+            userChoice: choice,
+            wasCorrect
+        });
+    } catch (error) {
+        // Handle unique constraint violation
+        if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
+            throw new Error('Question has already been answered (concurrent request detected)');
+        }
+        throw error;
+    }
 
     // Update quest progress
-    const currentAnswers = await db
-        .select()
-        .from(questAnswers)
-        .where(eq(questAnswers.questInstanceId, questId));
+    const newCorrectAnswers = questInstance.correctAnswers + (wasCorrect ? 1 : 0);
+    const newCurrentQuestion = questInstance.currentQuestion + 1;
 
-    const correctAnswers = currentAnswers.filter(a => a.wasCorrect).length;
-    const totalAnswered = currentAnswers.length;
-
-    // Update quest instance
     await db
         .update(questInstances)
         .set({
-            currentQuestion: totalAnswered,
-            correctAnswers
+            currentQuestion: newCurrentQuestion,
+            correctAnswers: newCorrectAnswers
         })
         .where(eq(questInstances.id, questId));
 
     // Check if quest is complete
-    const questComplete = totalAnswered >= 5;
+    const questComplete = newCurrentQuestion >= 5;
     let rewards = null;
 
     if (questComplete) {
-        rewards = await completeQuest(questId, userId, correctAnswers);
+        rewards = await completeQuest(questId, userId, newCorrectAnswers);
     }
 
     // Get next question if not complete
@@ -248,7 +297,7 @@ export async function answerQuestion(questId: string, questionId: string, choice
             .where(
                 and(
                     eq(questQuestions.questInstanceId, questId),
-                    eq(questQuestions.questionNumber, totalAnswered + 1)
+                    eq(questQuestions.questionNumber, newCurrentQuestion + 1)
                 )
             )
             .orderBy(asc(questQuestions.questionNumber))

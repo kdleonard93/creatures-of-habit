@@ -250,12 +250,18 @@ const QUEST_TEMPLATES: QuestTemplate[] = [
 ];
 
 async function generateQuestContent() {
-    console.log('🎯 Starting quest content generation...');
+    console.log('Starting quest content generation...');
     
     try {
         // Clear existing templates (for development)
-        await db.delete(questTemplates);
-        console.log('📝 Cleared existing quest templates');
+        const allowDestructive =
+            process.env.NODE_ENV !== 'production' || process.env.FORCE_GENERATE === 'true';
+        if (allowDestructive) {
+            await db.delete(questTemplates);
+            console.log('Cleared existing quest templates');
+        } else {
+            console.warn('Skipping destructive delete in production. Set FORCE_GENERATE=true to override.');
+        }
 
         // Insert quest templates
         const insertedTemplates = [];
@@ -271,17 +277,17 @@ async function generateQuestContent() {
                 .returning();
             
             insertedTemplates.push(inserted);
-            console.log(`✅ Created quest template: "${template.title}"`);
+            console.log(`Created quest template: "${template.title}"`);
         }
 
-        console.log(`\n🎉 Successfully generated ${insertedTemplates.length} quest templates!`);
-        console.log('\n📊 Content Summary:');
+        console.log(`\nSuccessfully generated ${insertedTemplates.length} quest templates!`);
+        console.log('\nContent Summary:');
         console.log(`- Quest Templates: ${insertedTemplates.length}`);
         console.log(`- Total Questions: ${QUEST_TEMPLATES.reduce((sum, t) => sum + t.questions.length, 0)}`);
         console.log(`- Settings: ${[...new Set(QUEST_TEMPLATES.map(t => t.setting))].join(', ')}`);
         console.log(`- Difficulties: ${[...new Set(QUEST_TEMPLATES.map(t => t.difficulty))].join(', ')}`);
 
-        console.log('\n🚀 Quest system is ready! Users can now generate daily quests.');
+        console.log('\nQuest system is ready! Users can now generate daily quests.');
         
     } catch (error) {
         console.error('❌ Error generating quest content:', error);
