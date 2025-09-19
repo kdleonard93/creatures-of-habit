@@ -7,7 +7,7 @@ describe('Quest Service Integration Tests', () => {
     const mockQuestionId = 'test-question-id';
 
 
-    describe('Database Integration', () => {
+    describe.skipIf(process.env.INTEGRATION_DB !== '1')('Database Integration', () => {
         it('getDailyQuest returns a quest (requires seeded DB)', async () => {
             try {
                 const result = await getDailyQuest(mockUserId);
