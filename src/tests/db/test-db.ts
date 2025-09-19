@@ -117,6 +117,61 @@ export async function initTestDb() {
       FOREIGN KEY (habit_id) REFERENCES habit(id) ON DELETE CASCADE,
       FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
     );
+    
+    CREATE TABLE IF NOT EXISTS quest_templates (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      setting TEXT NOT NULL,
+      difficulty TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL
+    );
+    
+    CREATE TABLE IF NOT EXISTS quest_instances (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      template_id TEXT,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      narrative TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'available',
+      current_question INTEGER NOT NULL DEFAULT 0,
+      correct_answers INTEGER NOT NULL DEFAULT 0,
+      total_questions INTEGER NOT NULL DEFAULT 5,
+      exp_reward_base INTEGER NOT NULL DEFAULT 50,
+      exp_reward_bonus INTEGER NOT NULL DEFAULT 100,
+      activated_at TEXT,
+      completed_at TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
+      FOREIGN KEY (template_id) REFERENCES quest_templates(id) ON DELETE CASCADE
+    );
+    
+    CREATE TABLE IF NOT EXISTS quest_questions (
+      id TEXT PRIMARY KEY,
+      quest_instance_id TEXT NOT NULL,
+      question_number INTEGER NOT NULL,
+      question_text TEXT NOT NULL,
+      choice_a TEXT NOT NULL,
+      choice_b TEXT NOT NULL,
+      correct_choice TEXT NOT NULL,
+      required_stat TEXT NOT NULL,
+      difficulty_threshold INTEGER NOT NULL DEFAULT 10,
+      success_chance INTEGER,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL,
+      FOREIGN KEY (quest_instance_id) REFERENCES quest_instances(id) ON DELETE CASCADE
+    );
+    
+    CREATE TABLE IF NOT EXISTS quest_answers (
+      id TEXT PRIMARY KEY,
+      quest_instance_id TEXT NOT NULL,
+      question_id TEXT NOT NULL,
+      user_choice TEXT NOT NULL,
+      is_correct INTEGER NOT NULL,
+      answered_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL,
+      FOREIGN KEY (quest_instance_id) REFERENCES quest_instances(id) ON DELETE CASCADE,
+      FOREIGN KEY (question_id) REFERENCES quest_questions(id) ON DELETE CASCADE
+    );
   `);
 }
 
@@ -124,6 +179,10 @@ export async function initTestDb() {
 export async function cleanupTestDb() {
   // Drop all tables
   await testClient.execute(`
+    DROP TABLE IF EXISTS quest_answers;
+    DROP TABLE IF EXISTS quest_questions;
+    DROP TABLE IF EXISTS quest_instances;
+    DROP TABLE IF EXISTS quest_templates;
     DROP TABLE IF EXISTS habit_completion;
     DROP TABLE IF EXISTS habit_streak;
     DROP TABLE IF EXISTS habit;

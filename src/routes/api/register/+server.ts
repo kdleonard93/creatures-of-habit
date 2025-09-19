@@ -57,11 +57,23 @@ export const POST: RequestHandler = async (event) => {
         passwordHash
       }).returning();
 
-      await tx.insert(schema.creature).values({
+      const [creature] = await tx.insert(schema.creature).values({
         userId: user.id,
         name: data.creature.name,
         class: data.creature.class,
         race: data.creature.race
+      }).returning();
+
+      // Create default creature stats for quest system
+      await tx.insert(schema.creatureStats).values({
+        creatureId: creature.id,
+        strength: 10,
+        dexterity: 10,
+        constitution: 10,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 10,
+        statBoostPoints: 0
       });
 
       return user;
