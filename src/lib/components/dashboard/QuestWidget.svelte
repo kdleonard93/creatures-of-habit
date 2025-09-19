@@ -5,9 +5,9 @@
 	import { Badge } from "$lib/components/ui/badge";
 	import { Progress } from "$lib/components/ui/progress";
 
-	let dailyQuest: any = null;
-	let loading = true;
-	let error = '';
+	let dailyQuest = $state<any>(null);
+	let loading = $state(true);
+	let error = $state('');
 
 	onMount(async () => {
 		await loadDailyQuest();
