@@ -35,7 +35,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     
     try {
       posthog.capture({
-        distinctId: session?.user?.id || 'anonymous',
+        distinctId: session?.user?.id || `anon_${crypto.randomUUID()}`,
         event: 'home_page_view',
         properties: {
           authenticated: !!session?.user
