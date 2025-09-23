@@ -1,3 +1,5 @@
+import type { Session } from '$lib/server/db/schema';
+
 type User = {
   id: string;
   username: string;
@@ -5,7 +7,7 @@ type User = {
 
 type AuthResult = {
   user: User;
-  session: any;
+  session: Session;
 } | null;
 
 type Locals = {
@@ -17,6 +19,7 @@ export const load = async ({ locals }: { locals: Locals }) => {
     const auth = await locals.auth();
 
     return {
-        user: auth?.user || null
+        user: auth?.user || null,
+        session: auth?.session || null
     };
 };
