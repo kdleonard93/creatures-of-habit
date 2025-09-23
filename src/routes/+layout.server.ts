@@ -1,9 +1,5 @@
 import type { Session } from '$lib/server/db/schema';
-
-type User = {
-  id: string;
-  username: string;
-};
+import type { User } from '$lib/server/db/schema';
 
 type AuthResult = {
   user: User;
