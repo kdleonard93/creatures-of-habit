@@ -8,19 +8,16 @@
 	import { afterNavigate } from '$app/navigation';
 	import { browser } from '$app/environment';
 
-
 	const props = $props<{ data: LayoutData }>();
 	const {children} = props;
-
 
 	if (browser) {
 		afterNavigate(() => {
         posthog.capture('$pageview');
     });
   }
+  
 </script>
-
-
 
 <Header />
 
