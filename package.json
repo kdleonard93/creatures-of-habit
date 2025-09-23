@@ -70,6 +70,7 @@
 		"drizzle-orm": "^0.36.4",
 		"esbuild": "^0.25.3",
 		"posthog-js": "^1.222.0",
+		"posthog-node": "^5.8.8",
 		"resend": "^4.5.1",
 		"svelte-sonner": "^0.3.28",
 		"typesync": "^0.14.1",

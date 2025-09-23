@@ -7,20 +7,18 @@
 	import posthog from 'posthog-js';
 	import { afterNavigate } from '$app/navigation';
 	import { browser } from '$app/environment';
-
+	import { page } from '$app/stores';
 
 	const props = $props<{ data: LayoutData }>();
 	const {children} = props;
-
 
 	if (browser) {
 		afterNavigate(() => {
         posthog.capture('$pageview');
     });
   }
+  
 </script>
-
-
 
 <Header />
 
