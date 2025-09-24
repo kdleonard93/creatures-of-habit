@@ -4,7 +4,7 @@
     import { Menu } from "@lucide/svelte";
     import { page } from '$app/stores';
     import { svgLogo } from '$lib/assets/appLogo';
-    import NotificationCenter from '$lib/components/notifications/NotificationCenter.svelte'
+    import NotificationCenter from '$lib/components/notifications/NotificationCenter.svelte';
     
     // State for mobile menu
     let menuOpen = $state(false);
@@ -16,12 +16,20 @@
   
     type ButtonVariant = "default" | "destructive" | "outline" | "secondary" | undefined;
 
-    // Navigation items
-    const navItems: Array<{href: string; label: string;}> = [
+    // User navigation items
+    const userNavItems = [
       { href: '/dashboard', label: 'Dashboard' },
       { href: '/habits', label: 'Habits' },
       { href: '/character/details', label: 'Character' },
       { href: '/quests', label: 'Quests' }
+    ];
+
+    // Marketing navigation items (shown when not authenticated)
+    const marketingNavItems = [
+      { href: '/waitlist', label: 'Waitlist' },
+      { href: '/features', label: 'Features' },
+      { href: '/how-to-play', label: 'How It Works' },
+      { href: '/faq', label: 'FAQ' }
     ];
 
     // Auth items for consistent usage
@@ -31,8 +39,10 @@
     ];
   
     const path = $derived($page.url.pathname);
+    const isAuthenticated = $derived(!!$page.data.user);
+    const navItems = $derived(isAuthenticated ? userNavItems : marketingNavItems);
 </script>
-  
+
 <header class="border-b">
     <div class="container mx-auto px-2 sm:px-4 lg:px-6">
         <div class="flex h-16 items-center justify-between">
@@ -58,7 +68,9 @@
   
             <!-- User Menu (Desktop) -->
             <div class="hidden md:flex items-center gap-4">
-                <NotificationCenter />
+                {#if isAuthenticated}
+                    <NotificationCenter />
+                {/if}
                 {#each authItems as item}
                     <Button href={item.href} variant={item.variant} size="sm">
                         {item.label}
@@ -66,11 +78,11 @@
                 {/each}
             </div>
 
-            
-  
             <!-- Mobile Navigation -->
             <div class="md:hidden flex items-center gap-2">
-                <NotificationCenter />
+                {#if isAuthenticated}
+                    <NotificationCenter />
+                {/if}
                 <Sheet bind:open={menuOpen}>
                     <SheetTrigger asChild>
                         <Button 
