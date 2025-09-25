@@ -162,6 +162,20 @@
       "when": 1758247488949,
       "tag": "0022_foamy_lord_hawal",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1758499470929,
+      "tag": "0023_huge_sugar_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1758765103456,
+      "tag": "0024_slippery_tomas",
+      "breakpoints": true
     }
   ]
 }
