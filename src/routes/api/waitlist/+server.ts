@@ -22,15 +22,13 @@ export const POST: RequestHandler = async (event) => {
     try {
         const data = await event.request.json();
         const validatedData = waitlistSchema.parse(data);
-
-        console.info('Received waitlist submission:', { email: validatedData.email });
-
+        const email = validatedData.email.trim().toLowerCase();
+        console.info('Received waitlist submission:', { email: "REDACTED" });
         // Check if email already exists
         const existingEntry = await db.select()
             .from(schema.userWaitlist)
-            .where(eq(schema.userWaitlist.email, validatedData.email))
+           .where(eq(schema.userWaitlist.email, email))
             .limit(1);
-
         if (existingEntry.length > 0) {
             // Email already exists - redirect to thank you page with already signed up flag
             return json({
@@ -40,15 +38,13 @@ export const POST: RequestHandler = async (event) => {
                 redirectTo: '/waitlist/thank-you'
             });
         }
-
         // Get client information for analytics
         const ipAddress = event.request.headers.get('x-forwarded-for') || 'unknown';
         const userAgent = event.request.headers.get('user-agent') || 'unknown';
         const referralSource = validatedData.referralSource || event.request.headers.get('referer') || 'direct';
-
         // Add to waitlist
-        const [waitlistEntry] = await db.insert(schema.userWaitlist).values({
-            email: validatedData.email,
+       const [waitlistEntry] = await db.insert(schema.userWaitlist).values({
+            email,
             ipAddress,
             userAgent,
             referralSource,
