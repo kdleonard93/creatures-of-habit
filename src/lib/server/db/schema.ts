@@ -276,19 +276,14 @@ export const dailyHabitTracker = sqliteTable('daily_habit_tracker', {
     updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 }, (table) => {
     return {
-        // Index for querying by user and date (most common query pattern)
         userDateIdx: index('idx_daily_tracker_user_date').on(table.userId, table.date),
-        // Index for querying by habit ID
         habitIdx: index('idx_daily_tracker_habit').on(table.habitId),
-        // Index for date-based queries (like cleanup)
         dateIdx: index('idx_daily_tracker_date').on(table.date),
-        // Composite index for the common query pattern in markHabitCompleted
         userHabitDateIdx: index('idx_daily_tracker_user_habit_date').on(
             table.userId,
             table.habitId,
             table.date
         ),
-        // Define a unique constraint for the combination of userId, habitId, and date
         uniqueUserHabitDate: unique('unique_user_habit_date').on(
             table.userId,
             table.habitId,
@@ -297,8 +292,24 @@ export const dailyHabitTracker = sqliteTable('daily_habit_tracker', {
     };
 });
 
+export const userWaitlist = sqliteTable('user_waitlist', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    email: text('email').notNull().unique(),
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+    referralSource: text('referral_source'),
+    subscribedAt: text('subscribed_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => {
+    return {
+        emailIdx: index('idx_user_waitlist_email').on(table.email),
+        subscribedAtIdx: index('idx_user_waitlist_subscribed_at').on(table.subscribedAt),
+        referralSourceIdx: index('idx_user_waitlist_referral_source').on(table.referralSource),
+    };
+});
+
 // Type inference helpers
 export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type DailyHabitTracker = typeof dailyHabitTracker.$inferSelect;
+export type UserWaitlist = typeof userWaitlist.$inferSelect;

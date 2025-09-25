@@ -168,3 +168,8 @@ export interface Notifications {
 }
 
 export type NotificationType = 'email' | 'sms' | 'in-app'
+
+export interface WaitlistData {
+    title: string;
+    description: string;
+}

@@ -242,7 +242,7 @@
       });
 
       const data = await response.json();
-      console.log("Registration response:", data);
+      console.info("Registration response:", data);
       
       if (response.ok && data.success) {
         toast.success('Account created successfully!', { duration: 4000 });
