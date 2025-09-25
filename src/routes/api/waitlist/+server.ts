@@ -62,6 +62,13 @@ export const POST: RequestHandler = async (event) => {
     } catch (error) {
         console.error('Waitlist submission error:', error);
 
+        if (error instanceof SyntaxError) {
+            return json({
+                success: false,
+                error: 'Invalid request payload'
+            }, { status: 400 });
+        }
+
         if (error && typeof error === 'object' && 'issues' in error) {
             // Zod validation error
             const zodError = error as z.ZodError;
