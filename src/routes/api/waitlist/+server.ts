@@ -54,7 +54,7 @@ export const POST: RequestHandler = async (event) => {
             referralSource,
         }).returning();
 
-        console.info('Successfully added to waitlist:', { id: waitlistEntry.id, email: validatedData.email });
+        console.info('Successfully added to waitlist:', { id: "REDACTED", email: "REDACTED" });
 
         return json({
             success: true,
