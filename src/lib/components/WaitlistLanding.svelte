@@ -25,19 +25,26 @@
 
         try {
             isSubmitting = true;
-            
+            errors = {
+                email: "",
+                general: ""
+            };
             const response = await fetch('/api/waitlist', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            } 
-
             const result = await response.json();
-
+            if (!response.ok) {
+                if (response.status === 400 && result?.error) {
+                    errors.email = result.error;
+                    toast.error(result.error, { duration: 4000 });
+                } else {
+                    errors.general = result?.error || "Failed to join waitlist";
+                    toast.error(errors.general, { duration: 4000 });
+                }
+                return;
+            }
             if (result.success) {
                 toast.success('Successfully joined waitlist!', { duration: 4000 });
                 setTimeout(() => {
@@ -45,7 +52,7 @@
                 }, 1000);
             } else {
                 errors.general = result.error || "Failed to join waitlist";
-                toast.error('Failed to join waitlist: ' + result.error, { duration: 4000 });
+                toast.error(errors.general, { duration: 4000 });
             }
         } catch (error) {
             errors.general = "An unexpected error occurred. Please try again.";
@@ -74,20 +81,20 @@
                     <div class="flex flex-col gap-2 min-[400px]:flex-row">
                         <Button size="lg" href="#waitlist-form">
                             Join the Waitlist
-                            <ArrowRight className="ml-2 h-4 w-4" />
+                            <ArrowRight class="ml-2 h-4 w-4" />
                         </Button>
                         <Button size="lg" variant="outline" href="/how-to-play">
                             Learn More
-                            <ArrowRight className="ml-2 h-4 w-4" />
+                            <ArrowRight class="ml-2 h-4 w-4" />
                         </Button>
                     </div>
                     <div class="flex items-center space-x-4 text-sm">
                         <div class="flex items-center">
-                            <CheckCircle className="mr-1 h-4 w-4 text-primary" />
+                            <CheckCircle class="mr-1 h-4 w-4 text-primary" />
                             <span>Launching Q1 2026</span>
                         </div>
                         <div class="flex items-center">
-                            <Users className="mr-1 h-4 w-4 text-primary" />
+                            <Users class="mr-1 h-4 w-4 text-primary" />
                             <span>Join 1,000+ early adopters</span>
                         </div>
                     </div>
@@ -97,12 +104,12 @@
                         <div class="relative overflow-hidden rounded-lg border bg-background p-6 shadow-xl">
                             <div class="flex items-center gap-4 mb-4">
                                 <div class="h-16 w-16 overflow-hidden rounded-full border-2 border-primary bg-primary/10 flex items-center justify-center">
-                                    <Sparkles className="h-8 w-8 text-primary" />
+                                    <Sparkles class="h-8 w-8 text-primary" />
                                 </div>
                                 <div>
                                     <h3 class="text-xl font-bold">Creatures of Habit</h3>
                                     <div class="flex items-center text-sm text-muted-foreground">
-                                        <Mail className="mr-1 h-4 w-4 text-primary" />
+                                        <Mail class="mr-1 h-4 w-4 text-primary" />
                                         <span>Coming Q1 2026</span>
                                     </div>
                                 </div>

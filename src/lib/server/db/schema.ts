@@ -301,7 +301,6 @@ export const userWaitlist = sqliteTable('user_waitlist', {
     subscribedAt: text('subscribed_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 }, (table) => {
     return {
-        emailIdx: index('idx_user_waitlist_email').on(table.email),
         subscribedAtIdx: index('idx_user_waitlist_subscribed_at').on(table.subscribedAt),
         referralSourceIdx: index('idx_user_waitlist_referral_source').on(table.referralSource),
     };

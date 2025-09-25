@@ -12,14 +12,14 @@ const waitlistSchema = z.object({
 });
 
 export const POST: RequestHandler = async (event) => {
-    try {
-        // Rate limit: 5 attempts per hour for waitlist submissions
-        await rateLimit(event, {
-            windowMs: 60 * 60 * 1000, // 1 hour
-            maxRequests: 5,
-            message: 'Too many waitlist submissions. Please try again later.'
-        });
+    // Rate limit: 5 attempts per hour for waitlist submissions
+    await rateLimit(event, {
+         windowMs: 60 * 60 * 1000, // 1 hour
+        maxRequests: 5,
+        message: 'Too many waitlist submissions. Please try again later.'
+    });
 
+    try {
         const data = await event.request.json();
         const validatedData = waitlistSchema.parse(data);
 

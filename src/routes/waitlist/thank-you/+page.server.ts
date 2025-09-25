@@ -1,9 +1,11 @@
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ url }) => {
+
+    const alreadySignedUp = url.searchParams.get('alreadySignedUp') === 'true';
     // Get data from parent layout or pass directly
     const potentialHeroes = {
-        usersJoined: 1250,
+        usersJoined: alreadySignedUp ? 1250 : 1251,
         launchDate: 'Q1 2026',
         betaSpots: 500
     };
@@ -16,6 +18,6 @@ export const load: PageServerLoad = async () => {
     return {
         potentialHeroes,
         seo,
-        alreadySignedUp: false // Default value, will be updated by API if needed
+        alreadySignedUp,
     };
 };
