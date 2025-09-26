@@ -1,13 +1,13 @@
 <script lang="ts">
     import { Button } from "$lib/components/ui/button";
     import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "$lib/components/ui/card";
-    import { CheckCircle, ArrowRight, Sparkles, Users, Calendar, Award } from "@lucide/svelte";
+    import { CheckCircle, ArrowRight, Sparkles, Users, Calendar, Coins } from "@lucide/svelte";
 
     export let data: {
         potentialHeroes: {
             usersJoined: number;
             launchDate: string;
-            betaSpots: number;
+            treasureChestsFound: number;
         };
         alreadySignedUp: boolean;
     };
@@ -63,9 +63,9 @@
             </Card>
             <Card>
                 <CardContent class="p-4 text-center">
-                    <Award class="h-6 w-6 text-primary mx-auto mb-2" />
-                    <div class="text-2xl font-bold">{data.potentialHeroes.betaSpots}</div>
-                    <div class="text-sm text-muted-foreground">Beta Spots Left</div>
+                    <Coins class="h-6 w-6 text-primary mx-auto mb-2" />
+                    <div class="text-2xl font-bold">{data.potentialHeroes.treasureChestsFound}</div>
+                    <div class="text-sm text-muted-foreground">Treasure Chests Found</div>
                 </CardContent>
             </Card>
         </div>
@@ -108,7 +108,7 @@
         <!-- Footer -->
         <div class="mt-16 pt-8 border-t border-muted">
             <p class="text-sm text-muted-foreground">
-                Questions? Contact us at <a href="mailto:hello@creaturesofhabit.app" class="text-primary hover:underline">hello@creaturesofhabit.app</a>
+                Questions? Contact us at <a href="mailto:contact@digitaldopamine.dev" class="text-primary hover:underline">contact@digitaldopamine.dev</a>
             </p>
         </div>
     </div>

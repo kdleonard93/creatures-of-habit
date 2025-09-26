@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ url }) => {
     const potentialHeroes = {
         usersJoined: waitlistCount[0]?.count ?? 0,
         launchDate: 'Q1 2026',
-        betaSpots: 500
+        treasureChestsFound: 0,
     };
 
     const seo = {
