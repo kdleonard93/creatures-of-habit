@@ -3,9 +3,10 @@
     import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "$lib/components/ui/card";
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
-    import type { WaitlistData } from "$lib/types";
     import { ArrowRight, CheckCircle, Mail, Sparkles, Users } from "@lucide/svelte";
     import { toast } from "svelte-sonner";
+    import type { WaitlistData } from "$lib/types";
+	import { type PostHog, type CaptureResult, posthog } from 'posthog-js';
 
 
     const { data } = $props<{ data: WaitlistData }>();
@@ -46,11 +47,27 @@
                 return;
             }
             if (result.success) {
+                posthog.capture('waitlist_submission', {
+                    properties: {
+                        email: data.email,
+                        success: true,
+                        redirectTo: result.redirectTo,
+                        error: null
+                    }
+                });
                 toast.success('Successfully joined waitlist!', { duration: 4000 });
                 setTimeout(() => {
                     window.location.href = result.redirectTo || '/waitlist/thank-you';
                 }, 1000);
             } else {
+                posthog.capture('waitlist_submission', {
+                    properties: {
+                        email: data.email,
+                        success: false,
+                        redirectTo: null,
+                        error: result.error || "Failed to join waitlist"
+                    }
+                });
                 errors.general = result.error || "Failed to join waitlist";
                 toast.error(errors.general, { duration: 4000 });
             }
@@ -58,6 +75,14 @@
             errors.general = "An unexpected error occurred. Please try again.";
             toast.error('An unexpected error occurred. Please try again.', { duration: 4000 });
             console.error('Waitlist submission error:', error);
+            posthog.capture('waitlist_submission', {
+                properties: {
+                    email: data.email,
+                    success: false,
+                    redirectTo: null,
+                    error: "An unexpected error occurred. Please try again."
+                }
+            });
         } finally {
             isSubmitting = false;
         }

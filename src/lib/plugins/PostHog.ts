@@ -9,6 +9,13 @@ export const posthogConfig: Partial<PostHogConfig> = {
     capture_pageview: true,
     capture_pageleave: true,
     disable_session_recording: true,
+    enable_heatmaps: false,
+    autocapture: false,
+    debug: false,
+};
+
+export const posthogServerConfig = {
+    host: 'https://us.i.posthog.com'
 };
 
 export const getPostHogKey = () => {

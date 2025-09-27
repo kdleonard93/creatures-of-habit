@@ -32,11 +32,11 @@ export interface SecurityHeadersConfig {
 const defaultConfig: SecurityHeadersConfig = {
 	csp: {
 		defaultSrc: ["'self'"],
-		scriptSrc: ["'self'"],
+		scriptSrc: ["'self'", "https://us-assets.i.posthog.com", "https://assets.posthog.com"],
 		styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
 		imgSrc: ["'self'", "data:", "https:"],
 		fontSrc: ["'self'", "https://fonts.gstatic.com"],
-		connectSrc: ["'self'"],
+		connectSrc: ["'self'", "https://us.i.posthog.com", "https://api.posthog.com", "https://us-assets.i.posthog.com", "https://assets.posthog.com"],
 		frameSrc: ["'none'"],
 		objectSrc: ["'none'"],
 		mediaSrc: ["'self'"],
@@ -67,8 +67,8 @@ const defaultConfig: SecurityHeadersConfig = {
 };
 
 const devCSPAdjustments = {
-	scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-	connectSrc: ["'self'", "ws:", "wss:"],
+	scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://us-assets.i.posthog.com", "https://assets.posthog.com"],
+	connectSrc: ["'self'", "ws:", "wss:", "https://us.i.posthog.com", "https://api.posthog.com", "https://us-assets.i.posthog.com", "https://assets.posthog.com"],
 	styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"]
 };
 

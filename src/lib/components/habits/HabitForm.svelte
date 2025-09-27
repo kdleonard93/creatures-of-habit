@@ -6,6 +6,7 @@
 	import * as Select from '$lib/components/ui/select';
 	import type { Selected } from 'bits-ui';
 	import type { HabitData, HabitFrequency, HabitDifficulty } from '$lib/types';
+	import type { PostHog, CaptureResult } from 'posthog-js';
 
 	const {
 		onSubmit,
