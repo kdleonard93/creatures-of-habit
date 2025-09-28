@@ -54,12 +54,10 @@
             if (result.success) {
                 const emailHash = await anonymizeEmail(data.email as string);
                 posthog.capture('waitlist_submission', {
-                    properties: {
                         email_hash: emailHash,
                         success: true,
-                        redirectTo: result.redirectTo,
+                        redirectTo: result.redirectTo || null,
                         error: null
-                    }
                 });
                 toast.success('Successfully joined waitlist!', { duration: 4000 });
                 setTimeout(() => {
@@ -68,12 +66,10 @@
             } else {
                 const emailHash = await anonymizeEmail(data.email as string);
                 posthog.capture('waitlist_submission', {
-                    properties: {
                         email_hash: emailHash,
                         success: false,
-                        redirectTo: null,
+                        redirectTo: result.redirectTo || null,
                         error: result.error || "Failed to join waitlist"
-                    }
                 });
                 errors.general = result.error || "Failed to join waitlist";
                 toast.error(errors.general, { duration: 4000 });
@@ -84,12 +80,10 @@
             console.error('Waitlist submission error:', error);
             const emailHash = await anonymizeEmail(data.email as string);
             posthog.capture('waitlist_submission', {
-                properties: {
                     email_hash: emailHash,
                     success: false,
                     redirectTo: null,
                     error: "An unexpected error occurred. Please try again."
-                }
             });
         } finally {
             isSubmitting = false;
