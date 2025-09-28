@@ -75,7 +75,6 @@ export const handleError = async ({ error, status }: {
 }) => {
     if (status !== 404 && posthogClient) {
         posthogClient.captureException(error);
-        await posthogClient.shutdown();
     }
 };
   
