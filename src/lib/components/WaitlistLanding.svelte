@@ -24,6 +24,11 @@
         const formData = new FormData(event.target as HTMLFormElement);
         const data = Object.fromEntries(formData.entries());
 
+        async function anonymizeEmail(email: string): Promise<string> {
+            const emailHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(email));
+            return Array.from(new Uint8Array(emailHash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
         try {
             isSubmitting = true;
             errors = {
@@ -47,9 +52,10 @@
                 return;
             }
             if (result.success) {
+                const emailHash = await anonymizeEmail(data.email as string);
                 posthog.capture('waitlist_submission', {
                     properties: {
-                        email: data.email,
+                        email_hash: emailHash,
                         success: true,
                         redirectTo: result.redirectTo,
                         error: null
@@ -60,9 +66,10 @@
                     window.location.href = result.redirectTo || '/waitlist/thank-you';
                 }, 1000);
             } else {
+                const emailHash = await anonymizeEmail(data.email as string);
                 posthog.capture('waitlist_submission', {
                     properties: {
-                        email: data.email,
+                        email_hash: emailHash,
                         success: false,
                         redirectTo: null,
                         error: result.error || "Failed to join waitlist"
@@ -75,9 +82,10 @@
             errors.general = "An unexpected error occurred. Please try again.";
             toast.error('An unexpected error occurred. Please try again.', { duration: 4000 });
             console.error('Waitlist submission error:', error);
+            const emailHash = await anonymizeEmail(data.email as string);
             posthog.capture('waitlist_submission', {
                 properties: {
-                    email: data.email,
+                    email_hash: emailHash,
                     success: false,
                     redirectTo: null,
                     error: "An unexpected error occurred. Please try again."
