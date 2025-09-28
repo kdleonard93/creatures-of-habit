@@ -1,8 +1,13 @@
 import * as auth from '$lib/server/auth.js';
-import type { Handle } from '@sveltejs/kit';
+import type { Handle, HandleServerError, RequestEvent } from '@sveltejs/kit';
 import { initializeScheduler } from '$lib/server/tasks/scheduler';
 import { logger } from '$lib/utils/logger';
 import { setSecurityHeaders } from '$lib/server/securityHeaders';
+import { PostHog } from 'posthog-node';
+import { getPostHogKey, posthogServerConfig } from '$lib/plugins/PostHog';
+
+const posthogKey = getPostHogKey();
+const posthogClient = posthogKey ? new PostHog(posthogKey, posthogServerConfig) : null;
 
 // Initialize the task scheduler when the server starts
 try {
@@ -61,3 +66,15 @@ export const handle: Handle = async ({ event, resolve }) => {
 
     return resolve(event);
 };
+
+export const handleError = async ({ error, status }: {
+    error: unknown;
+    status: number;
+    event?: RequestEvent;
+    message?: string;
+}) => {
+    if (status !== 404 && posthogClient) {
+        posthogClient.captureException(error);
+    }
+};
+  

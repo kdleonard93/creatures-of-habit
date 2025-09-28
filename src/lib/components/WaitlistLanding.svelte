@@ -3,9 +3,10 @@
     import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "$lib/components/ui/card";
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
-    import type { WaitlistData } from "$lib/types";
     import { ArrowRight, CheckCircle, Mail, Sparkles, Users } from "@lucide/svelte";
     import { toast } from "svelte-sonner";
+    import type { WaitlistData } from "$lib/types";
+	import { type PostHog, type CaptureResult, posthog } from 'posthog-js';
 
 
     const { data } = $props<{ data: WaitlistData }>();
@@ -22,6 +23,11 @@
         event.preventDefault();
         const formData = new FormData(event.target as HTMLFormElement);
         const data = Object.fromEntries(formData.entries());
+
+        async function anonymizeEmail(email: string): Promise<string> {
+            const emailHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(email));
+            return Array.from(new Uint8Array(emailHash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
 
         try {
             isSubmitting = true;
@@ -46,11 +52,25 @@
                 return;
             }
             if (result.success) {
+                const emailHash = await anonymizeEmail(data.email as string);
+                posthog.capture('waitlist_submission', {
+                        email_hash: emailHash,
+                        success: true,
+                        redirectTo: result.redirectTo || null,
+                        error: null
+                });
                 toast.success('Successfully joined waitlist!', { duration: 4000 });
                 setTimeout(() => {
                     window.location.href = result.redirectTo || '/waitlist/thank-you';
                 }, 1000);
             } else {
+                const emailHash = await anonymizeEmail(data.email as string);
+                posthog.capture('waitlist_submission', {
+                        email_hash: emailHash,
+                        success: false,
+                        redirectTo: result.redirectTo || null,
+                        error: result.error || "Failed to join waitlist"
+                });
                 errors.general = result.error || "Failed to join waitlist";
                 toast.error(errors.general, { duration: 4000 });
             }
@@ -58,6 +78,13 @@
             errors.general = "An unexpected error occurred. Please try again.";
             toast.error('An unexpected error occurred. Please try again.', { duration: 4000 });
             console.error('Waitlist submission error:', error);
+            const emailHash = await anonymizeEmail(data.email as string);
+            posthog.capture('waitlist_submission', {
+                    email_hash: emailHash,
+                    success: false,
+                    redirectTo: null,
+                    error: "An unexpected error occurred. Please try again."
+            });
         } finally {
             isSubmitting = false;
         }
