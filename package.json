@@ -57,11 +57,14 @@
 		"vitest": "^2.1.4"
 	},
 	"dependencies": {
+		"@iconify-json/game-icons": "^1.2.3",
+		"@iconify/utils": "^3.0.2",
 		"@libsql/client": "^0.14.0",
 		"@lucide/svelte": "^0.526.0",
 		"@node-rs/argon2": "^2.0.0",
 		"@oslojs/crypto": "^1.0.1",
 		"@oslojs/encoding": "^1.1.0",
+		"@posthog/cli": "^0.4.8",
 		"@types/bcrypt": "^5.0.2",
 		"arctic": "^2.2.2",
 		"bcrypt": "^5.1.1",
