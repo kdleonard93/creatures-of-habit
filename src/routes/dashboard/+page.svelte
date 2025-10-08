@@ -17,7 +17,6 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
 	import DailyProgressSummary from '$lib/components/dashboard/DailyProgressSummary.svelte';
-	import { calculateDailyProgress } from '$lib/utils/dailyHabitProgress';
 
 	const props = $props<{ data: PageData }>();
 	
@@ -29,11 +28,6 @@
 		day: 'numeric' 
 	}));
 	
-	// Use the shared utility function to calculate stats
-	const stats = $derived(calculateDailyProgress(props.data?.habits));
-	const totalHabits = $derived(stats.total);
-	const completedHabits = $derived(stats.completed);
-	const completionPercentage = $derived(stats.percentage);
 
 	async function completeHabit(habitId: string) {
 		try {
