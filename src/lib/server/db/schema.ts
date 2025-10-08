@@ -153,6 +153,7 @@ export const questInstances = sqliteTable('quest_instances', {
     }).notNull().default('available'),
     currentQuestion: integer('current_question').notNull().default(0),
     correctAnswers: integer('correct_answers').notNull().default(0),
+    statChecksPassed: integer('stat_checks_passed').notNull().default(0),
     totalQuestions: integer('total_questions').notNull().default(5),
     expRewardBase: integer('exp_reward_base').notNull().default(50),
     expRewardBonus: integer('exp_reward_bonus').notNull().default(100),
@@ -201,10 +202,12 @@ export const questAnswers = sqliteTable('quest_answers', {
         enum: ['A', 'B'] 
     }).notNull(),
     wasCorrect: integer('was_correct', { mode: 'boolean' }).notNull(),
+    passedStatCheck: integer('passed_stat_check', { mode: 'boolean'}).notNull().default(false),
     answeredAt: text('answered_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 }, (table) => {
     return {
         questAnswerIdx: index('idx_quest_answers_instance').on(table.questInstanceId),
+        uniqueQuestionAnswer: unique('unique_question_answer').on(table.questInstanceId, table.questionId),
     };
 });
 

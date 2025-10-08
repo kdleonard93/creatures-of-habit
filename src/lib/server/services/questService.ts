@@ -119,7 +119,7 @@ async function generateQuestQuestions(questInstanceId: string, userId: string) {
             questionText: template.questionText,
             choiceA: template.choiceA,
             choiceB: template.choiceB,
-            correctChoice: 'A' as const, // Choice A is always the stat-based choice
+            correctChoice: (Math.random() < 0.5 ? 'A' : 'B') as 'A' | 'B',
             requiredStat: template.requiredStat as 'strength' | 'dexterity' | 'constitution' | 'intelligence' | 'wisdom' | 'charisma',
             difficultyThreshold
         };
@@ -246,11 +246,10 @@ export async function answerQuestion(questId: string, questionId: string, choice
     }
 
     // Determine if answer was correct
-    let wasCorrect = false;
-    if (choice === question.correctChoice) {
-        const userStatValue = stats[question.requiredStat as keyof typeof stats] as number;
-        wasCorrect = userStatValue >= question.difficultyThreshold;
-    }
+    const wasCorrect = choice === question.correctChoice;
+
+    const userStatValue = stats[question.requiredStat as keyof typeof stats] as number;
+    const passedStatCheck = userStatValue >= question.difficultyThreshold;
 
     // Record the answer - use try-catch to handle unique constraint violations
     try {
@@ -258,7 +257,8 @@ export async function answerQuestion(questId: string, questionId: string, choice
             questInstanceId: questId,
             questionId,
             userChoice: choice,
-            wasCorrect
+            wasCorrect,
+            passedStatCheck
         });
     } catch (error) {
         // Handle unique constraint violation
@@ -271,12 +271,14 @@ export async function answerQuestion(questId: string, questionId: string, choice
     // Update quest progress
     const newCorrectAnswers = questInstance.correctAnswers + (wasCorrect ? 1 : 0);
     const newCurrentQuestion = questInstance.currentQuestion + 1;
+    const newStatChecksPassed = (questInstance.statChecksPassed || 0) + (passedStatCheck ? 1: 0);
 
     await db
         .update(questInstances)
         .set({
             currentQuestion: newCurrentQuestion,
-            correctAnswers: newCorrectAnswers
+            correctAnswers: newCorrectAnswers,
+            statChecksPassed: newStatChecksPassed
         })
         .where(eq(questInstances.id, questId));
 
@@ -285,7 +287,7 @@ export async function answerQuestion(questId: string, questionId: string, choice
     let rewards = null;
 
     if (questComplete) {
-        rewards = await completeQuest(questId, userId, newCorrectAnswers);
+        rewards = await completeQuest(questId, userId, newCorrectAnswers, newStatChecksPassed);
     }
 
     // Get next question if not complete
@@ -317,11 +319,19 @@ export async function answerQuestion(questId: string, questionId: string, choice
 /**
  * Complete a quest and award rewards
  */
-async function completeQuest(questId: string, userId: string, correctAnswers: number) {
+async function completeQuest(questId: string, userId: string, correctAnswers: number, statChecksPassed: number) {
     // Calculate rewards based on performance
     const baseExp = 50;
     const bonusExp = correctAnswers >= 3 ? 100 : 0;
-    const statBoostPoints = correctAnswers >= 3 ? 1 : 0;
+
+    let statBoostPoints = 0;
+    if (correctAnswers >= 3) {
+        statBoostPoints += 1; 
+    }
+    if (statChecksPassed >= 5) {
+        statBoostPoints += 1;
+    }
+
     const totalExp = baseExp + bonusExp;
 
     // Mark quest as completed

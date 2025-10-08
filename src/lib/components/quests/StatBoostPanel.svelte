@@ -2,21 +2,18 @@
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "$lib/components/ui/card";
 	import { Button } from "$lib/components/ui/button";
 	import { Badge } from "$lib/components/ui/badge";
+	import type { CreatureStats } from "$lib/types";
 
-	interface UserStats {
-		strength: number;
-		dexterity: number;
-		intelligence: number;
-		charisma: number;
-		statBoostPoints: number;
-	}
+	interface UserStatsWithPoints extends CreatureStats {
+        statBoostPoints: number;
+    }
 
 	const { 
 		stats, 
 		onBoostStat, 
 		isUpdating = false 
 	} = $props<{
-		stats: UserStats;
+		stats: UserStatsWithPoints;
 		onBoostStat: (stat: string) => void;
 		isUpdating?: boolean;
 	}>();
@@ -25,31 +22,45 @@
 		{
 			key: 'strength',
 			name: 'Strength',
-			icon: '💪',
+			icon: '',
 			description: 'Physical power and endurance',
-			color: 'bg-red-100 text-red-800'
+			color: 'bg-secondary-100 text-secondary-800'
 		},
 		{
 			key: 'dexterity',
 			name: 'Dexterity',
-			icon: '🏃',
+			icon: '',
 			description: 'Agility and quick reflexes',
-			color: 'bg-green-100 text-green-800'
+			color: 'bg-secondary-100 text-secondary-800'
+		},
+		{
+			key: 'constitution',
+			name: 'Constitution',
+			icon:  '',
+			description: 'Health and stamina',
+			color: 'bg-secondary-100 text-secondary-800'
 		},
 		{
 			key: 'intelligence',
 			name: 'Intelligence',
-			icon: '🧠',
+			icon: '',
 			description: 'Knowledge and problem-solving',
-			color: 'bg-blue-100 text-blue-800'
+			color: 'bg-secondary-100 text-secondary-800'
+		},
+		{
+			key: 'wisdom',
+			name: 'Wisdom',
+			icon: '',
+			description: 'Intuition and insight',
+			color: 'bg-secondary-100 text-secondary-800'
 		},
 		{
 			key: 'charisma',
 			name: 'Charisma',
-			icon: '💬',
+			icon: '',
 			description: 'Social skills and persuasion',
 			color: 'bg-purple-100 text-purple-800'
-		}
+		},
 	];
 </script>
 
@@ -78,7 +89,7 @@
 						</div>
 						<div class="flex items-center gap-2">
 							<Badge class={stat.color}>
-								{stats[stat.key as keyof UserStats]}
+								{stats[stat.key as keyof CreatureStats]}
 							</Badge>
 							<Button 
 								size="sm" 
