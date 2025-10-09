@@ -2,11 +2,19 @@
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "$lib/components/ui/card";
 	import { Button } from "$lib/components/ui/button";
 	import { Badge } from "$lib/components/ui/badge";
+	import { getSvg } from '$lib/utils/icons';
 	import type { CreatureStats } from "$lib/types";
 
 	interface UserStatsWithPoints extends CreatureStats {
         statBoostPoints: number;
     }
+
+	const strengthIcon = getSvg('muscle-up');
+	const dexterityIcon = getSvg('bullseye');
+	const constitutionIcon = getSvg('hearts');
+	const intelligenceIcon = getSvg('materials-science');
+	const wisdomIcon = getSvg('brain');
+	const charismaIcon = getSvg('three-friends');
 
 	const { 
 		stats, 
@@ -22,42 +30,42 @@
 		{
 			key: 'strength',
 			name: 'Strength',
-			icon: '',
+			icon: strengthIcon,
 			description: 'Physical power and endurance',
-			color: 'bg-secondary-100 text-secondary-800'
+			color: 'bg-red-100 text-red-800'
 		},
 		{
 			key: 'dexterity',
 			name: 'Dexterity',
-			icon: '',
+			icon: dexterityIcon,
 			description: 'Agility and quick reflexes',
-			color: 'bg-secondary-100 text-secondary-800'
+			color: 'bg-green-100 text-green-800'
 		},
 		{
 			key: 'constitution',
 			name: 'Constitution',
-			icon:  '',
+			icon:  constitutionIcon,
 			description: 'Health and stamina',
-			color: 'bg-secondary-100 text-secondary-800'
+			color: 'bg-orange-100 text-orange-800'
 		},
 		{
 			key: 'intelligence',
 			name: 'Intelligence',
-			icon: '',
+			icon: intelligenceIcon,
 			description: 'Knowledge and problem-solving',
-			color: 'bg-secondary-100 text-secondary-800'
+			color: 'bg-blue-100 text-blue-800'
 		},
 		{
 			key: 'wisdom',
 			name: 'Wisdom',
-			icon: '',
+			icon: wisdomIcon,
 			description: 'Intuition and insight',
-			color: 'bg-secondary-100 text-secondary-800'
+			color: 'bg-yellow-100 text-yellow-800'
 		},
 		{
 			key: 'charisma',
 			name: 'Charisma',
-			icon: '',
+			icon: charismaIcon,
 			description: 'Social skills and persuasion',
 			color: 'bg-purple-100 text-purple-800'
 		},
@@ -67,7 +75,7 @@
 <Card class="w-full max-w-md">
 	<CardHeader>
 		<CardTitle class="flex items-center gap-2">
-			⭐ Stat Boost Points
+			Stat Boost Points
 			<Badge variant="secondary">{stats.statBoostPoints} available</Badge>
 		</CardTitle>
 		<CardDescription>
@@ -79,9 +87,9 @@
 		{#if stats.statBoostPoints > 0}
 			<div class="grid gap-3">
 				{#each statInfo as stat}
-					<div class="flex items-center justify-between p-3 border rounded-lg">
+					<div class="flex items-center justify-between p-2">
 						<div class="flex items-center gap-3">
-							<div class="text-xl">{stat.icon}</div>
+							<div class="text-xl">{@html stat.icon}</div>
 							<div>
 								<div class="font-medium">{stat.name}</div>
 								<div class="text-sm text-muted-foreground">{stat.description}</div>
