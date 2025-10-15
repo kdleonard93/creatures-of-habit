@@ -53,9 +53,27 @@
             }
             if (result.success) {
                 const emailHash = await anonymizeEmail(data.email as string);
+                
+
+                if (result.alreadySignedUp) {
+                    posthog.capture('waitlist_submission', {
+                        email_hash: emailHash,
+                        success: true,
+                        alreadySignedUp: true,
+                        redirectTo: null,
+                        error: null
+                    });
+                    toast.warning('You\'re already on the waitlist! We\'ll notify you when we launch.', { 
+                        duration: 5000 
+                    });
+
+                    return;
+                }
+                
                 posthog.capture('waitlist_submission', {
                         email_hash: emailHash,
                         success: true,
+                        alreadySignedUp: false,
                         redirectTo: result.redirectTo || null,
                         error: null
                 });
