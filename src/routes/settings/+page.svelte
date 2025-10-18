@@ -89,27 +89,6 @@
         toast.error('Failed to update notification preferences');
       }
     }
-  
-    async function updatePrivacySettings() {
-      try {
-        const response = await fetch('/api/settings/privacy', {
-          method: 'POST',
-          body: JSON.stringify({
-            profileVisibility,
-            activitySharing,
-            statsSharing
-          }),
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (!response.ok) throw new Error('Failed to update settings');
-        toast.success('Privacy settings updated');
-      } catch (error) {
-        toast.error('Failed to update privacy settings');
-      }
-    }
   </script>
   
   <svelte:head>
@@ -221,59 +200,6 @@
               onCheckedChange={(checked) => {
                 reminderNotifications = checked;
                 updateNotificationPreferences();
-              }}
-            />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-    
-    <!-- Privacy Settings -->
-    <Card>
-      <CardHeader>
-        <CardTitle>Privacy Settings</CardTitle>
-        <CardDescription>Control your profile visibility and data sharing</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <div class="space-y-0.5">
-              <Label>Public Profile</Label>
-              <p class="text-sm text-muted-foreground">Make your profile visible to others</p>
-            </div>
-            <Switch
-              checked={profileVisibility}
-              onCheckedChange={(checked) => {
-                profileVisibility = checked;
-                updatePrivacySettings();
-              }}
-            />
-          </div>
-          
-          <div class="flex items-center justify-between">
-            <div class="space-y-0.5">
-              <Label>Activity Sharing</Label>
-              <p class="text-sm text-muted-foreground">Share your habit completion activities</p>
-            </div>
-            <Switch
-              checked={activitySharing}
-              onCheckedChange={(checked) => {
-                activitySharing = checked;
-                updatePrivacySettings();
-              }}
-            />
-          </div>
-          
-          <div class="flex items-center justify-between">
-            <div class="space-y-0.5">
-              <Label>Stats Sharing</Label>
-              <p class="text-sm text-muted-foreground">Share your habit statistics and achievements</p>
-            </div>
-            <Switch
-              checked={statsSharing}
-              onCheckedChange={(checked) => {
-                statsSharing = checked;
-                updatePrivacySettings();
               }}
             />
           </div>
