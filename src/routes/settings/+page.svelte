@@ -17,7 +17,8 @@
     };
   
     // Form state
-    let loading = $state(false);
+    let passwordLoading = $state(false);
+    let notificationLoading = $state(false);
     let currentPassword = $state("");
     let newPassword = $state("");
     let confirmPassword = $state("");
@@ -39,7 +40,7 @@
       newPassword && 
       confirmPassword && 
       passwordsMatch && 
-      !loading
+      !passwordLoading
     );
   </script>
   
@@ -62,7 +63,7 @@
           action="?/updatePassword"
           method="POST"
           use:enhance = {() => {
-            loading = true;
+            passwordLoading = true;
             return async ({ result }) => {
               if (result.type === 'success') {
               currentPassword = newPassword = confirmPassword = '';
@@ -73,7 +74,7 @@
               } else {
                 toast.error('Failed to update password.');
               }
-              loading = false;
+              passwordLoading = false;
             };
           }}
         >
@@ -118,7 +119,7 @@
             disabled={!canSubmitPassword}
             variant="default"
           >
-            {loading ? 'Updating...' : 'Update Password'}
+            {passwordLoading ? 'Updating...' : 'Update Password'}
           </Button>
         </form>
       </CardContent>
@@ -137,7 +138,7 @@
           action="?/updateNotifications" 
           method="POST"
           use:enhance={() => {
-            loading = true;
+            notificationLoading = true;
             return async ({ result }) => {
               if (result.type === 'success') {
                 toast.success("Notifications Updated Successfully.");
@@ -147,7 +148,7 @@
               } else {
                 toast.error("Notifications didn't update.")
               }
-              loading = false;
+              notificationLoading = false;
             }
           }}
           >
@@ -193,8 +194,8 @@
             <input type="hidden" name="reminderNotifications" value={String(reminderNotifications)} />
             </div>
 
-            <Button type="submit" variant="default">
-            {loading ? 'Updating...' : 'Save Notifications'}
+            <Button type="submit" variant="default" disabled={notificationLoading}>
+            {notificationLoading ? 'Updating...' : 'Save Notifications'}
           </Button>
           </form>
       </CardContent>
