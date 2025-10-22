@@ -63,13 +63,13 @@
 	function getDifficultyColor(difficulty: string): string {
 		switch (difficulty.toLowerCase()) {
 			case 'easy':
-				return 'bg-success/20 text-success';
+				return 'bg-easy/20 text-easy';
 			case 'medium':
-				return 'bg-primary/20 text-primary';
+				return 'bg-medium/20 text-medium';
 			case 'hard':
-				return 'bg-secondary/20 text-secondary';
+				return 'bg-hard/20 text-hard';
 			default:
-				return 'bg-primary/20 text-primary';
+				return 'bg-medium/20 text-medium';
 		}
 	}
 </script>

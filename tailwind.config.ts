@@ -17,11 +17,11 @@ const config: Config = {
       colors: {
         border: "#2F3A4A",
         input: "#2F3A4A",
-        ring: "#15803D",
+        ring: "#806215",
         background: "#0F1723",
         foreground: "#F9FAFB",
         primary: {
-          DEFAULT: "#15803D", // Dark Emerald green
+          DEFAULT: "#806215", // Dark Amber
           foreground: "#FFFFFF",
         },
         secondary: {
@@ -29,7 +29,7 @@ const config: Config = {
           foreground: "#0F1723",
         },
         success: {
-          DEFAULT: "#10B981", // Emerald green
+          DEFAULT: "#15803D", // Dark Emerald Green
           foreground: "#FFFFFF",
         },
         destructive: {
@@ -53,7 +53,7 @@ const config: Config = {
           foreground: "#F9FAFB",
         },
         badge: {
-          DEFAULT: "#10B981",
+          DEFAULT: "#766436",
           foreground: "#FFFFFF",
         },
         icon: {

@@ -7,7 +7,7 @@
     --background: #111827; /* Dark charcoal */
     --foreground: #F9FAFB; /* Light gray text */
     
-    --success: #10B981; /* Emerald green */
+    --success: #15803D; /* Dark emerald green */
     --success-foreground: #FFFFFF;
     
     --muted: #1F2937; /* Dark gray */
@@ -22,7 +22,7 @@
     --border: #374151; /* Gray border */
     --input: #1F2937;
     
-    --primary: #10B981; /* Emerald green */
+    --primary: #806215; /* Dark emerald green */
     --primary-foreground: #FFFFFF;
     
     --secondary: #F59E0B; /* Amber */
@@ -34,7 +34,7 @@
     --destructive: #EF4444; /* Red */
     --destructive-foreground: #FFFFFF;
 
-    --badge: #10B981;
+    --badge: #766436;
     --badge-foreground: #FFFFFF;
 
     --easy: #10B981;
@@ -54,7 +54,7 @@
     --background: #0F172A; /* Darker blue */
     --foreground: #F1F2EB; /* Soft ivory */
 
-    --success: #059669; /* Darker emerald */
+    --success: #15803D; /* Dark emerald green */ 
     --success-foreground: #FFFFFF;
 
     --muted: #1E293B; /* Very dark blue */
@@ -69,7 +69,7 @@
     --border: #334155; /* Dark border */
     --input: #1E293B;
 
-    --primary: #FBEEC2; /* Alexandria’s Lighthouse */
+    --primary: #806215; /* Dark emerald green */
     --primary-foreground: #0F172A;
 
     --secondary: #B91C1C; /* Deeper red */
