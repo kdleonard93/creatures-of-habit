@@ -4,49 +4,49 @@
 
 @layer base {
   :root {
-    --background: #1A2238; /* Deep twilight blue */
-    --foreground: #F1F2EB; /* Soft ivory for text */
+    --background: #111827; /* Dark charcoal */
+    --foreground: #F9FAFB; /* Light gray text */
     
-    --success: #81C784; /* Soft sage green */
+    --success: #10B981; /* Emerald green */
     --success-foreground: #FFFFFF;
     
-    --muted: #2D3748; /* Deeper blue */
-    --muted-foreground: #A0AEC0; /* Muted silver */
+    --muted: #1F2937; /* Dark gray */
+    --muted-foreground: #9CA3AF; /* Medium gray */
     
-    --popover: #2A3950; /* Slightly lighter than background */
-    --popover-foreground: #F1F2EB;
+    --popover: #1F2937; /* Dark gray */
+    --popover-foreground: #F9FAFB;
     
-    --card: #2A3950; /* Slightly lighter blue for cards */
-    --card-foreground: #F1F2EB;
+    --card: #1F2937; /* Dark gray */
+    --card-foreground: #F9FAFB;
     
-    --border: #3F4C6B; /* Border blue */
-    --input: #2D3748;
+    --border: #374151; /* Gray border */
+    --input: #1F2937;
     
-    --primary: #FBEEC2; /* Alexandria's Lighthouse */
-    --primary-foreground: #1A2238;
+    --primary: #10B981; /* Emerald green */
+    --primary-foreground: #FFFFFF;
     
-    --secondary: #E57373; /* Soft coral red */
-    --secondary-foreground: #FFFFFF;
+    --secondary: #F59E0B; /* Amber */
+    --secondary-foreground: #111827;
     
-    --accent: #90CAF9; /* Soft sky blue */
-    --accent-foreground: #1A2238;
+    --accent: #14B8A6; /* Teal */
+    --accent-foreground: #FFFFFF;
     
-    --destructive: #EF9A9A; /* Soft rose red */
-    --destructive-foreground: #1A2238;
+    --destructive: #EF4444; /* Red */
+    --destructive-foreground: #FFFFFF;
 
-    --badge: #8B5CF6;
+    --badge: #10B981;
     --badge-foreground: #FFFFFF;
 
-    --easy: #A5D6A7;
-    --easy-foreground: #1A2238;
+    --easy: #10B981;
+    --easy-foreground: #FFFFFF;
     
-    --medium: #FFB74D;
-    --medium-foreground: #1A2238;
+    --medium: #F59E0B;
+    --medium-foreground: #111827;
     
-    --hard: #fc7979;
-    --hard-foreground: #1A2238;
+    --hard: #EF4444;
+    --hard-foreground: #FFFFFF;
     
-    --ring: #FBEEC2;
+    --ring: #10B981;
     --radius: 0.5rem;
   }
 
