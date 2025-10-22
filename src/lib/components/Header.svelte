@@ -72,11 +72,13 @@
                 {#if isAuthenticated}
                     <NotificationCenter />
                 {/if}
+                {#if !isAuthenticated}
                 {#each authItems as item}
                     <Button href={item.href} variant={item.variant} size="sm">
                         {item.label}
                     </Button>
                 {/each}
+                {/if}
             </div>
 
             <!-- Mobile Navigation -->
@@ -123,6 +125,7 @@
                             <div class="border-t border-border"></div>
                             
                             <!-- Auth Buttons -->
+                            {#if !isAuthenticated}
                             <div class="space-y-2">
                                 {#each authItems as item}
                                     <Button 
@@ -135,6 +138,7 @@
                                     </Button>
                                 {/each}
                             </div>
+                            {/if}
                         </div>
                     </SheetContent>
                 </Sheet>

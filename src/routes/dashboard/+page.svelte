@@ -232,7 +232,6 @@
 								{@html classIcons[props.data.creature.class as CreatureClassType]}
 								<span class="capitalize">{props.data.creature.class}</span>
 							</p>
-							<p><span class="font-semibold">Level:</span> {props.data.creature.level}</p>
 						</div>
 
 						<!-- Add XP progress bar -->

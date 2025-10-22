@@ -3,6 +3,7 @@ import { questInstances, questTemplates, questQuestions, questAnswers, creatureS
 import { and, eq, isNull, gte, lte, sql, or, desc, asc } from 'drizzle-orm';
 import { formatDateOnly } from '$lib/utils/date';
 import { generateQuestQuestions as generateQuestionTemplates } from '$lib/utils/questHelpers';
+import { getLevelFromXp } from '$lib/server/xp';
 
 /**
  * Helper function to strip sensitive fields from question data
@@ -351,10 +352,14 @@ async function completeQuest(questId: string, userId: string, correctAnswers: nu
         .limit(1);
 
     if (userCreature.length > 0) {
+        const newExperience = (userCreature[0].experience || 0) + totalExp;
+        const newLevel = getLevelFromXp(newExperience)
+
         await db
             .update(creature)
             .set({
-                experience: sql`${creature.experience} + ${totalExp}`
+                experience: newExperience,
+                level: newLevel
             })
             .where(eq(creature.id, userCreature[0].id));
     }
