@@ -27,6 +27,7 @@
 
     // Marketing navigation items (shown when not authenticated)
     const marketingNavItems = [
+      { href: '/', label: 'Homepage'},
       { href: '/waitlist', label: 'Waitlist' },
       { href: '/features', label: 'Features' },
       { href: '/how-to-play', label: 'How It Works' },

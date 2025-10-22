@@ -77,9 +77,8 @@
 <div class="container mx-auto py-8 space-y-6">
 	<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
 		<div>
-			<h1 class="text-3xl font-bold">Welcome, {props.data.user.username}!</h1>
-			<p class="text-muted-foreground flex items-center gap-2">
-				<Calendar class="h-4 w-4" />
+			<p class="text-muted-foreground flex items-center gap-1">
+				<Calendar class="h-6 w-6" />
 				{formattedDate}
 			</p>
 		</div>
