@@ -79,13 +79,21 @@ export const actions: Actions = {
         const reminderNotifications = data.get('reminderNotifications') === 'true' ? 1 : 0;
 
         await db
-            .update(userPreferences)
-            .set({
+            .insert(userPreferences)
+            .values({
+                userId: authSession.user.id,
                 emailNotifications,
                 pushNotifications,
                 reminderNotifications
             })
-            .where(eq(userPreferences.userId, authSession.user.id));
+            .onConflictDoUpdate({
+                target: userPreferences.userId,
+                set: {
+                    emailNotifications,
+                    pushNotifications,
+                    reminderNotifications
+                }
+            });
 
         return { success: true };
     }

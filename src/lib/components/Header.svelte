@@ -21,7 +21,8 @@
       { href: '/dashboard', label: 'Dashboard' },
       { href: '/habits', label: 'Habits' },
       { href: '/character/details', label: 'Character' },
-      { href: '/quests', label: 'Quests' }
+      { href: '/quests', label: 'Quests' },
+      { href: '/settings', label: 'Settings'}
     ];
 
     // Marketing navigation items (shown when not authenticated)
