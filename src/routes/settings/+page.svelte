@@ -9,17 +9,27 @@
     import type { PageData } from './$types';
 
     const { data } = $props<{ data: PageData }>();
+
+    const DEFAULT_NOTIFICATIONS = {
+    email: false,
+    push: false,
+    reminders: true
+    };
   
     // Form state
     let loading = $state(false);
     let currentPassword = $state("");
     let newPassword = $state("");
     let confirmPassword = $state("");
+
+    function getNotificationState(value: number | undefined, defaultValue: boolean): boolean {
+    return value !== undefined ? !!value : defaultValue;
+    }
     
     // Notification preferences
-    let emailNotifications = $state(!!data.preferences?.emailNotifications);
-    let pushNotifications = $state(!!data.preferences?.pushNotifications);
-    let reminderNotifications = $state(!!data.preferences?.reminderNotifications);
+    let emailNotifications = $state(getNotificationState(data.preferences?.emailNotifications, DEFAULT_NOTIFICATIONS.email));
+    let pushNotifications = $state(getNotificationState(data.preferences?.pushNotifications, DEFAULT_NOTIFICATIONS.push));
+    let reminderNotifications = $state(getNotificationState(data.preferences?.reminderNotifications, DEFAULT_NOTIFICATIONS.reminders));
     
   
     // Derived values
