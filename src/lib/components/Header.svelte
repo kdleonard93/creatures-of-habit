@@ -27,6 +27,7 @@
 
     // Marketing navigation items (shown when not authenticated)
     const marketingNavItems = [
+      { href: '/', label: 'Homepage'},
       { href: '/waitlist', label: 'Waitlist' },
       { href: '/features', label: 'Features' },
       { href: '/how-to-play', label: 'How It Works' },
@@ -72,11 +73,13 @@
                 {#if isAuthenticated}
                     <NotificationCenter />
                 {/if}
+                {#if !isAuthenticated}
                 {#each authItems as item}
                     <Button href={item.href} variant={item.variant} size="sm">
                         {item.label}
                     </Button>
                 {/each}
+                {/if}
             </div>
 
             <!-- Mobile Navigation -->
@@ -123,6 +126,7 @@
                             <div class="border-t border-border"></div>
                             
                             <!-- Auth Buttons -->
+                            {#if !isAuthenticated}
                             <div class="space-y-2">
                                 {#each authItems as item}
                                     <Button 
@@ -135,6 +139,7 @@
                                     </Button>
                                 {/each}
                             </div>
+                            {/if}
                         </div>
                     </SheetContent>
                 </Sheet>

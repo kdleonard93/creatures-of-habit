@@ -20,17 +20,10 @@
           </p>
         </div>
         <div class="flex flex-col gap-2 min-[400px]:flex-row">
-          <Button size="lg" href="/signup">Get Started Free</Button>
           <Button size="lg" variant="outline" href="/how-to-play">
             How It Works
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
-        </div>
-        <div class="flex items-center space-x-4 text-sm">
-          <div class="flex items-center">
-            <CheckCircle className="mr-1 h-4 w-4 text-primary" />
-            <span>Free to start</span>
-          </div>
         </div>
       </div>
       <div class="flex items-center justify-center">
@@ -38,7 +31,7 @@
           <!-- Hero image - stylized character card -->
           <div class="relative overflow-hidden rounded-lg border bg-background p-6 shadow-xl">
             <div class="flex items-center gap-4 mb-4">
-              <div class="h-16 w-16 overflow-hidden rounded-full border-2 border-primary">
+              <div class="h-16 w-16 overflow-hidden rounded-full flex items-center justify-center border-2 border-primary">
                 {@html svgLogo}
               </div>
               <div>
