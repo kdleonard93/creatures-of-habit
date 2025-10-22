@@ -19,14 +19,14 @@
     --card: #1F2937; /* Dark gray */
     --card-foreground: #F9FAFB;
     
-    --border: #374151; /* Gray border */
-    --input: #1F2937;
+    --border: #2F3A4A; /* Gray border */
+    --input: #2F3A4A;
     
-    --primary: #806215; /* Dark emerald green */
+    --primary: #D97706; /* Warm amber */
     --primary-foreground: #FFFFFF;
     
-    --secondary: #F59E0B; /* Amber */
-    --secondary-foreground: #111827;
+    --secondary: #64748B; /* Slate gray */
+    --secondary-foreground: #FFFFFF;
     
     --accent: #14B8A6; /* Teal */
     --accent-foreground: #FFFFFF;
@@ -34,7 +34,7 @@
     --destructive: #EF4444; /* Red */
     --destructive-foreground: #FFFFFF;
 
-    --badge: #766436;
+    --badge: #E09F3E;
     --badge-foreground: #FFFFFF;
 
     --easy: #10B981;
@@ -46,51 +46,7 @@
     --hard: #EF4444;
     --hard-foreground: #FFFFFF;
     
-    --ring: #10B981;
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: #0F172A; /* Darker blue */
-    --foreground: #F1F2EB; /* Soft ivory */
-
-    --success: #15803D; /* Dark emerald green */ 
-    --success-foreground: #FFFFFF;
-
-    --muted: #1E293B; /* Very dark blue */
-    --muted-foreground: #94A3B8; /* Muted silver */
-
-    --popover: #1E293B; /* Very dark blue */
-    --popover-foreground: #F1F2EB;
-
-    --card: #1E293B; /* Very dark blue */
-    --card-foreground: #F1F2EB;
-
-    --border: #334155; /* Dark border */
-    --input: #1E293B;
-
-    --primary: #806215; /* Dark emerald green */
-    --primary-foreground: #0F172A;
-
-    --secondary: #B91C1C; /* Deeper red */
-    --secondary-foreground: #FFFFFF;
-
-    --accent: #3B82F6; /* Deeper blue */
-    --accent-foreground: #FFFFFF;
-
-    --destructive: #DC2626; /* Deeper red */
-    --destructive-foreground: #FFFFFF;
-
-    --easy: #A5D6A7;
-    --easy-foreground: #1A2238;
-    
-    --medium: #FFB74D;
-    --medium-foreground: #1A2238;
-    
-    --hard: #fc7979;
-    --hard-foreground: #1A2238;
-    
-    --ring: #FBEEC2;
+    --ring: #D97706;
     --radius: 0.5rem;
   }
 }

@@ -17,16 +17,16 @@ const config: Config = {
       colors: {
         border: "#2F3A4A",
         input: "#2F3A4A",
-        ring: "#806215",
-        background: "#0F1723",
+        ring: "#D97706",
+        background: "#111827",
         foreground: "#F9FAFB",
         primary: {
-          DEFAULT: "#806215", // Dark Amber
+          DEFAULT: "#E09F3E", // Warm amber
           foreground: "#FFFFFF",
         },
         secondary: {
-          DEFAULT: "#B45309", // Dark Amber
-          foreground: "#0F1723",
+          DEFAULT: "#64748B", // Slate gray
+          foreground: "#FFFFFF",
         },
         success: {
           DEFAULT: "#15803D", // Dark Emerald Green
@@ -53,11 +53,11 @@ const config: Config = {
           foreground: "#F9FAFB",
         },
         badge: {
-          DEFAULT: "#766436",
+          DEFAULT: "#D38C3B",
           foreground: "#FFFFFF",
         },
         icon: {
-          DEFAULT: "#10B981",
+          DEFAULT: "#14B8A6",
           foreground: "#FFFFFF",
         },
         easy: {
