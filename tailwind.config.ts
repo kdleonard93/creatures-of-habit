@@ -15,61 +15,61 @@ const config: Config = {
     },
     extend: {
       colors: {
-        border: "#3F4C6B",
-        input: "#2D3748",
-        ring: "#FBEEC2",
-        background: "#1A2238",
-        foreground: "#F1F2EB",
+        border: "#2F3A4A",
+        input: "#2F3A4A",
+        ring: "#D97706",
+        background: "#111827",
+        foreground: "#F9FAFB",
         primary: {
-          DEFAULT: "#FBEEC2", // Alexandria’s Lighthouse
-          foreground: "#1A2238",
+          DEFAULT: "#E09F3E", // Warm amber
+          foreground: "#FFFFFF",
         },
         secondary: {
-          DEFAULT: "#E57373", // Soft coral red
+          DEFAULT: "#64748B", // Slate gray
           foreground: "#FFFFFF",
         },
         success: {
-          DEFAULT: "#81C784", // Soft sage green
+          DEFAULT: "#15803D", // Dark Emerald Green
           foreground: "#FFFFFF",
         },
         destructive: {
-          DEFAULT: "#EF9A9A", // Soft rose red
-          foreground: "#1A2238",
+          DEFAULT: "#EF4444", // Red
+          foreground: "#FFFFFF",
         },
         muted: {
-          DEFAULT: "#2D3748", // Deeper blue (keep as is)
-          foreground: "#A0AEC0", // Muted silver (keep as is)
+          DEFAULT: "#1F2937", // Dark gray
+          foreground: "#9CA3AF", // Medium gray
         },
         accent: {
-          DEFAULT: "#90CAF9", // Soft sky blue
-          foreground: "#1A2238",
+          DEFAULT: "#14B8A6", // Teal
+          foreground: "#FFFFFF",
         },
         popover: {
-          DEFAULT: "#2A3950", // Slightly lighter than background
-          foreground: "#F1F2EB",
+          DEFAULT: "#1F2937", // Dark gray
+          foreground: "#F9FAFB",
         },
         card: {
-          DEFAULT: "#2A3950", // Slightly lighter blue for cards
-          foreground: "#F1F2EB",
+          DEFAULT: "#1F2937", // Dark gray
+          foreground: "#F9FAFB",
         },
         badge: {
-          DEFAULT: "#8B5CF6",
+          DEFAULT: "#D38C3B",
           foreground: "#FFFFFF",
         },
         icon: {
-          DEFAULT: "#FBEEC2",
-          foreground: "#1A2238",
+          DEFAULT: "#14B8A6",
+          foreground: "#FFFFFF",
         },
         easy: {
-          DEFAULT: "#A5D6A7", // Soft mint green
-          foreground: "#1A2238",
+          DEFAULT: "#10B981", // Emerald green
+          foreground: "#FFFFFF",
         },
         medium: {
-          DEFAULT: "#FFB74D", // Soft peach amber
-          foreground: "#1A2238",
+          DEFAULT: "#F59E0B", // Amber
+          foreground: "#111827",
         },
         hard: {
-          DEFAULT: "#fc7979", // Soft coral red
+          DEFAULT: "#EF4444", // Red
           foreground: "#FFFFFF",
         }
       },
