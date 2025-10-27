@@ -157,7 +157,7 @@
 				<div class="space-y-2">
 					<div class="flex items-center gap-2 text-xs">
 						<div class="h-2 w-2 rounded-full bg-accent"></div>
-						<span>Email & SMS notifications</span>
+						<span>Email notifications</span>
 					</div>
 					<div class="flex items-center gap-2 text-xs">
 						<div class="h-2 w-2 rounded-full bg-primary"></div>

@@ -119,14 +119,15 @@ describe('Notification Service', () => {
             // Mock: No preferences exist
             vi.mocked(db.query.userPreferences.findFirst).mockResolvedValue(undefined);
 
-            // Reminders via email should be enabled by default
+            // All channels should be allowed by default (permissive fallback)
             const reminderResult = await sendNotification('user-1', 'email', 'Test', 'Test', 'reminder');
             expect(reminderResult.sent).toBe(true);
 
-            // Regular email (no category) should be disabled by default
             const emailResult = await sendNotification('user-1', 'email', 'Test', 'Test');
-            expect(emailResult.sent).toBe(false);
-            expect(emailResult.reason).toBe('Notification disabled by user preferences');
+            expect(emailResult.sent).toBe(true);
+
+            const inAppResult = await sendNotification('user-1', 'in-app', 'Test', 'Test');
+            expect(inAppResult.sent).toBe(true);
         });
 
         it('should return not implemented for push notifications', async () => {

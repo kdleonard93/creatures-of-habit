@@ -22,7 +22,7 @@ export interface NotificationResult {
  * Send a notification to a user, respecting their preferences
  * 
  * @param userId - The user's ID
- * @param channel - Delivery channel for notification (email, push, sms, in-app)
+ * @param channel - Delivery channel for notification (email, push, in-app)
  * @param subject - Email subject line
  * @param message - Email message content (HTML supported)
  * @param category - Category of notification (reminder, achievement, system, quest)
@@ -83,7 +83,7 @@ function checkNotificationEnabled(
     category?: NotificationCategory
 ): boolean {
     if (!preferences) {
-        return category === 'reminder' && channel === 'email';
+        return true;
     }
     let channelEnabled = false;
     switch (channel) {
