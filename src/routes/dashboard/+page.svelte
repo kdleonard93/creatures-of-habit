@@ -63,13 +63,13 @@
 	function getDifficultyColor(difficulty: string): string {
 		switch (difficulty.toLowerCase()) {
 			case 'easy':
-				return 'bg-success/20 text-success';
+				return 'bg-easy/20 text-easy';
 			case 'medium':
-				return 'bg-primary/20 text-primary';
+				return 'bg-medium/20 text-medium';
 			case 'hard':
-				return 'bg-secondary/20 text-secondary';
+				return 'bg-hard/20 text-hard';
 			default:
-				return 'bg-primary/20 text-primary';
+				return 'bg-medium/20 text-medium';
 		}
 	}
 </script>
@@ -77,9 +77,8 @@
 <div class="container mx-auto py-8 space-y-6">
 	<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
 		<div>
-			<h1 class="text-3xl font-bold">Welcome, {props.data.user.username}!</h1>
-			<p class="text-muted-foreground flex items-center gap-2">
-				<Calendar class="h-4 w-4" />
+			<p class="text-muted-foreground flex items-center gap-1">
+				<Calendar class="h-6 w-6" />
 				{formattedDate}
 			</p>
 		</div>
@@ -232,7 +231,6 @@
 								{@html classIcons[props.data.creature.class as CreatureClassType]}
 								<span class="capitalize">{props.data.creature.class}</span>
 							</p>
-							<p><span class="font-semibold">Level:</span> {props.data.creature.level}</p>
 						</div>
 
 						<!-- Add XP progress bar -->

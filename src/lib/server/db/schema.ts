@@ -245,6 +245,7 @@ export const userPreferences = sqliteTable('user_preferences', {
     // Notification preferences
     emailNotifications: integer('email_notifications').notNull().default(1),
     pushNotifications: integer('push_notifications').notNull().default(1),
+    inAppNotifications: integer('in_app_notifications').notNull().default(1),
     reminderNotifications: integer('reminder_notifications').notNull().default(1),
     
     // Privacy settings

@@ -6,22 +6,32 @@
     import { Label } from "$lib/components/ui/label";
     import { Switch } from "$lib/components/ui/switch";
     import { Toaster, toast } from 'svelte-sonner';
+    import type { PageData } from './$types';
+
+    const { data } = $props<{ data: PageData }>();
+
+    const DEFAULT_NOTIFICATIONS = {
+    email: false,
+    push: false,
+    reminders: true
+    };
   
     // Form state
-    let loading = $state(false);
+    let passwordLoading = $state(false);
+    let notificationLoading = $state(false);
     let currentPassword = $state("");
     let newPassword = $state("");
     let confirmPassword = $state("");
+
+    function getNotificationState(value: number | undefined, defaultValue: boolean): boolean {
+    return value !== undefined ? !!value : defaultValue;
+    }
     
     // Notification preferences
-    let emailNotifications = $state(false);
-    let pushNotifications = $state(false);
-    let reminderNotifications = $state(false);
+    let emailNotifications = $state(getNotificationState(data.preferences?.emailNotifications, DEFAULT_NOTIFICATIONS.email));
+    let pushNotifications = $state(getNotificationState(data.preferences?.pushNotifications, DEFAULT_NOTIFICATIONS.push));
+    let reminderNotifications = $state(getNotificationState(data.preferences?.reminderNotifications, DEFAULT_NOTIFICATIONS.reminders));
     
-    // Privacy settings
-    let profileVisibility = $state(false);
-    let activitySharing = $state(false);
-    let statsSharing = $state(false);
   
     // Derived values
     let passwordsMatch = $derived(newPassword === confirmPassword);
@@ -30,86 +40,8 @@
       newPassword && 
       confirmPassword && 
       passwordsMatch && 
-      !loading
+      !passwordLoading
     );
-  
-    async function handlePasswordSubmit(event: SubmitEvent) {
-      loading = true;
-      
-      try {
-        const form = event.target as HTMLFormElement;
-        const formData = new FormData(form);
-        
-        const response = await fetch('/api/settings/password', {
-          method: 'POST',
-          body: JSON.stringify({
-            currentPassword,
-            newPassword
-          }),
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (!response.ok) {
-          const error = await response.text();
-          throw new Error(error);
-        }
-        
-        toast.success('Password updated successfully');
-        currentPassword = newPassword = confirmPassword = '';
-      } catch (error) {
-        if (error instanceof Error) {
-          toast.error(error.message);
-        } else {
-          toast.error('Failed to update password');
-        }
-      } finally {
-        loading = false;
-      }
-    }
-  
-    async function updateNotificationPreferences() {
-      try {
-        const response = await fetch('/api/settings/notifications', {
-          method: 'POST',
-          body: JSON.stringify({
-            email: emailNotifications,
-            push: pushNotifications,
-            reminders: reminderNotifications
-          }),
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (!response.ok) throw new Error('Failed to update preferences');
-        toast.success('Notification preferences updated');
-      } catch (error) {
-        toast.error('Failed to update notification preferences');
-      }
-    }
-  
-    async function updatePrivacySettings() {
-      try {
-        const response = await fetch('/api/settings/privacy', {
-          method: 'POST',
-          body: JSON.stringify({
-            profileVisibility,
-            activitySharing,
-            statsSharing
-          }),
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (!response.ok) throw new Error('Failed to update settings');
-        toast.success('Privacy settings updated');
-      } catch (error) {
-        toast.error('Failed to update privacy settings');
-      }
-    }
   </script>
   
   <svelte:head>
@@ -128,13 +60,29 @@
       <CardContent>
         <form 
           class="space-y-4" 
-          onsubmit={handlePasswordSubmit}
-          use:enhance
+          action="?/updatePassword"
+          method="POST"
+          use:enhance = {() => {
+            passwordLoading = true;
+            return async ({ result }) => {
+              if (result.type === 'success') {
+              currentPassword = newPassword = confirmPassword = '';
+              toast.success('Password updated successfully');
+             } else if (result.type === 'failure' && result.data) {
+              const errorMessage = result.data.message as string;
+              toast.error(errorMessage || 'Failed to update password.');
+              } else {
+                toast.error('Failed to update password.');
+              }
+              passwordLoading = false;
+            };
+          }}
         >
           <div class="space-y-2">
             <Label for="currentPassword">Current Password</Label>
             <Input
               id="currentPassword"
+              name="currentPassword"
               type="password"
               bind:value={currentPassword}
               required
@@ -145,6 +93,7 @@
             <Label for="newPassword">New Password</Label>
             <Input
               id="newPassword"
+              name="newPassword"
               type="password"
               bind:value={newPassword}
               required
@@ -155,6 +104,7 @@
             <Label for="confirmPassword">Confirm New Password</Label>
             <Input
               id="confirmPassword"
+              name="confirmPassword"
               type="password"
               bind:value={confirmPassword}
               required
@@ -169,7 +119,7 @@
             disabled={!canSubmitPassword}
             variant="default"
           >
-            {loading ? 'Updating...' : 'Update Password'}
+            {passwordLoading ? 'Updating...' : 'Update Password'}
           </Button>
         </form>
       </CardContent>
@@ -182,20 +132,39 @@
         <CardDescription>Manage how you receive updates</CardDescription>
       </CardHeader>
       <CardContent>
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <div class="space-y-0.5">
-              <Label>Email Notifications</Label>
-              <p class="text-sm text-muted-foreground">Receive updates via email</p>
-            </div>
-            <Switch
-              checked={emailNotifications}
-              onCheckedChange={(checked) => {
-                emailNotifications = checked;
-                updateNotificationPreferences();
-              }}
-            />
-          </div>
+
+          <form
+          class="space-y-4" 
+          action="?/updateNotifications" 
+          method="POST"
+          use:enhance={() => {
+            notificationLoading = true;
+            return async ({ result }) => {
+              if (result.type === 'success') {
+                toast.success("Notifications Updated Successfully.");
+              } else if (result.type === 'failure' && result.data) {
+                const errorMessage = result.data.message as string;
+                toast.error(errorMessage || "Notifications didn't update.")
+              } else {
+                toast.error("Notifications didn't update.")
+              }
+              notificationLoading = false;
+            }
+          }}
+          >
+            <div class="flex items-center justify-between">
+              <div class="space-y-0.5">
+                <Label>Email Notifications</Label>
+                <p class="text-sm text-muted-foreground">Receive updates via email</p>
+              </div>
+              <Switch
+                checked={emailNotifications}
+                onCheckedChange={(checked) => {
+                  emailNotifications = checked;
+                }}
+              />
+              <input type="hidden" name="emailNotifications" value={String(emailNotifications)} />
+              </div>
           
           <div class="flex items-center justify-between">
             <div class="space-y-0.5">
@@ -206,10 +175,10 @@
               checked={pushNotifications}
               onCheckedChange={(checked) => {
                 pushNotifications = checked;
-                updateNotificationPreferences();
               }}
             />
-          </div>
+            <input type="hidden" name="pushNotifications" value={String(pushNotifications)} />
+            </div>
           
           <div class="flex items-center justify-between">
             <div class="space-y-0.5">
@@ -220,64 +189,15 @@
               checked={reminderNotifications}
               onCheckedChange={(checked) => {
                 reminderNotifications = checked;
-                updateNotificationPreferences();
               }}
             />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-    
-    <!-- Privacy Settings -->
-    <Card>
-      <CardHeader>
-        <CardTitle>Privacy Settings</CardTitle>
-        <CardDescription>Control your profile visibility and data sharing</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <div class="space-y-0.5">
-              <Label>Public Profile</Label>
-              <p class="text-sm text-muted-foreground">Make your profile visible to others</p>
+            <input type="hidden" name="reminderNotifications" value={String(reminderNotifications)} />
             </div>
-            <Switch
-              checked={profileVisibility}
-              onCheckedChange={(checked) => {
-                profileVisibility = checked;
-                updatePrivacySettings();
-              }}
-            />
-          </div>
-          
-          <div class="flex items-center justify-between">
-            <div class="space-y-0.5">
-              <Label>Activity Sharing</Label>
-              <p class="text-sm text-muted-foreground">Share your habit completion activities</p>
-            </div>
-            <Switch
-              checked={activitySharing}
-              onCheckedChange={(checked) => {
-                activitySharing = checked;
-                updatePrivacySettings();
-              }}
-            />
-          </div>
-          
-          <div class="flex items-center justify-between">
-            <div class="space-y-0.5">
-              <Label>Stats Sharing</Label>
-              <p class="text-sm text-muted-foreground">Share your habit statistics and achievements</p>
-            </div>
-            <Switch
-              checked={statsSharing}
-              onCheckedChange={(checked) => {
-                statsSharing = checked;
-                updatePrivacySettings();
-              }}
-            />
-          </div>
-        </div>
+
+            <Button type="submit" variant="default" disabled={notificationLoading}>
+            {notificationLoading ? 'Updating...' : 'Save Notifications'}
+          </Button>
+          </form>
       </CardContent>
     </Card>
   </div>

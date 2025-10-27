@@ -194,7 +194,6 @@
                                     </span>
                                 </div>
                             </div>
-                            <Progress value={Math.min(value * 5, 100)} class="h-2" />
                             <p class="text-sm {getStatColor(stat as keyof typeof effectiveStats)}">
                                 {getStatDescription(stat as keyof typeof effectiveStats)}
                             </p>

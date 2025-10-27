@@ -1,5 +1,5 @@
 import { get } from 'svelte/store';
-import type { Notifications } from '$lib/types';
+import type { Notifications, NotificationChannel, NotificationCategory } from '$lib/types';
 import { notifications } from './NotificationStore';
 
 // Notification Plugin Interface
@@ -37,32 +37,72 @@ export class NotificationManager {
     public async scheduleNotification(
         id: string, 
         message: string, 
-        type: 'email' | 'sms' | 'in-app', 
-        delay: number
+        channel: NotificationChannel, 
+        subject: string,
+        delay: number,
+        category?: NotificationCategory
     ): Promise<void> {
         // Clear existing timeout for this ID if it exists
         this.clearNotification(id);
 
         // Schedule the notification
         const timeoutId = setTimeout(() => {
-            this.showNotification(id, message, type);
+            this.showNotification(id, message, channel, subject, category);
         }, delay);
 
         // Store the timeout ID
         this.timeouts.set(id, Number(timeoutId));
     }
+    
+    
+    public escapeHtml(input: string): string {
+    return input
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
 
-    public showNotification(id: string, message: string, type: 'email' | 'sms' | 'in-app'): void {
-        // Create notification record
+    public async showNotification(
+        id: string, 
+        message: string, 
+        channel: NotificationChannel, 
+        subject: string,
+        category?: NotificationCategory
+    ): Promise<void> {
         const notification: Notifications = {
             id,
             message,
-            type,
-            timestamp: new Date()
+            type: channel, // using type as an alias for channel
+            subject,
+            timestamp: new Date(),
+            category
         };
 
+        // Send email notification via API if channel is email
+        if (channel === 'email' && typeof window !== 'undefined') {
+            try {
+                const res = await fetch('/api/notifications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        channel: 'email',
+                        category,
+                        subject,
+                        message: `<h2>${this.escapeHtml(subject)}</h2><p>${this.escapeHtml(message)}</p>`
+                    })
+                });
+                if (!res.ok) {
+                    throw new Error('Failed to send email notification');
+                }
+            } catch (error) {
+                console.error('Failed to send email notification:', error);
+            }
+        }
+
         // Show browser notification if permission granted
-        if (this.isPermissionGranted() && type !== 'in-app' && typeof window !== 'undefined' && 'Notification' in window) {
+        if (this.isPermissionGranted() && channel !== 'in-app' && typeof window !== 'undefined' && 'Notification' in window) {
             const browserNotification = new Notification(message, {
                 icon: '/favicon.png'
             });
