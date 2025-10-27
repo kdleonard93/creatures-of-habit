@@ -69,7 +69,7 @@ describe('Notification Service', () => {
             const result = await sendNotification('user-1', 'email', 'Test', 'Test');
 
             expect(result.sent).toBe(false);
-            expect(result.reason).toBe('Notification type disabled by user');
+            expect(result.reason).toBe('Notification disabled by user preferences');
         });
 
         it('should send email when user has enabled email notifications', async () => {
@@ -117,14 +117,14 @@ describe('Notification Service', () => {
             // Mock: No preferences exist
             vi.mocked(db.query.userPreferences.findFirst).mockResolvedValue(undefined);
 
-            // Reminders should be enabled by default
-            const reminderResult = await sendNotification('user-1', 'reminder', 'Test', 'Test');
+            // Reminders via email should be enabled by default
+            const reminderResult = await sendNotification('user-1', 'email', 'Test', 'Test', 'reminder');
             expect(reminderResult.sent).toBe(true);
 
-            // Email should be disabled by default
+            // Regular email (no category) should be disabled by default
             const emailResult = await sendNotification('user-1', 'email', 'Test', 'Test');
             expect(emailResult.sent).toBe(false);
-            expect(emailResult.reason).toBe('Notification type disabled by user');
+            expect(emailResult.reason).toBe('Notification disabled by user preferences');
         });
 
         it('should return not implemented for push notifications', async () => {

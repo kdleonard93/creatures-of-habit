@@ -33,12 +33,12 @@ describe('POST /api/notifications', () => {
         expect(data).toEqual({ error: 'Unauthorized' });
     });
 
-    it('should return 400 when type is missing', async () => {
+    it('should return 400 when channel/type is missing', async () => {
         const mockEvent = {
             request: new Request('http://localhost/api/notifications', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ subject: 'Test', message: 'Test' }) // Missing type
+                body: JSON.stringify({ subject: 'Test', message: 'Test' }) // Missing channel/type
             }),
             locals: {
                 auth: vi.fn().mockResolvedValue({ user: { id: 'user-1' }, session: {} })
@@ -49,7 +49,7 @@ describe('POST /api/notifications', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toContain('Missing required fields');
+        expect(data.error).toContain('Missing required field');
     });
 
     it('should return 400 when subject is missing', async () => {
@@ -90,12 +90,12 @@ describe('POST /api/notifications', () => {
         expect(data.error).toContain('Missing required fields');
     });
 
-    it('should return 400 when type is invalid', async () => {
+    it('should return 400 when channel is invalid', async () => {
         const mockEvent = {
             request: new Request('http://localhost/api/notifications', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type: 'invalid', subject: 'Test', message: 'Test' })
+                body: JSON.stringify({ channel: 'invalid', subject: 'Test', message: 'Test' })
             }),
             locals: {
                 auth: vi.fn().mockResolvedValue({ user: { id: 'user-1' }, session: {} })
@@ -106,10 +106,10 @@ describe('POST /api/notifications', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toContain('Invalid type');
+        expect(data.error).toContain('Invalid channel');
     });
 
-    it('should return success when notification is sent', async () => {
+    it('should return success when notification is sent (legacy type param)', async () => {
         vi.mocked(sendNotification).mockResolvedValue({ sent: true });
 
         const mockEvent = {
@@ -128,7 +128,55 @@ describe('POST /api/notifications', () => {
 
         expect(response.status).toBe(200);
         expect(data).toEqual({ success: true, message: 'Notification sent' });
-        expect(sendNotification).toHaveBeenCalledWith('user-1', 'email', 'Test', 'Test Message');
+        expect(sendNotification).toHaveBeenCalledWith('user-1', 'email', 'Test', 'Test Message', undefined);
+    });
+
+    it('should return success with new channel + category API', async () => {
+        vi.mocked(sendNotification).mockResolvedValue({ sent: true });
+
+        const mockEvent = {
+            request: new Request('http://localhost/api/notifications', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    channel: 'email', 
+                    category: 'reminder',
+                    subject: 'Habit Reminder', 
+                    message: 'Time to complete your habit!' 
+                })
+            }),
+            locals: {
+                auth: vi.fn().mockResolvedValue({ user: { id: 'user-1' }, session: {} })
+            }
+        } as unknown as RequestEvent;
+
+        const response = await POST(mockEvent);
+        const data = await response.json();
+
+        expect(response.status).toBe(200);
+        expect(data).toEqual({ success: true, message: 'Notification sent' });
+        expect(sendNotification).toHaveBeenCalledWith('user-1', 'email', 'Habit Reminder', 'Time to complete your habit!', 'reminder');
+    });
+
+    it('should map legacy reminder type to email channel with reminder category', async () => {
+        vi.mocked(sendNotification).mockResolvedValue({ sent: true });
+
+        const mockEvent = {
+            request: new Request('http://localhost/api/notifications', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'reminder', subject: 'Reminder', message: 'Test' })
+            }),
+            locals: {
+                auth: vi.fn().mockResolvedValue({ user: { id: 'user-1' }, session: {} })
+            }
+        } as unknown as RequestEvent;
+
+        const response = await POST(mockEvent);
+        const data = await response.json();
+
+        expect(response.status).toBe(200);
+        expect(sendNotification).toHaveBeenCalledWith('user-1', 'email', 'Reminder', 'Test', 'reminder');
     });
 
     it('should return 400 when notification fails to send', async () => {

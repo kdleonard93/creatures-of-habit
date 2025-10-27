@@ -2,6 +2,7 @@ import { db } from '$lib/server/db';
 import { user, userPreferences } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { Resend } from 'resend';
+import type { NotificationChannel, NotificationCategory } from '$lib/types';
 
 const resendToken = process.env.RESEND_API_KEY;
 let resend: Resend | null = null;
@@ -9,7 +10,7 @@ if (resendToken) {
     resend = new Resend(resendToken);
 }
 
-export type NotificationType = 'email' | 'push' | 'reminder';
+export type NotificationType = NotificationChannel;
 
 export interface NotificationResult {
     sent: boolean;
@@ -21,17 +22,19 @@ export interface NotificationResult {
  * Send a notification to a user, respecting their preferences
  * 
  * @param userId - The user's ID
- * @param type - Type of notification (email, push, reminder)
+ * @param channel - Delivery channel for notification (email, push, sms, in-app)
  * @param subject - Email subject line
  * @param message - Email message content (HTML supported)
+ * @param category - Category of notification (reminder, achievement, system, quest)
  * @returns Result indicating if notification was sent
  */
 
 export async function sendNotification(
     userId: string,
-    type: NotificationType,
+    channel: NotificationChannel,
     subject: string,
-    message: string
+    message: string,
+    category?: NotificationCategory
 ): Promise<NotificationResult> {
     const userData = await db.query.user.findFirst({
         where: eq(user.id, userId)
@@ -49,24 +52,25 @@ export async function sendNotification(
         where: eq(userPreferences.userId, userId)
     });
 
-    const isEnabled = checkNotificationEnabled(preferences, type);
+    const isEnabled = checkNotificationEnabled(preferences, channel, category);
     
     if (!isEnabled) {
-        return { sent: false, reason: 'Notification type disabled by user' };
+        return { sent: false, reason: 'Notification disabled by user preferences' };
     }
 
-
-    if (type === 'email') {
-        return await sendEmail(userData.email, subject, message);
-    } 
-    if (type === 'push') {
-        return { sent: false, reason: 'Push notifications not yet implemented' };
-    } 
-    if (type === 'reminder') {
-        return await sendEmail(userData.email, subject, message);
+    switch (channel) {
+        case 'email':
+            return await sendEmail(userData.email, subject, message);
+        case 'push':
+            return { sent: false, reason: 'Push notifications not yet implemented' };
+        case 'sms':
+            return { sent: false, reason: 'SMS notifications not yet implemented' };
+        case 'in-app':
+            return { sent: false, reason: 'In-app notifications not yet implemented' };
+        default:
+            return { sent: false, reason: 'Unknown notification channel'}
     }
 
-    return { sent: false, reason: 'Unknown notification type' };
 }
 
 /**
@@ -74,23 +78,35 @@ export async function sendNotification(
  */
 function checkNotificationEnabled(
     preferences: typeof userPreferences.$inferSelect | undefined,
-    type: NotificationType
+    channel: NotificationChannel,
+    category?: NotificationCategory
 ): boolean {
     if (!preferences) {
-        return type === 'reminder';
+        return category === 'reminder' && channel === 'email';
+    }
+    let channelEnabled = false;
+    switch (channel) {
+        case 'email':
+            channelEnabled = preferences.emailNotifications === 1;
+            break;
+        case 'push':
+            channelEnabled = preferences.pushNotifications === 1;
+            break;
+        case 'sms':
+        case 'in-app':
+            channelEnabled = true;
+            break;
     }
 
-    if (type === 'email') {
-        return preferences.emailNotifications === 1;
-    } 
-    if (type === 'push') {
-        return preferences.pushNotifications === 1;
-    } 
-    if (type === 'reminder') {
-        return preferences.reminderNotifications === 1 && preferences.emailNotifications === 1;
+    if (!channelEnabled) {
+        return false;
     }
 
-    return false;
+    if (category === 'reminder') {
+        return preferences.reminderNotifications === 1;
+    }
+
+    return true;
 }
 
 /**

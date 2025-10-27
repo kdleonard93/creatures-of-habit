@@ -166,9 +166,13 @@ export interface Notifications {
 	subject: string;
 	timestamp: Date;
 	browserNotification?: Notification;
+	category?: NotificationCategory;
 }
 
-export type NotificationType = 'email' | 'sms' | 'in-app'
+export type NotificationChannel = 'email' | 'sms' | 'push' | 'in-app';
+export type NotificationCategory = 'reminder' | 'achievement' | 'system' | 'quest';
+
+export type NotificationType = NotificationChannel;
 
 export interface WaitlistData {
     title: string;
