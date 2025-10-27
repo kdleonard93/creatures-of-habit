@@ -37,9 +37,9 @@ describe('NotificationManager', () => {
         vi.restoreAllMocks();
     });
     
-    it('should show an immediate notification', () => {
+    it('should show an immediate notification', async () => {
         // Show notification
-        notificationManager.showNotification('test-1', 'Test message', 'in-app');
+        await notificationManager.showNotification('test-1', 'Test message', 'in-app');
         
         // Check if added to store
         const notificationsValue = get(notifications);
@@ -48,9 +48,9 @@ describe('NotificationManager', () => {
         expect(notificationsValue[0].type).toBe('in-app');
     });
     
-    it('should schedule a delayed notification', () => {
+    it('should schedule a delayed notification', async () => {
         // Schedule notification
-        notificationManager.scheduleNotification('test-2', 'Delayed message', 'in-app', 5000);
+        await notificationManager.scheduleNotification('test-2', 'Delayed message', 'in-app', 5000);
         
         // Should not be in store yet
         expect(get(notifications).length).toBe(0);
@@ -64,16 +64,16 @@ describe('NotificationManager', () => {
         expect(notificationsValue[0].message).toBe('Delayed message');
     });
     
-    it('should clear a specific notification', () => {
+    it('should clear a specific notification', async () => {
         // Add two notifications
-        notificationManager.showNotification('test-3', 'Message 1', 'in-app');
-        notificationManager.showNotification('test-4', 'Message 2', 'in-app');
+        await notificationManager.showNotification('test-3', 'Message 1', 'in-app');
+        await notificationManager.showNotification('test-4', 'Message 2', 'in-app');
         
         // Should have 2 notifications
         expect(get(notifications).length).toBe(2);
         
         // Clear one
-        notificationManager.clearNotification('test-3');
+        await notificationManager.clearNotification('test-3');
         
         // Should have 1 left
         const notificationsValue = get(notifications);
@@ -81,22 +81,22 @@ describe('NotificationManager', () => {
         expect(notificationsValue[0].id).toBe('test-4');
     });
     
-    it('should clear all notifications', () => {
+    it('should clear all notifications', async () => {
         // Add multiple notifications
-        notificationManager.showNotification('test-5', 'Message 1', 'in-app');
-        notificationManager.showNotification('test-6', 'Message 2', 'in-app');
+        await notificationManager.showNotification('test-5', 'Message 1', 'in-app');
+        await notificationManager.showNotification('test-6', 'Message 2', 'in-app');
         
         // Should have 2 notifications
         expect(get(notifications).length).toBe(2);
         
         // Clear all
-        notificationManager.clearAllNotifications();
+        await notificationManager.clearAllNotifications();
         
         // Should have none
         expect(get(notifications).length).toBe(0);
     });
     
-    it('should work with plugins', () => {
+    it('should work with plugins', async () => {
         // Create mock plugins
         const emailPlugin = new EmailNotificationPlugin();
         const smsPlugin = new SMSNotificationPlugin();
@@ -110,8 +110,8 @@ describe('NotificationManager', () => {
         notificationManager.registerPlugin(smsPlugin);
         
         // Show notification
-        notificationManager.showNotification('test-7', 'Email Plugin Test', 'email');
-        notificationManager.showNotification('test-8', 'SMS Plugin Test', 'sms');
+        await notificationManager.showNotification('test-7', 'Email Plugin Test', 'email');
+        await notificationManager.showNotification('test-8', 'SMS Plugin Test', 'sms');
         
         // Plugins should be called
         expect(emailSpy).toHaveBeenCalledTimes(2);

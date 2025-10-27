@@ -51,11 +51,11 @@
             
             const delay = reminderDate.getTime() - now.getTime();
             
-            // Schedule the notification
+            // Schedule the notification (will send email + show in-app)
             notificationManager.scheduleNotification(
                 `habit-reminder-${props.habitId}`,
                 `Time to complete your habit: ${props.habitTitle}`,
-                'in-app',
+                'email',
                 delay
             );
             

@@ -52,7 +52,7 @@ export class NotificationManager {
         this.timeouts.set(id, Number(timeoutId));
     }
 
-    public showNotification(id: string, message: string, type: 'email' | 'sms' | 'in-app'): void {
+    public async showNotification(id: string, message: string, type: 'email' | 'sms' | 'in-app'): Promise<void> {
         // Create notification record
         const notification: Notifications = {
             id,
@@ -60,6 +60,23 @@ export class NotificationManager {
             type,
             timestamp: new Date()
         };
+
+        // Send email notification via API if type is not in-app
+        if (type === 'email' && typeof window !== 'undefined') {
+            try {
+                await fetch('/api/notifications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'reminder',
+                        subject: 'Habit Reminder',
+                        message: `<h2>Reminder</h2><p>${message}</p>`
+                    })
+                });
+            } catch (error) {
+                console.error('Failed to send email notification:', error);
+            }
+        }
 
         // Show browser notification if permission granted
         if (this.isPermissionGranted() && type !== 'in-app' && typeof window !== 'undefined' && 'Notification' in window) {
