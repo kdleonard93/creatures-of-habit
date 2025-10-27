@@ -67,6 +67,7 @@ describe('HabitReminder Component', () => {
       `habit-reminder-${habitId}`,
       `Time to complete your habit: ${habitTitle}`,
       'in-app',
+      'Habit Reminder',
       expect.any(Number)
     );
     
@@ -75,6 +76,7 @@ describe('HabitReminder Component', () => {
       `habit-reminder-${habitId}`,
       `Time to complete your habit: ${habitTitle}`,
       'in-app',
+      'Habit Reminder',
       expect.any(Number)
     );
     
