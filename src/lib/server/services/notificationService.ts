@@ -41,6 +41,10 @@ export async function sendNotification(
         return { sent: false, reason: 'User not found' };
     }
 
+    if (!userData.email) {
+        return { sent: false, reason: 'User has no email' };
+    }
+
     const preferences = await db.query.userPreferences.findFirst({
         where: eq(userPreferences.userId, userId)
     });
@@ -83,7 +87,7 @@ function checkNotificationEnabled(
         return preferences.pushNotifications === 1;
     } 
     if (type === 'reminder') {
-        return preferences.reminderNotifications === 1;
+        return preferences.reminderNotifications === 1 && preferences.emailNotifications === 1;
     }
 
     return false;

@@ -56,6 +56,7 @@
                 `habit-reminder-${props.habitId}`,
                 `Time to complete your habit: ${props.habitTitle}`,
                 'email',
+                'Habit Reminder',
                 delay
             );
             

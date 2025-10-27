@@ -38,6 +38,7 @@ export class NotificationManager {
         id: string, 
         message: string, 
         type: 'email' | 'sms' | 'in-app', 
+        subject: string,
         delay: number
     ): Promise<void> {
         // Clear existing timeout for this ID if it exists
@@ -45,34 +46,48 @@ export class NotificationManager {
 
         // Schedule the notification
         const timeoutId = setTimeout(() => {
-            this.showNotification(id, message, type);
+            this.showNotification(id, message, type, subject);
         }, delay);
 
         // Store the timeout ID
         this.timeouts.set(id, Number(timeoutId));
     }
+    
+    
+    public escapeHtml(input: string): string {
+    return input
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
 
-    public async showNotification(id: string, message: string, type: 'email' | 'sms' | 'in-app'): Promise<void> {
+    public async showNotification(id: string, message: string, type: 'email' | 'sms' | 'in-app', subject: string): Promise<void> {
         // Create notification record
         const notification: Notifications = {
             id,
             message,
             type,
+            subject,
             timestamp: new Date()
         };
 
         // Send email notification via API if type is not in-app
         if (type === 'email' && typeof window !== 'undefined') {
             try {
-                await fetch('/api/notifications', {
+                const res = await fetch('/api/notifications', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        type: 'reminder',
-                        subject: 'Habit Reminder',
-                        message: `<h2>Reminder</h2><p>${message}</p>`
+                        type: 'email',
+                        subject,
+                        message: `<h2>${this.escapeHtml(subject)}</h2><p>${this.escapeHtml(message)}</p>`
                     })
                 });
+                if (!res.ok) {
+                    throw new Error('Failed to send email notification');
+                }
             } catch (error) {
                 console.error('Failed to send email notification:', error);
             }

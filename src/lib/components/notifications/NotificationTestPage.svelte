@@ -17,10 +17,11 @@
     
     // Runes for state
     let message = $state('Test notification message');
+    let subject = $state('Test notification subject');
     let delay = $state('5');
     let type = $state<Selected<NotificationType> | undefined>({
-        value: 'in-app',
-        label: 'In-App'
+        value: 'email',
+        label: 'Email'
     });
     
 
@@ -38,7 +39,8 @@
         notificationManager.showNotification(
             `test-${Date.now()}`,
             message,
-            type.value
+            type.value,
+            subject
         );
         
         toast.success('Notification sent');
@@ -61,6 +63,7 @@
             `test-${Date.now()}`,
             message,
             type.value,
+            subject,
             delayMs
         );
         

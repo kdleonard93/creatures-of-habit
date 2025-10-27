@@ -163,6 +163,7 @@ export interface Notifications {
 	id: string;
 	message: string;
 	type: NotificationType;
+	subject: string;
 	timestamp: Date;
 	browserNotification?: Notification;
 }
