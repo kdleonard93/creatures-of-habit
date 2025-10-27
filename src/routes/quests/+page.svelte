@@ -6,6 +6,7 @@
 	import { getSvg } from '$lib/utils/icons';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
+	import QuestTimer from '$lib/components/quests/QuestTimer.svelte';
 
 	let dailyQuest: any = null;
 	let currentQuestion: any = null;
@@ -179,10 +180,17 @@
 
 <div class="container mx-auto px-4 py-8 max-w-4xl">
 	<div class="mb-8">
-		<h1 class="text-3xl font-bold mb-2">Daily Quest</h1>
-		<p class="text-muted-foreground">
-			Complete interactive story quests to earn experience and stat boost points!
-		</p>
+		<div class="flex justify-between items-start">
+			<div>
+				<h1 class="text-3xl font-bold mb-2">Daily Quest</h1>
+				<p class="text-muted-foreground">
+					Complete interactive story quests to earn experience and stat boost points!
+				</p>
+			</div>
+			{#if dailyQuest?.status === 'completed'}
+				<QuestTimer class="mt-1"></QuestTimer>
+			{/if}
+		</div>
 	</div>
 
 	{#if loading}
