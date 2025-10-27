@@ -459,3 +459,43 @@ export async function spendStatBoostPoints(userId: string, stat: string, points:
         remainingPoints
     };
 }
+
+/**
+ * Resets the daily quest (development only)
+ */
+export async function resetDailyQuest(userId: string) {
+    const today = formatDateOnly(new Date());
+    
+    // Find today's quest
+    const todayQuest = await db
+        .select()
+        .from(questInstances)
+        .where(
+            and(
+                eq(questInstances.userId, userId),
+                gte(sql`date(${questInstances.createdAt})`, today),
+                lte(sql`date(${questInstances.createdAt})`, today)
+            )
+        )
+        .limit(1);
+
+    if (todayQuest.length === 0) {
+        return { success: false, message: 'No quest found for today' };
+    }
+
+    const questId = todayQuest[0].id;
+
+    await db
+        .delete(questAnswers)
+        .where(eq(questAnswers.questInstanceId, questId));
+
+    await db
+        .delete(questQuestions)
+        .where(eq(questQuestions.questInstanceId, questId));
+
+    await db
+        .delete(questInstances)
+        .where(eq(questInstances.id, questId));
+
+    return { success: true, message: 'Quest reset successfully' };
+}

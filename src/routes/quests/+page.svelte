@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { dev } from '$app/environment';
 	import QuestCard from '$lib/components/quests/QuestCard.svelte';
 	import QuestQuestion from '$lib/components/quests/QuestQuestion.svelte';
 	import StatBoostPanel from '$lib/components/quests/StatBoostPanel.svelte';
+	import QuestReset from '$lib/components/quests/QuestReset.svelte';
 	import { getSvg } from '$lib/utils/icons';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
@@ -234,6 +236,10 @@
 
 			<!-- Sidebar -->
 			<div class="space-y-6">
+				{#if dev}
+					<QuestReset onReset={loadQuestData} />
+				{/if}
+
 				{#if userStats && (showStatBoost || dailyQuest?.status === 'completed')}
 					<StatBoostPanel
 						stats={userStats}
