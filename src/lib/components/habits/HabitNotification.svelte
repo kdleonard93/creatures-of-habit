@@ -1,6 +1,6 @@
 <script lang="ts">
     import { fade, fly } from 'svelte/transition';
-    import { X, Bell, Vibrate, AlertTriangle, Info } from '@lucide/svelte';
+    import { X, Bell, AlertTriangle, Info } from '@lucide/svelte';
     import { Button } from "$lib/components/ui/button";
     import type { Notifications, NotificationType } from '$lib/types';
     
@@ -14,8 +14,6 @@
         switch (type) {
             case 'email':
                 return Bell;
-            case 'sms':
-                return Vibrate;
             case 'in-app':
                 return AlertTriangle;
             default:
@@ -28,8 +26,6 @@
         switch (type) {
             case 'email':
                 return 'text-blue-500';
-            case 'sms':
-                return 'text-yellow-500';
             case 'in-app':
                 return 'text-purple-500';
             default:

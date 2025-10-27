@@ -40,7 +40,7 @@ export const POST: RequestHandler = async (event) => {
         );
     }
 
-    const validChannels: NotificationChannel[] = ['email', 'push', 'sms', 'in-app'];
+    const validChannels: NotificationChannel[] = ['email', 'push', 'in-app'];
     if (!validChannels.includes(notificationChannel)) {
         return json(
             { error: `Invalid channel. Must be one of: ${validChannels.join(', ')}` },

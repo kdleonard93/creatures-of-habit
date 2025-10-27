@@ -60,15 +60,16 @@ export async function sendNotification(
 
     switch (channel) {
         case 'email':
+            if (!userData.email) {
+                return { sent: false, reason: 'User has no email' };
+            }
             return await sendEmail(userData.email, subject, message);
         case 'push':
             return { sent: false, reason: 'Push notifications not yet implemented' };
-        case 'sms':
-            return { sent: false, reason: 'SMS notifications not yet implemented' };
         case 'in-app':
-            return { sent: false, reason: 'In-app notifications not yet implemented' };
+            return { sent: true, reason: 'In-app notification handled by client' };
         default:
-            return { sent: false, reason: 'Unknown notification channel'}
+            return { sent: false, reason: 'Unknown notification channel' };
     }
 
 }
@@ -92,9 +93,8 @@ function checkNotificationEnabled(
         case 'push':
             channelEnabled = preferences.pushNotifications === 1;
             break;
-        case 'sms':
         case 'in-app':
-            channelEnabled = true;
+            channelEnabled = preferences.inAppNotifications === 1;
             break;
     }
 

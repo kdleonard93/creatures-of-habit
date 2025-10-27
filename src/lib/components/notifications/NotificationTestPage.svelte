@@ -9,11 +9,9 @@
     import type { Selected } from 'bits-ui';
     import type { NotificationType } from '$lib/types';
     import { EmailNotificationPlugin } from '$lib/plugins/EmailNotificationPlugin';
-    import { SMSNotificationPlugin } from '$lib/plugins/SMSNotificationPlugin';
     
     // Register plugins (would normally be done at app initialization)
     notificationManager.registerPlugin(new EmailNotificationPlugin());
-    notificationManager.registerPlugin(new SMSNotificationPlugin());
     
     // Runes for state
     let message = $state('Test notification message');
@@ -105,7 +103,7 @@
                             <SelectContent>
                                 <SelectItem value="in-app">In-App</SelectItem>
                                 <SelectItem value="email">Email</SelectItem>
-                                <SelectItem value="sms">SMS</SelectItem>
+                                <SelectItem value="push">Push</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

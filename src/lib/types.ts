@@ -169,7 +169,7 @@ export interface Notifications {
 	category?: NotificationCategory;
 }
 
-export type NotificationChannel = 'email' | 'sms' | 'push' | 'in-app';
+export type NotificationChannel = 'email' | 'push' | 'in-app';
 export type NotificationCategory = 'reminder' | 'achievement' | 'system' | 'quest';
 
 export type NotificationType = NotificationChannel;

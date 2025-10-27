@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NotificationManager } from '../../lib/notifications/NotificationManager';
 import { EmailNotificationPlugin } from '../../lib/plugins/EmailNotificationPlugin';
-import { SMSNotificationPlugin } from '../../lib/plugins/SMSNotificationPlugin';
 import { get } from 'svelte/store';
 import { notifications } from '../../lib/notifications/NotificationStore';
 
@@ -39,7 +38,7 @@ describe('NotificationManager', () => {
     
     it('should show an immediate notification', async () => {
         // Show notification
-        await notificationManager.showNotification('test-1', 'Test message', 'in-app');
+        await notificationManager.showNotification('test-1', 'Test message', 'in-app', 'Test Notification', 0);
         
         // Check if added to store
         const notificationsValue = get(notifications);
@@ -50,7 +49,7 @@ describe('NotificationManager', () => {
     
     it('should schedule a delayed notification', async () => {
         // Schedule notification
-        await notificationManager.scheduleNotification('test-2', 'Delayed message', 'in-app', 5000);
+        await notificationManager.scheduleNotification('test-2', 'Delayed message', 'in-app', 'Delayed Notification', 5000);
         
         // Should not be in store yet
         expect(get(notifications).length).toBe(0);
@@ -66,8 +65,8 @@ describe('NotificationManager', () => {
     
     it('should clear a specific notification', async () => {
         // Add two notifications
-        await notificationManager.showNotification('test-3', 'Message 1', 'in-app');
-        await notificationManager.showNotification('test-4', 'Message 2', 'in-app');
+        await notificationManager.showNotification('test-3', 'Message 1', 'in-app', 'Test Notification', 0);
+        await notificationManager.showNotification('test-4', 'Message 2', 'in-app', 'Test Notification', 0);
         
         // Should have 2 notifications
         expect(get(notifications).length).toBe(2);
@@ -83,8 +82,8 @@ describe('NotificationManager', () => {
     
     it('should clear all notifications', async () => {
         // Add multiple notifications
-        await notificationManager.showNotification('test-5', 'Message 1', 'in-app');
-        await notificationManager.showNotification('test-6', 'Message 2', 'in-app');
+        await notificationManager.showNotification('test-5', 'Message 1', 'in-app', 'Test Notification', 0);
+        await notificationManager.showNotification('test-6', 'Message 2', 'in-app', 'Test Notification', 0);
         
         // Should have 2 notifications
         expect(get(notifications).length).toBe(2);
@@ -97,34 +96,30 @@ describe('NotificationManager', () => {
     });
     
     it('should work with plugins', async () => {
-        // Create mock plugins
+        // Create mock plugin
         const emailPlugin = new EmailNotificationPlugin();
-        const smsPlugin = new SMSNotificationPlugin();
         
-        // Spy on plugin methods
+        // Spy on plugin method
         const emailSpy = vi.spyOn(emailPlugin, 'send');
-        const smsSpy = vi.spyOn(smsPlugin, 'send');
         
-        // Register plugins
+        // Register plugin
         notificationManager.registerPlugin(emailPlugin);
-        notificationManager.registerPlugin(smsPlugin);
         
-        // Show notification
-        await notificationManager.showNotification('test-7', 'Email Plugin Test', 'email');
-        await notificationManager.showNotification('test-8', 'SMS Plugin Test', 'sms');
+        // Show notifications
+        await notificationManager.showNotification('test-7', 'Email Plugin Test', 'email', 'Email Plugin Test', 0);
+        await notificationManager.showNotification('test-8', 'In-App Test', 'in-app', 'In-App Test', 0);
         
-        // Plugins should be called
+        // Plugin should be called for both notifications
         expect(emailSpy).toHaveBeenCalledTimes(2);
         expect(emailSpy).toHaveBeenCalledWith(expect.objectContaining({
             id: 'test-7',
             message: 'Email Plugin Test',
             type: 'email'
         }));
-        expect(smsSpy).toHaveBeenCalledTimes(2);
-        expect(smsSpy).toHaveBeenCalledWith(expect.objectContaining({
+        expect(emailSpy).toHaveBeenCalledWith(expect.objectContaining({
             id: 'test-8',
-            message: 'SMS Plugin Test',
-            type: 'sms'
+            message: 'In-App Test',
+            type: 'in-app'
         }));
     });
 });

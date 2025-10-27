@@ -1,0 +1,1 @@
+ALTER TABLE `user_preferences` ADD `in_app_notifications` integer DEFAULT 1 NOT NULL;
