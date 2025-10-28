@@ -16,7 +16,7 @@ export function getTimeUntilMidnight (): {hours: number; minutes: number; second
 
     const hours = Math.floor(timeUntilMidnight / (1000 * 60 * 60));
     const minutes = Math.floor((timeUntilMidnight % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds =Math.floor((timeUntilMidnight % (1000 * 60)) / 1000);
+    const seconds = Math.floor((timeUntilMidnight % (1000 * 60)) / 1000);
 
     return {hours, minutes, seconds}
 }
@@ -31,17 +31,4 @@ export function getTimeUntilMidnight (): {hours: number; minutes: number; second
 
 export function formatRemainingTime(hours: number, minutes: number, seconds: number): string {
     return `${hours}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`;
-}
-
-/**
- * Checks if a quest was created today
- * @param createdAt ISO timestamp string from the database
- * @returns true if the quest was created today
- */
-
-export function isQuestFromToday(createdAt: string): boolean {
-    const questDate = new Date(createdAt);
-    const today = new Date();
-
-    return questDate.toDateString() === today.toDateString();
 }
