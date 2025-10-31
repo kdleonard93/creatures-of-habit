@@ -3,6 +3,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
+		"start": "pnpm run dev",
 		"dev": "vite dev --port 5175",
 		"build": "vite build",
 		"preview": "vite preview",
