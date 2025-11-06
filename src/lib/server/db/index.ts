@@ -4,9 +4,9 @@ import * as schema from './schema';
 import { drizzle } from 'drizzle-orm/libsql';
 import { createClient } from '@libsql/client';
 
-const tursoUrl   = process.env.TURSO_DATABASE_URL ?? process.env.DATABASE_URL;
-const localUrl   = process.env.LOCAL_DATABASE_URL;
-const dbUrl      = tursoUrl ?? (building || dev ? (localUrl ?? 'file:local.db') : undefined);
+const tursoUrl = process.env.TURSO_DATABASE_URL ?? process.env.DATABASE_URL;
+const localUrl = process.env.LOCAL_DATABASE_URL;
+const dbUrl = tursoUrl ?? (building || dev ? localUrl ?? "file:local.db" : undefined);
 const authToken = process.env.TURSO_AUTH_TOKEN;
 
 if (!dbUrl) {

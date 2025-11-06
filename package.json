@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"start": "pnpm run dev",
+		"start": "node build",
 		"dev": "vite dev --port 5175",
 		"build": "vite build",
 		"preview": "vite preview",
@@ -34,6 +34,7 @@
 		"@biomejs/biome": "1.9.4",
 		"@lucide/svelte": "^0.526.0",
 		"@sveltejs/adapter-auto": "^3.3.1",
+		"@sveltejs/adapter-node": "^5.4.0",
 		"@sveltejs/kit": "^2.21.1",
 		"@sveltejs/vite-plugin-svelte": "^4.0.0",
 		"@tailwindcss/typography": "^0.5.15",
