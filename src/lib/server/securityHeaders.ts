@@ -32,7 +32,7 @@ export interface SecurityHeadersConfig {
 const defaultConfig: SecurityHeadersConfig = {
 	csp: {
 		defaultSrc: ["'self'"],
-		scriptSrc: ["'self'", "https://us-assets.i.posthog.com", "https://assets.posthog.com", "'sha256-XL/sUvesv0Q/qFkTNbwrpyF6NzuFIDkC15j3QzhSx6U='"],
+		scriptSrc: ["'self'", "https://us-assets.i.posthog.com", "https://assets.posthog.com"],
 		styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
 		imgSrc: ["'self'", "data:", "https:"],
 		fontSrc: ["'self'", "https://fonts.gstatic.com"],
@@ -113,6 +113,15 @@ export function setSecurityHeaders(
 	const finalConfig = { ...defaultConfig, ...config };
 
 	let cspConfig = { ...defaultConfig.csp, ...config.csp };
+
+
+	const nonce = event.locals.nonce;
+	if (nonce && cspConfig?.scriptSrc) {
+		cspConfig = {
+			...cspConfig,
+			scriptSrc: [...(cspConfig.scriptSrc || []), `'nonce-${nonce}'`]
+		};
+	}
 
 	if (dev && cspConfig) {
 		cspConfig = {

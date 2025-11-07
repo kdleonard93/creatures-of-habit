@@ -5,6 +5,7 @@ import { logger } from '$lib/utils/logger';
 import { setSecurityHeaders } from '$lib/server/securityHeaders';
 import { PostHog } from 'posthog-node';
 import { getPostHogKey, posthogServerConfig } from '$lib/plugins/PostHog';
+import { randomBytes } from 'node:crypto';
 
 const posthogKey = getPostHogKey();
 const posthogClient = posthogKey ? new PostHog(posthogKey, posthogServerConfig) : null;
@@ -20,7 +21,11 @@ try {
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
-    // Apply security headers to all responses
+    // Generate a nonce for CSP inline scripts
+    const nonce = randomBytes(16).toString('base64');
+    event.locals.nonce = nonce;
+
+    // Apply security headers to all responses (includes nonce in CSP)
     setSecurityHeaders(event);
 
     // Attach the auth function to locals
@@ -51,7 +56,18 @@ export const handle: Handle = async ({ event, resolve }) => {
     if (!sessionToken) {
         event.locals.user = null;
         event.locals.session = null;
-        return resolve(event);
+        return resolve(event, {
+            transformPageChunk: ({ html }) => {
+                return html.replace(
+                    /<script(?![^>]*\ssrc=)(?![^>]*\snonce=)([^>]*)>/gi,
+                    (match, attrs) => {
+                        // If nonce already exists, don't add it again
+                        if (attrs.includes('nonce=')) return match;
+                        return `<script nonce="${nonce}"${attrs}>`;
+                    }
+                );
+            }
+        });
     }
 
     const { session, user } = await auth.validateSessionToken(sessionToken);
@@ -64,7 +80,18 @@ export const handle: Handle = async ({ event, resolve }) => {
     event.locals.user = user;
     event.locals.session = session;
 
-    return resolve(event);
+    return resolve(event, {
+        transformPageChunk: ({ html }) => {
+            return html.replace(
+                /<script(?![^>]*\ssrc=)(?![^>]*\snonce=)([^>]*)>/gi,
+                (match, attrs) => {
+                    // If nonce already exists, don't add it again
+                    if (attrs.includes('nonce=')) return match;
+                    return `<script nonce="${nonce}"${attrs}>`;
+                }
+            );
+        }
+    });
 };
 
 export const handleError = async ({ error, status }: {
