@@ -19,9 +19,10 @@
         general: ""
     });
 
-    async function handleSubmit(event: Event) {
+    async function handleSubmit(event: SubmitEvent) {
         event.preventDefault();
-        const formData = new FormData(event.target as HTMLFormElement);
+        const form = event.target as HTMLFormElement;
+        const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
 
         async function anonymizeEmail(email: string): Promise<string> {
@@ -78,9 +79,9 @@
                         error: null
                 });
                 toast.success('Successfully joined waitlist!', { duration: 4000 });
-                setTimeout(() => {
+                // Update URL before redirect to prevent form resubmission on refresh
+                window.history.replaceState({}, '', '/waitlist/thank-you');
                     window.location.href = result.redirectTo || '/waitlist/thank-you';
-                }, 1000);
             } else {
                 const emailHash = await anonymizeEmail(data.email as string);
                 posthog.capture('waitlist_submission', {
