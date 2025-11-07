@@ -32,7 +32,7 @@ export interface SecurityHeadersConfig {
 const defaultConfig: SecurityHeadersConfig = {
 	csp: {
 		defaultSrc: ["'self'"],
-		scriptSrc: ["'self'", "https://us-assets.i.posthog.com", "https://assets.posthog.com"],
+		scriptSrc: ["'self'", "https://us-assets.i.posthog.com", "https://assets.posthog.com", "'sha256-XL/sUvesv0Q/qFkTNbwrpyF6NzuFIDkC15j3QzhSx6U='"],
 		styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
 		imgSrc: ["'self'", "data:", "https:"],
 		fontSrc: ["'self'", "https://fonts.gstatic.com"],
