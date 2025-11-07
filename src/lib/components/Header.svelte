@@ -91,10 +91,8 @@
                     <SheetTrigger asChild>
                         <Button 
                             variant="ghost" 
-                            size="icon" 
-                            onclick={() => menuOpen = !menuOpen}
-                            aria-expanded={menuOpen}
-                            aria-controls="mobile-menu"
+                            size="icon"
+                            aria-label="Toggle menu"
                         >
                             <Menu class="h-5 w-5" />
                             <span class="sr-only">Toggle menu</span>
