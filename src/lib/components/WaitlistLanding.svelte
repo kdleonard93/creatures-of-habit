@@ -208,7 +208,7 @@
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <form onsubmit={(e) => { e.preventDefault(); handleSubmit(e); }} class="space-y-4">
+                        <form on:submit={handleSubmit} class="space-y-4">
                             <div class="space-y-2">
                                 <Label for="email">Email Address</Label>
                                 <Input
