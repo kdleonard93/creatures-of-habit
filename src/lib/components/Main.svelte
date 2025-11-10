@@ -3,7 +3,7 @@
     import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "$lib/components/ui/card";
     import { Progress } from "$lib/components/ui/progress";
     import { svgLogo } from '$lib/assets/appLogo';
-    import { ArrowRight, Award, Calendar, CheckCircle, Clock, Dumbbell, Sparkles, Target, Trophy, Users } from "@lucide/svelte";
+    import { ArrowRight, Award, Calendar, CheckCircle, Clock, Dumbbell, Sparkles, Target, Trophy } from "@lucide/svelte";
 </script>
 
 <!-- Hero Section -->
@@ -111,7 +111,7 @@
           <Target class="h-10 w-10 text-primary mb-2" />
           <CardTitle>Habit Tracking</CardTitle>
           <CardDescription>
-            Create and track daily, weekly, and one-time habits with customizable difficulty levels
+            Create and track daily, weekly, and custom frequency habits with three difficulty levels
           </CardDescription>
         </CardHeader>
       </Card>
@@ -135,10 +135,10 @@
       </Card>
       <Card>
         <CardHeader>
-          <Award class="h-10 w-10 text-primary mb-2" />
-          <CardTitle>Achievements</CardTitle>
+          <Sparkles class="h-10 w-10 text-primary mb-2" />
+          <CardTitle>Character Progression</CardTitle>
           <CardDescription>
-            Unlock badges and achievements as you reach milestones in your habit journey
+            Customize your creature with 4 races, 8 classes, and allocate stat points to boost abilities
           </CardDescription>
         </CardHeader>
       </Card>
@@ -147,16 +147,16 @@
           <Clock class="h-10 w-10 text-primary mb-2" />
           <CardTitle>Quest System</CardTitle>
           <CardDescription>
-            Complete special quests and challenges to earn bonus rewards and items
+            Complete 5-question narrative quests to earn bonus XP and stat boost points
           </CardDescription>
         </CardHeader>
       </Card>
       <Card>
         <CardHeader>
-          <Users class="h-10 w-10 text-primary mb-2" />
-          <CardTitle>Community</CardTitle>
+          <CheckCircle class="h-10 w-10 text-primary mb-2" />
+          <CardTitle>Daily Progress</CardTitle>
           <CardDescription>
-            Join a community of habit builders and share your progress and achievements
+            Track your daily habit completion with visual progress bars and real-time updates
           </CardDescription>
         </CardHeader>
       </Card>
@@ -187,7 +187,7 @@
         </div>
         <h3 class="text-xl font-bold">Create Habits</h3>
         <p class="text-muted-foreground">
-          Set up your daily, weekly, or one-time habits with custom difficulty levels
+          Set up your habits with daily, weekly, or custom scheduling and choose difficulty levels
         </p>
       </div>
       <div class="flex flex-col items-center space-y-2 text-center">
@@ -221,10 +221,10 @@
           Testimonials
         </div>
         <h2 class="text-3xl font-bold tracking-tighter md:text-4xl/tight">
-          What Our Users Say
+          What Users Are Saying
         </h2>
         <p class="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-          Join thousands of users who have transformed their habits with our app
+          See how gamified habit tracking is transforming daily routines
         </p>
       </div>
     </div>
@@ -296,7 +296,7 @@
           Ready to Transform Your Habits?
         </h2>
         <p class="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-          Join thousands of users who are leveling up their lives with Creatures of Habit
+          Start your epic journey today and level up your life with gamified habit building
         </p>
       </div>
       <div class="flex flex-col gap-2 min-[400px]:flex-row">
