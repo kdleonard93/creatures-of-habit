@@ -27,7 +27,7 @@
 		"format": "biome format --write .",
 		"format:check": "biome check",
 		"lint": "biome lint .",
-		"lint:fix": "biome lint . --apply",
+		"lint:fix": "biome lint --write .",
 		"prepare": "husky"
 	},
 	"devDependencies": {
