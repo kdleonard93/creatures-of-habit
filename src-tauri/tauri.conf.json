@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "identifier": "com.creaturesofhabit.app",
   "build": {
-    "frontendDist": "../build",
+    "frontendDist": [
+      "../.svelte-kit/output/client"
+    ],
     "devUrl": "http://localhost:5175",
     "beforeDevCommand": "pnpm run dev",
     "beforeBuildCommand": "pnpm build"

@@ -3,6 +3,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
+		"start": "node build",
 		"dev": "vite dev --port 5175",
 		"build": "vite build",
 		"preview": "vite preview",
@@ -12,7 +13,7 @@
 		"test": "pnpm run test:unit -- --run",
 		"test:rate-limit": "tsx scripts/test-rate-limiting.ts",
 		"test:rate-limit:unit": "vitest src/tests/server/rateLimit.test.ts",
-		"test:generate-quest-content": "tsx scripts/generate-quest-content.ts",
+		"test:notifications": "tsx scripts/test-notifications.ts",
 		"db:push": "drizzle-kit push",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
@@ -26,13 +27,14 @@
 		"format": "biome format --write .",
 		"format:check": "biome check",
 		"lint": "biome lint .",
-		"lint:fix": "biome lint . --apply",
+		"lint:fix": "biome lint --write .",
 		"prepare": "husky"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
 		"@lucide/svelte": "^0.526.0",
 		"@sveltejs/adapter-auto": "^3.3.1",
+		"@sveltejs/adapter-node": "^5.4.0",
 		"@sveltejs/kit": "^2.21.1",
 		"@sveltejs/vite-plugin-svelte": "^4.0.0",
 		"@tailwindcss/typography": "^0.5.15",

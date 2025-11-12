@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { dev } from '$app/environment';
 	import QuestCard from '$lib/components/quests/QuestCard.svelte';
 	import QuestQuestion from '$lib/components/quests/QuestQuestion.svelte';
 	import StatBoostPanel from '$lib/components/quests/StatBoostPanel.svelte';
+	import QuestReset from '$lib/components/quests/QuestReset.svelte';
+	import { getSvg } from '$lib/utils/icons';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
+	import QuestTimer from '$lib/components/quests/QuestTimer.svelte';
 
 	let dailyQuest: any = null;
 	let currentQuestion: any = null;
@@ -20,6 +22,13 @@
 	// Quest states
 	let showQuestion = false;
 	let showStatBoost = false;
+
+	const strengthIcon = getSvg('muscle-up');
+	const dexterityIcon = getSvg('bullseye');
+	const constitutionIcon = getSvg('hearts');
+	const intelligenceIcon = getSvg('materials-science');
+	const wisdomIcon = getSvg('brain');
+	const charismaIcon = getSvg('three-friends');
 
 	onMount(async () => {
 		await loadQuestData();
@@ -173,10 +182,17 @@
 
 <div class="container mx-auto px-4 py-8 max-w-4xl">
 	<div class="mb-8">
-		<h1 class="text-3xl font-bold mb-2">Daily Quest</h1>
-		<p class="text-muted-foreground">
-			Complete interactive story quests to earn experience and stat boost points!
-		</p>
+		<div class="flex justify-between items-start">
+			<div>
+				<h1 class="text-3xl font-bold mb-2">Daily Quest</h1>
+				<p class="text-muted-foreground">
+					Complete interactive story quests to earn experience and stat boost points!
+				</p>
+			</div>
+			{#if dailyQuest?.status === 'completed'}
+				<QuestTimer class="mt-1"></QuestTimer>
+			{/if}
+		</div>
 	</div>
 
 	{#if loading}
@@ -220,6 +236,10 @@
 
 			<!-- Sidebar -->
 			<div class="space-y-6">
+				{#if dev}
+					<QuestReset onReset={loadQuestData} />
+				{/if}
+
 				{#if userStats && (showStatBoost || dailyQuest?.status === 'completed')}
 					<StatBoostPanel
 						stats={userStats}
@@ -228,27 +248,35 @@
 					/>
 				{/if}
 
-				{#if userStats && !showStatBoost}
+				{#if userStats && !showStatBoost} 
 					<Card>
 						<CardHeader>
 							<CardTitle class="text-lg">Your Stats</CardTitle>
 						</CardHeader>
 						<CardContent class="space-y-3">
-							<div class="grid grid-cols-2 gap-3 text-sm">
+							<div class="grid grid-cols-1 gap-3 text-sm">
 								<div class="flex justify-between">
-									<span>💪 Strength:</span>
+									<span>{@html strengthIcon} Strength:</span>
 									<span class="font-medium">{userStats.strength}</span>
 								</div>
 								<div class="flex justify-between">
-									<span>🏃 Dexterity:</span>
+									<span>{@html dexterityIcon} Dexterity:</span>
 									<span class="font-medium">{userStats.dexterity}</span>
 								</div>
 								<div class="flex justify-between">
-									<span>🧠 Intelligence:</span>
+									<span>{@html constitutionIcon} Constitution:</span>
+									<span class="font-medium">{userStats.constitution}</span>
+								</div>
+								<div class="flex justify-between">
+									<span>{@html intelligenceIcon} Intelligence:</span>
 									<span class="font-medium">{userStats.intelligence}</span>
 								</div>
 								<div class="flex justify-between">
-									<span>💬 Charisma:</span>
+									<span>{@html wisdomIcon} Wisdom:</span>
+									<span class="font-medium">{userStats.wisdom}</span>
+								</div>
+								<div class="flex justify-between">
+									<span>{@html charismaIcon} Charisma:</span>
 									<span class="font-medium">{userStats.charisma}</span>
 								</div>
 							</div>

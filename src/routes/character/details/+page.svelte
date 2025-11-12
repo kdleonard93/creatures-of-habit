@@ -137,9 +137,6 @@
     <!-- Hero Section -->
     <div class="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 shadow-md">
         <div class="flex flex-col md:flex-row items-center gap-6">
-            <div class="flex-shrink-0 w-24 h-24 md:w-32 md:h-32 bg-primary/20 rounded-full flex items-center justify-center text-4xl">
-                {@html raceIcons[creature.race as CreatureRaceType]}
-            </div>
             <div class="flex-1 text-center md:text-left">
                 <h1 class="text-3xl md:text-4xl font-bold capitalize flex items-center gap-2 justify-center md:justify-start">
                     {creature.name}
@@ -156,14 +153,14 @@
                         <span class="capitalize">{creature.class}</span>
                     </span>
                 </div>
-                <div class="mt-4 max-w-md mx-auto md:mx-0">
-                    <h3 class="font-medium mb-1">Experience</h3>
-                    <XPBar experience={creature.experience} />
-                    <p class="text-sm text-muted-foreground mt-1">
-                        {levelProgress.currentLevelXp} / {levelProgress.nextLevelXp} XP 
-                        ({Math.floor(levelProgress.xpProgress * 100)}% to level {creature.level + 1})
-                    </p>
-                </div>
+            </div>
+            <div class="flex-1 text-center md:text-left">
+                <h3 class="font-medium mb-1">Experience</h3>
+                <XPBar experience={creature.experience} />
+                <p class="text-sm text-muted-foreground mt-1">
+                    {levelProgress.currentLevelXp} / {levelProgress.nextLevelXp} XP 
+                    ({Math.floor(levelProgress.xpProgress * 100)}% to level {creature.level + 1})
+                </p>
             </div>
         </div>
     </div>
@@ -197,7 +194,6 @@
                                     </span>
                                 </div>
                             </div>
-                            <Progress value={Math.min(value * 5, 100)} class="h-2" />
                             <p class="text-sm {getStatColor(stat as keyof typeof effectiveStats)}">
                                 {getStatDescription(stat as keyof typeof effectiveStats)}
                             </p>

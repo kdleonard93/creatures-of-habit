@@ -14,4 +14,10 @@
 			Frequently Asked Questions
 		</h1>
 	</div>
+
+	<div class="text-center space-y-4">
+		<h3 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+			COMING SOON<br>No one has asked me anything yet...
+		</h3>
+	</div>
 </div>

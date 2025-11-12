@@ -79,36 +79,21 @@ export const actions: Actions = {
         const reminderNotifications = data.get('reminderNotifications') === 'true' ? 1 : 0;
 
         await db
-            .update(userPreferences)
-            .set({
+            .insert(userPreferences)
+            .values({
+                userId: authSession.user.id,
                 emailNotifications,
                 pushNotifications,
                 reminderNotifications
             })
-            .where(eq(userPreferences.userId, authSession.user.id));
-
-        return { success: true };
-    },
-
-    updatePrivacy: async ({ request, locals }) => {
-        const authSession = await locals.auth();
-        if (!authSession?.user) {
-            return fail(401, { message: 'Unauthorized' });
-        }
-
-        const data = await request.formData();
-        const profileVisibility = data.get('profileVisibility') === 'true' ? 1 : 0;
-        const activitySharing = data.get('activitySharing') === 'true' ? 1 : 0;
-        const statsSharing = data.get('statsSharing') === 'true' ? 1 : 0;
-
-        await db
-            .update(userPreferences)
-            .set({
-                profileVisibility,
-                activitySharing,
-                statsSharing
-            })
-            .where(eq(userPreferences.userId, authSession.user.id));
+            .onConflictDoUpdate({
+                target: userPreferences.userId,
+                set: {
+                    emailNotifications,
+                    pushNotifications,
+                    reminderNotifications
+                }
+            });
 
         return { success: true };
     }

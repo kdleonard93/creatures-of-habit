@@ -4,6 +4,10 @@ import { db } from '$lib/server/db';
 import { creatureStats, creature } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import * as auth from '$lib/server/auth';
+import { creatureEquipment } from '$lib/server/db/schema';
+import { getEffectiveStats } from '$lib/server/xp';
+import { equipmentDefinitions } from '$lib/data/equipment';
+import type { CreatureRaceType, CreatureClassType, CreatureStats } from '$lib/types';
 
 export const GET: RequestHandler = async ({ cookies }) => {
     try {
@@ -34,6 +38,12 @@ export const GET: RequestHandler = async ({ cookies }) => {
             .from(creatureStats)
             .where(eq(creatureStats.creatureId, userCreature[0].id))
             .limit(1);
+        
+        // Get creature equipment
+        const equipment = await db
+            .select()
+            .from(creatureEquipment)
+            .where(eq(creatureEquipment.creatureId, userCreature[0].id));
 
         if (stats.length === 0) {
             // Create default stats for existing users
@@ -54,14 +64,38 @@ export const GET: RequestHandler = async ({ cookies }) => {
         }
 
         const statData = stats[0];
-        return json({
-            statBoostPoints: statData.statBoostPoints || 0,
+        const baseStats: CreatureStats = {
             strength: statData.strength,
             dexterity: statData.dexterity,
             constitution: statData.constitution,
             intelligence: statData.intelligence,
             wisdom: statData.wisdom,
             charisma: statData.charisma
+        };
+
+        // Map equipment to include bonuses
+        const equipmentWithBonuses = equipment.map(item => ({
+            slot: item.slot,
+            bonuses: equipmentDefinitions[item.itemId]?.bonuses
+        }));
+
+        // Calculate effective stats with all bonuses
+        const effectiveStats = getEffectiveStats(
+            baseStats,
+            userCreature[0].race as CreatureRaceType,
+            userCreature[0].class as CreatureClassType,
+            userCreature[0].level as number,
+            equipmentWithBonuses
+        );
+
+        return json({
+            statBoostPoints: statData.statBoostPoints || 0,
+            strength: effectiveStats.strength,
+            dexterity: effectiveStats.dexterity,
+            constitution: effectiveStats.constitution,
+            intelligence: effectiveStats.intelligence,
+            wisdom: effectiveStats.wisdom,
+            charisma: effectiveStats.charisma
         });
     } catch (error) {
         console.error('Error getting stat boost points:', error);

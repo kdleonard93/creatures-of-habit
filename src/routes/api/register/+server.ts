@@ -76,6 +76,18 @@ export const POST: RequestHandler = async (event) => {
         statBoostPoints: 0
       });
 
+      // Create default user preferences with notifications enabled
+      await tx.insert(schema.userPreferences).values({
+        userId: user.id,
+        emailNotifications: 0,
+        pushNotifications: 0,
+        inAppNotifications: 1,
+        reminderNotifications: 1,
+        profileVisibility: 0,
+        activitySharing: 0,
+        statsSharing: 0
+      });
+
       return user;
     });
 

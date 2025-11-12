@@ -4,93 +4,49 @@
 
 @layer base {
   :root {
-    --background: #1A2238; /* Deep twilight blue */
-    --foreground: #F1F2EB; /* Soft ivory for text */
+    --background: #111827; /* Dark charcoal */
+    --foreground: #F9FAFB; /* Light gray text */
     
-    --success: #81C784; /* Soft sage green */
+    --success: #15803D; /* Dark emerald green */
     --success-foreground: #FFFFFF;
     
-    --muted: #2D3748; /* Deeper blue */
-    --muted-foreground: #A0AEC0; /* Muted silver */
+    --muted: #1F2937; /* Dark gray */
+    --muted-foreground: #9CA3AF; /* Medium gray */
     
-    --popover: #2A3950; /* Slightly lighter than background */
-    --popover-foreground: #F1F2EB;
+    --popover: #1F2937; /* Dark gray */
+    --popover-foreground: #F9FAFB;
     
-    --card: #2A3950; /* Slightly lighter blue for cards */
-    --card-foreground: #F1F2EB;
+    --card: #1F2937; /* Dark gray */
+    --card-foreground: #F9FAFB;
     
-    --border: #3F4C6B; /* Border blue */
-    --input: #2D3748;
+    --border: #2F3A4A; /* Gray border */
+    --input: #2F3A4A;
     
-    --primary: #FBEEC2; /* Alexandria's Lighthouse */
-    --primary-foreground: #1A2238;
+    --primary: #D97706; /* Warm amber */
+    --primary-foreground: #FFFFFF;
     
-    --secondary: #E57373; /* Soft coral red */
+    --secondary: #64748B; /* Slate gray */
     --secondary-foreground: #FFFFFF;
     
-    --accent: #90CAF9; /* Soft sky blue */
-    --accent-foreground: #1A2238;
-    
-    --destructive: #EF9A9A; /* Soft rose red */
-    --destructive-foreground: #1A2238;
-
-    --badge: #8B5CF6;
-    --badge-foreground: #FFFFFF;
-
-    --easy: #A5D6A7;
-    --easy-foreground: #1A2238;
-    
-    --medium: #FFB74D;
-    --medium-foreground: #1A2238;
-    
-    --hard: #fc7979;
-    --hard-foreground: #1A2238;
-    
-    --ring: #FBEEC2;
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: #0F172A; /* Darker blue */
-    --foreground: #F1F2EB; /* Soft ivory */
-
-    --success: #059669; /* Darker emerald */
-    --success-foreground: #FFFFFF;
-
-    --muted: #1E293B; /* Very dark blue */
-    --muted-foreground: #94A3B8; /* Muted silver */
-
-    --popover: #1E293B; /* Very dark blue */
-    --popover-foreground: #F1F2EB;
-
-    --card: #1E293B; /* Very dark blue */
-    --card-foreground: #F1F2EB;
-
-    --border: #334155; /* Dark border */
-    --input: #1E293B;
-
-    --primary: #FBEEC2; /* Alexandria’s Lighthouse */
-    --primary-foreground: #0F172A;
-
-    --secondary: #B91C1C; /* Deeper red */
-    --secondary-foreground: #FFFFFF;
-
-    --accent: #3B82F6; /* Deeper blue */
+    --accent: #14B8A6; /* Teal */
     --accent-foreground: #FFFFFF;
-
-    --destructive: #DC2626; /* Deeper red */
+    
+    --destructive: #EF4444; /* Red */
     --destructive-foreground: #FFFFFF;
 
-    --easy: #A5D6A7;
-    --easy-foreground: #1A2238;
+    --badge: #E09F3E;
+    --badge-foreground: #FFFFFF;
+
+    --easy: #10B981;
+    --easy-foreground: #FFFFFF;
     
-    --medium: #FFB74D;
-    --medium-foreground: #1A2238;
+    --medium: #F59E0B;
+    --medium-foreground: #111827;
     
-    --hard: #fc7979;
-    --hard-foreground: #1A2238;
+    --hard: #EF4444;
+    --hard-foreground: #FFFFFF;
     
-    --ring: #FBEEC2;
+    --ring: #D97706;
     --radius: 0.5rem;
   }
 }

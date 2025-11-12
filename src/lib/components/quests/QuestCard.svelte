@@ -3,6 +3,7 @@
 	import { Button } from "$lib/components/ui/button";
 	import { Badge } from "$lib/components/ui/badge";
 	import { Progress } from "$lib/components/ui/progress";
+	import QuestTimer from "./QuestTimer.svelte"
 
 	interface QuestData {
 		id: string;
@@ -61,6 +62,12 @@
 		<div class="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
 			{quest.narrative}
 		</div>
+
+		{#if isCompleted}
+			<div class="border-t pt-3">
+				<QuestTimer />
+			</div>
+		{/if}
 
 		<!-- Progress Bar (for active quests) -->
 		{#if isActive}

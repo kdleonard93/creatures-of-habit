@@ -2,6 +2,7 @@
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "$lib/components/ui/card";
 	import { Button } from "$lib/components/ui/button";
 	import { Badge } from "$lib/components/ui/badge";
+	import type { CreatureStats } from "$lib/types"
 
 	interface QuestionData {
 		id: string;
@@ -13,12 +14,6 @@
 		order: number;
 	}
 
-	interface UserStats {
-		strength: number;
-		dexterity: number;
-		intelligence: number;
-		charisma: number;
-	}
 
 	const { 
 		question, 
@@ -29,32 +24,36 @@
 		isAnswering = false 
 	} = $props<{
 		question: QuestionData;
-		userStats: UserStats;
+		userStats: CreatureStats;
 		questionNumber: number;
 		totalQuestions: number;
 		onAnswer: (choice: 'A' | 'B') => void;
 		isAnswering?: boolean;
 	}>();
 
-	const userStatValue = $derived(userStats[question.requiredStat as keyof UserStats] || 0);
+	const userStatValue = $derived(userStats[question.requiredStat as keyof CreatureStats] || 0);
 	const successChance = $derived(Math.min(Math.max((userStatValue / question.difficultyThreshold) * 100, 10), 90));
 
 	function getStatColor(stat: string): string {
 		const colors = {
-			strength: 'bg-red-100 text-red-800',
-			dexterity: 'bg-green-100 text-green-800',
-			intelligence: 'bg-blue-100 text-blue-800',
-			charisma: 'bg-purple-100 text-purple-800'
+			strength: 'bg-secondary-100 text-secondary-800',
+			dexterity: 'bg-secondary-100 text-secondary-800',
+			constitution: 'bg-secondary-100 text-secondary-800',
+			intelligence: 'bg-secondary-100 text-secondary-800',
+			wisdom: 'bg-secondary-100 text-secondary-800',
+			charisma: 'bg-secondary-100 text-secondary-800'
 		};
 		return colors[stat as keyof typeof colors] || 'bg-gray-100 text-gray-800';
 	}
 
 	function getStatIcon(stat: string): string {
 		const icons = {
-			strength: '💪',
-			dexterity: '🏃',
-			intelligence: '🧠',
-			charisma: '💬'
+            strength: '💪',
+            dexterity: '🏃',
+            constitution: '❤️',
+            intelligence: '🧠',
+            wisdom: '🦉',
+            charisma: '💬'
 		};
 		return icons[stat as keyof typeof icons] || '⭐';
 	}

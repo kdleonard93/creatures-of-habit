@@ -114,6 +114,15 @@ export function setSecurityHeaders(
 
 	let cspConfig = { ...defaultConfig.csp, ...config.csp };
 
+
+	const nonce = event.locals.nonce;
+	if (nonce && cspConfig?.scriptSrc) {
+		cspConfig = {
+			...cspConfig,
+			scriptSrc: [...(cspConfig.scriptSrc || []), `'nonce-${nonce}'`]
+		};
+	}
+
 	if (dev && cspConfig) {
 		cspConfig = {
 			...cspConfig,

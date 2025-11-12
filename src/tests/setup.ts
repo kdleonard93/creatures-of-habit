@@ -2,6 +2,8 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import './svelte.d.ts';
 
+process.env.RESEND_API_KEY = 'test-api-key';
+
 // Configure Svelte for testing
 // This is needed for Svelte 5 compatibility
 declare global {

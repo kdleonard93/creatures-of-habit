@@ -11,9 +11,7 @@
   import { raceIcons } from "$lib/assets/raceIcons";
   import PasswordStrengthIndicator from "$lib/components/PasswordStrengthIndicator.svelte";
   import {
-    createInitialStats,
     allocateStatPoints,
-    getTotalStatPoints,
     INITIAL_STAT_POINTS,
     STAT_MIN,
     STAT_MAX,
@@ -536,7 +534,7 @@
           {#each creatureRaces as creatureRace}
             <button
               type="button"
-              class="p-4 border rounded-lg text-center transition-colors
+              class="p-4 border rounded-lg text-center transition-colors flex flex-col items-center gap-2
                 {formData.creature.race === creatureRace
                 ? 'border-primary bg-primary/10'
                 : 'hover:bg-primary/5'}"

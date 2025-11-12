@@ -21,11 +21,13 @@
       { href: '/dashboard', label: 'Dashboard' },
       { href: '/habits', label: 'Habits' },
       { href: '/character/details', label: 'Character' },
-      { href: '/quests', label: 'Quests' }
+      { href: '/quests', label: 'Quests' },
+      { href: '/settings', label: 'Settings'}
     ];
 
     // Marketing navigation items (shown when not authenticated)
     const marketingNavItems = [
+      { href: '/', label: 'Homepage'},
       { href: '/waitlist', label: 'Waitlist' },
       { href: '/features', label: 'Features' },
       { href: '/how-to-play', label: 'How It Works' },
@@ -71,11 +73,13 @@
                 {#if isAuthenticated}
                     <NotificationCenter />
                 {/if}
+                {#if !isAuthenticated}
                 {#each authItems as item}
                     <Button href={item.href} variant={item.variant} size="sm">
                         {item.label}
                     </Button>
                 {/each}
+                {/if}
             </div>
 
             <!-- Mobile Navigation -->
@@ -84,17 +88,12 @@
                     <NotificationCenter />
                 {/if}
                 <Sheet bind:open={menuOpen}>
-                    <SheetTrigger asChild>
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onclick={() => menuOpen = !menuOpen}
-                            aria-expanded={menuOpen}
-                            aria-controls="mobile-menu"
-                        >
-                            <Menu class="h-5 w-5" />
-                            <span class="sr-only">Toggle menu</span>
-                        </Button>
+                    <SheetTrigger 
+                        class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10"
+                        aria-label="Toggle menu"
+                    >
+                        <Menu class="h-5 w-5" />
+                        <span class="sr-only">Toggle menu</span>
                     </SheetTrigger>
                     <SheetContent side="right" class="w-[300px] sm:w-[400px]">
                         <SheetHeader class="mb-6">
@@ -122,6 +121,7 @@
                             <div class="border-t border-border"></div>
                             
                             <!-- Auth Buttons -->
+                            {#if !isAuthenticated}
                             <div class="space-y-2">
                                 {#each authItems as item}
                                     <Button 
@@ -134,6 +134,7 @@
                                     </Button>
                                 {/each}
                             </div>
+                            {/if}
                         </div>
                     </SheetContent>
                 </Sheet>

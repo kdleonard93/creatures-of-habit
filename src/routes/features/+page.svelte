@@ -3,17 +3,13 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Progress } from '$lib/components/ui/progress';
 	import { 
-		Trophy, 
+		Trophy,
 		Target, 
-		Star, 
 		Zap, 
 		Award, 
 		TrendingUp, 
-		Calendar, 
 		CheckCircle,
-		Gamepad2,
 		Sword,
-		Shield,
 		Sparkles,
 		Crown,
 		ArrowRight,
@@ -55,16 +51,20 @@
 			</CardHeader>
 			<CardContent>
 				<p class="text-sm text-muted-foreground mb-4">
-					Create and track habits with flexible scheduling, difficulty levels, and smart reminders.
+					Create and track habits with flexible scheduling and difficulty levels.
 				</p>
 				<div class="space-y-2">
 					<div class="flex items-center gap-2 text-xs">
 						<div class="h-2 w-2 rounded-full bg-easy"></div>
-						<span>Easy, Medium, Hard difficulty levels</span>
+						<span>Easy, Medium, Hard difficulties</span>
 					</div>
 					<div class="flex items-center gap-2 text-xs">
 						<div class="h-2 w-2 rounded-full bg-accent"></div>
-						<span>Custom scheduling & frequency</span>
+						<span>Daily, weekly & custom frequency</span>
+					</div>
+					<div class="flex items-center gap-2 text-xs">
+						<div class="h-2 w-2 rounded-full bg-primary"></div>
+						<span>Real-time progress tracking</span>
 					</div>
 				</div>
 			</CardContent>
@@ -80,16 +80,20 @@
 			</CardHeader>
 			<CardContent>
 				<p class="text-sm text-muted-foreground mb-4">
-					Create your unique character with races, classes, and customizable stats.
+					Create your unique creature companion with 4 races, 8 classes, and customizable stats.
 				</p>
 				<div class="space-y-2">
 					<div class="flex items-center gap-2 text-xs">
 						<div class="h-2 w-2 rounded-full bg-primary"></div>
-						<span>Multiple races & classes</span>
+						<span>4 races: Human, Orc, Elf, Dwarf</span>
 					</div>
 					<div class="flex items-center gap-2 text-xs">
 						<div class="h-2 w-2 rounded-full bg-accent"></div>
-						<span>Customizable stat allocation</span>
+						<span>8 classes with unique abilities</span>
+					</div>
+					<div class="flex items-center gap-2 text-xs">
+						<div class="h-2 w-2 rounded-full bg-secondary"></div>
+						<span>6 customizable stats</span>
 					</div>
 				</div>
 			</CardContent>
@@ -117,51 +121,55 @@
 			</CardContent>
 		</Card>
 
-		<!-- Analytics -->
+		<!-- Quest System -->
 		<Card class="border-accent/20 hover:border-accent/40 transition-colors">
 			<CardHeader>
 				<div class="flex items-center gap-2">
-					<BarChart3 class="h-6 w-6 text-accent" />
-					<CardTitle class="text-lg">Progress Analytics</CardTitle>
+					<Trophy class="h-6 w-6 text-accent" />
+					<CardTitle class="text-lg">Epic Quests</CardTitle>
 				</div>
 			</CardHeader>
 			<CardContent>
 				<p class="text-sm text-muted-foreground mb-4">
-					Track your progress with detailed analytics and visual insights.
+					Complete story-driven quests to earn bonus XP and stat boost points.
 				</p>
 				<div class="space-y-2">
 					<div class="flex items-center gap-2 text-xs">
 						<div class="h-2 w-2 rounded-full bg-success"></div>
-						<span>Daily completion rates</span>
+						<span>5-question narrative adventures</span>
 					</div>
 					<div class="flex items-center gap-2 text-xs">
 						<div class="h-2 w-2 rounded-full bg-primary"></div>
-						<span>Streak tracking & insights</span>
+						<span>50-150 XP per quest</span>
+					</div>
+					<div class="flex items-center gap-2 text-xs">
+						<div class="h-2 w-2 rounded-full bg-accent"></div>
+						<span>Earn stat boost points</span>
 					</div>
 				</div>
 			</CardContent>
 		</Card>
 
-		<!-- Notifications -->
+		<!-- Streak System -->
 		<Card class="border-medium/20 hover:border-medium/40 transition-colors">
 			<CardHeader>
 				<div class="flex items-center gap-2">
-					<Bell class="h-6 w-6 text-medium" />
-					<CardTitle class="text-lg">Smart Reminders</CardTitle>
+					<Zap class="h-6 w-6 text-medium" />
+					<CardTitle class="text-lg">Streak System</CardTitle>
 				</div>
 			</CardHeader>
 			<CardContent>
 				<p class="text-sm text-muted-foreground mb-4">
-					Never miss a habit with intelligent notifications and reminders.
+					Build consistency with streak tracking and earn bonus XP rewards.
 				</p>
 				<div class="space-y-2">
 					<div class="flex items-center gap-2 text-xs">
 						<div class="h-2 w-2 rounded-full bg-accent"></div>
-						<span>Email & SMS notifications</span>
+						<span>Track current & longest streaks</span>
 					</div>
 					<div class="flex items-center gap-2 text-xs">
 						<div class="h-2 w-2 rounded-full bg-primary"></div>
-						<span>Customizable timing</span>
+						<span>Up to 50% bonus XP</span>
 					</div>
 				</div>
 			</CardContent>
@@ -172,21 +180,21 @@
 			<CardHeader>
 				<div class="flex items-center gap-2">
 					<Smartphone class="h-6 w-6 text-hard" />
-					<CardTitle class="text-lg">Cross-Platform</CardTitle>
+					<CardTitle class="text-lg">Multi-Platform Access</CardTitle>
 				</div>
 			</CardHeader>
 			<CardContent>
 				<p class="text-sm text-muted-foreground mb-4">
-					Access your habits anywhere with web, desktop, and mobile apps.
+					Access your habits anywhere with web and desktop applications.
 				</p>
 				<div class="space-y-2">
 					<div class="flex items-center gap-2 text-xs">
 						<div class="h-2 w-2 rounded-full bg-success"></div>
-						<span>Web & desktop apps</span>
+						<span>Responsive web app</span>
 					</div>
 					<div class="flex items-center gap-2 text-xs">
 						<div class="h-2 w-2 rounded-full bg-accent"></div>
-						<span>Sync across all devices</span>
+						<span>Native desktop app (Tauri)</span>
 					</div>
 				</div>
 			</CardContent>
@@ -214,15 +222,19 @@
 					<ul class="space-y-2 text-sm text-muted-foreground">
 						<li class="flex items-center gap-2">
 							<CheckCircle class="h-4 w-4 text-success" />
-							Custom habit categories and tags
+							Three difficulty levels (Easy, Medium, Hard)
 						</li>
 						<li class="flex items-center gap-2">
 							<CheckCircle class="h-4 w-4 text-success" />
-							Flexible scheduling options
+							Daily, weekly, and custom scheduling
 						</li>
 						<li class="flex items-center gap-2">
 							<CheckCircle class="h-4 w-4 text-success" />
-							Personalized difficulty scaling
+							Stat allocation and character progression
+						</li>
+						<li class="flex items-center gap-2">
+							<CheckCircle class="h-4 w-4 text-success" />
+							Email notification preferences
 						</li>
 					</ul>
 				</div>
@@ -265,7 +277,16 @@
 			<div class="grid md:grid-cols-3 gap-4">
 				<div class="p-4 rounded-lg bg-muted/30 border border-muted">
 					<div class="flex items-center gap-2 mb-2">
-						<Users class="h-5 w-5 text-primary" />
+						<Smartphone class="h-5 w-5 text-primary" />
+						<h4 class="font-semibold">Mobile Apps</h4>
+					</div>
+					<p class="text-sm text-muted-foreground">
+						Native iOS and Android apps for habit tracking on the go.
+					</p>
+				</div>
+				<div class="p-4 rounded-lg bg-muted/30 border border-muted">
+					<div class="flex items-center gap-2 mb-2">
+						<Users class="h-5 w-5 text-secondary" />
 						<h4 class="font-semibold">Social Features</h4>
 					</div>
 					<p class="text-sm text-muted-foreground">
@@ -274,8 +295,17 @@
 				</div>
 				<div class="p-4 rounded-lg bg-muted/30 border border-muted">
 					<div class="flex items-center gap-2 mb-2">
-						<Award class="h-5 w-5 text-secondary" />
-						<h4 class="font-semibold">Achievements</h4>
+						<BarChart3 class="h-5 w-5 text-accent" />
+						<h4 class="font-semibold">Advanced Analytics</h4>
+					</div>
+					<p class="text-sm text-muted-foreground">
+						Habit strength analysis, predictions, and personalized insights.
+					</p>
+				</div>
+				<div class="p-4 rounded-lg bg-muted/30 border border-muted">
+					<div class="flex items-center gap-2 mb-2">
+						<Award class="h-5 w-5 text-primary" />
+						<h4 class="font-semibold">Achievement System</h4>
 					</div>
 					<p class="text-sm text-muted-foreground">
 						Unlock badges and achievements for completing milestones.
@@ -283,11 +313,20 @@
 				</div>
 				<div class="p-4 rounded-lg bg-muted/30 border border-muted">
 					<div class="flex items-center gap-2 mb-2">
-						<Palette class="h-5 w-5 text-accent" />
-						<h4 class="font-semibold">Themes</h4>
+						<Palette class="h-5 w-5 text-secondary" />
+						<h4 class="font-semibold">Dark Mode</h4>
 					</div>
 					<p class="text-sm text-muted-foreground">
-						Customize your experience with multiple color themes.
+						Customize your experience with light and dark themes.
+					</p>
+				</div>
+				<div class="p-4 rounded-lg bg-muted/30 border border-muted">
+					<div class="flex items-center gap-2 mb-2">
+						<Bell class="h-5 w-5 text-accent" />
+						<h4 class="font-semibold">Push Notifications</h4>
+					</div>
+					<p class="text-sm text-muted-foreground">
+						Browser and mobile push notifications for habit reminders.
 					</p>
 				</div>
 			</div>
@@ -299,7 +338,7 @@
 		<CardContent class="text-center py-8">
 			<h2 class="text-2xl font-bold mb-4">Ready to Experience These Features?</h2>
 			<p class="text-muted-foreground mb-6 max-w-2xl mx-auto">
-				Join thousands of users who are already transforming their lives with gamified habit building.
+				Start your journey today and transform your daily routine into an epic RPG adventure. Build lasting habits, level up your creature, and become the hero of your own story!
 			</p>
 			<div class="flex flex-col sm:flex-row gap-4 justify-center">
 				<Button size="lg" href="/signup" class="flex items-center gap-2">
