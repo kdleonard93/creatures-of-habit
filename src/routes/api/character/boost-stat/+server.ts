@@ -2,10 +2,13 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { spendStatBoostPoints } from '$lib/server/services/questService';
 import * as auth from '$lib/server/auth';
+import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 
-export const POST: RequestHandler = async ({ request, cookies }) => {
+export const POST: RequestHandler = async (event) => {
+    await rateLimit(event, RateLimitPresets.API);
+
     try {
-        const sessionId = cookies.get(auth.sessionCookieName);
+        const sessionId = event.cookies.get(auth.sessionCookieName);
         if (!sessionId) {
             return json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -15,7 +18,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
             return json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const body = await request.json();
+        const body = await event.request.json();
         const { stat, points } = body;
 
         if (!stat || !points) {

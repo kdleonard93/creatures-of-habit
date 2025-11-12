@@ -44,11 +44,19 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
             .from(questQuestions)
             .where(eq(questQuestions.questInstanceId, questId));
 
+        const safeQuestions = questions.map(question => ({
+            id: question.id,
+            questionNumber: question.questionNumber,
+            questionText: question.questionText,
+            choiceA: question.choiceA,
+            choiceB: question.choiceB
+        }));
+
         return json({
             currentQuestion: quest.currentQuestion,
             totalQuestions: quest.totalQuestions,
             correctAnswers: quest.correctAnswers,
-            questions
+            questions: safeQuestions
         });
     } catch (error) {
         console.error('Error getting quest progress:', error);
