@@ -7,9 +7,12 @@ import { calculateHabitXp, getLevelFromXp } from '$lib/server/xp';
 import { markHabitCompleted, DailyTrackerError } from '$lib/utils/dailyHabitTracker';
 import { logger } from '$lib/utils/logger';
 import { formatSqliteTimestamp } from '$lib/utils/date';
+import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 
-export const POST: RequestHandler = async ({ locals, params }) => {
-    const session = await locals.auth();
+export const POST: RequestHandler = async (event) => {
+    await rateLimit(event, RateLimitPresets.API);
+
+    const session = await event.locals.auth();
     
     if (!session?.user) {
         return json({ error: 'Unauthorized' }, { status: 401 });
@@ -20,7 +23,7 @@ export const POST: RequestHandler = async ({ locals, params }) => {
             .select()
             .from(habit)
             .where(and(
-                eq(habit.id, params.id),
+                eq(habit.id, event.params.id),
                 eq(habit.userId, session.user.id)
             ));
 
@@ -113,7 +116,7 @@ export const POST: RequestHandler = async ({ locals, params }) => {
         // Handle other errors
         logger.error('Error completing habit:', {
             error: error instanceof Error ? error.message : String(error),
-            habitId: params.id,
+            habitId: event.params.id,
             userId: session.user.id
         });
         return json({ error: 'Failed to complete habit' }, { status: 500 });

@@ -4,10 +4,12 @@ import { db } from '$lib/server/db';
 import { habit, habitFrequency, habitStreak } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import type { HabitData } from '$lib/types';
+import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 
 // GET - List habits for the current user
-export const GET = (async ({ locals }) => {
-    const session = await locals.auth();
+export const GET = (async (event) => {
+    await rateLimit(event, RateLimitPresets.API);
+    const session = await event.locals.auth();
     
     if (!session?.user) {
         return json({ error: 'Unauthorized' }, { status: 401 });
@@ -48,15 +50,17 @@ export const GET = (async ({ locals }) => {
 }) satisfies RequestHandler;
 
 // POST - Create a new habit
-export const POST = (async ({ locals, request }) => {
-    const session = await locals.auth();
+export const POST = (async (event) => {
+    await rateLimit(event, RateLimitPresets.API);
+
+    const session = await event.locals.auth();
     
     if (!session?.user) {
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     try {
-        const habitData = await request.json() as HabitData;
+        const habitData = await event.request.json() as HabitData;
         
         // Create the habit frequency first if it's custom
         let frequencyId = null;

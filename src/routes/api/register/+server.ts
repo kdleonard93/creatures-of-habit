@@ -8,24 +8,39 @@ import { eq } from 'drizzle-orm';
 import { hashPassword } from '$lib/utils/password';
 import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 import type { RegistrationData } from '$lib/types';
+import { CreatureClass as CreatureClassEnum, CreatureRace as CreatureRaceEnum } from '$lib/types';
+
+import { z } from 'zod';
+
+const registrationSchema = z.object({
+  email: z.string().email('Invalid email format').max(255),
+  username: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens'),
+  password: z.string().min(8).max(72, 'Password must be less than 72 characters'),
+  confirmPassword: z.string(),
+  age: z.number().int().min(13).max(120).optional(),
+  creature: z.object({
+    name: z.string().min(2).max(50).regex(/^[a-zA-Z0-9 '.,-]+$/),
+    class: z.string(),
+    race: z.string()
+  })
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
 
 export const POST: RequestHandler = async (event) => {
   try {
     await rateLimit(event, RateLimitPresets.AUTH);
 
     const data = await event.request.json() as RegistrationData;
+    const validatedData = registrationSchema.parse(data);
+    validatedData.email = validatedData.email.toLowerCase();
     console.info('Received registration request');
 
-    if (!data.password || data.password.length < 8) {
-      return json({ success: false, error: 'Password must be at least 8 characters long' }, { status: 400 });
-    }
-    if (data.password !== data.confirmPassword) {
-      return json({ success: false, error: 'Passwords do not match' }, { status: 400 });
-    }
 
     const existingUserByEmail = await db.select()
       .from(schema.user)
-      .where(eq(schema.user.email, data.email))
+      .where(eq(schema.user.email, validatedData.email))
       .limit(1);
 
     if (existingUserByEmail.length > 0) {
@@ -37,7 +52,7 @@ export const POST: RequestHandler = async (event) => {
 
     const existingUserByUsername = await db.select()
       .from(schema.user)
-      .where(eq(schema.user.username, data.username))
+      .where(eq(schema.user.username, validatedData.username))
       .limit(1);
 
     if (existingUserByUsername.length > 0) {
@@ -47,21 +62,21 @@ export const POST: RequestHandler = async (event) => {
       }, { status: 400 });
     }
 
-    const passwordHash = await hashPassword(data.password);
+    const passwordHash = await hashPassword(validatedData.password);
 
     const newUser = await db.transaction(async (tx) => {
       const [user] = await tx.insert(schema.user).values({
-        email: data.email,
-        username: data.username,
-        age: data.age,
+        email: validatedData.email,
+        username: validatedData.username,
+        age: validatedData.age,
         passwordHash
       }).returning();
 
       const [creature] = await tx.insert(schema.creature).values({
         userId: user.id,
-        name: data.creature.name,
-        class: data.creature.class,
-        race: data.creature.race
+        name: validatedData.creature.name,
+        class: validatedData.creature.class,
+        race: validatedData.creature.race
       }).returning();
 
       // Create default creature stats for quest system
@@ -99,6 +114,14 @@ export const POST: RequestHandler = async (event) => {
     return json({ success: true, userId: newUser.id, redirectUrl: '/dashboard'  });
   } catch (error) {
     console.error('Registration error:', error);
+
+    if (error instanceof z.ZodError) {
+      const firstError = error.errors[0];
+      return json({
+        success: false,
+        error: firstError?.message || 'Invalid input data'
+      }, { status: 400 });
+    }
     
     if (error && typeof error === 'object' && 'status' in error && 'body' in error) {
       throw error;
