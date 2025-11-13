@@ -8,12 +8,14 @@ import { eq } from 'drizzle-orm';
 import { hashPassword } from '$lib/utils/password';
 import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 import type { RegistrationData } from '$lib/types';
+import { CreatureClass as CreatureClassEnum, CreatureRace as CreatureRaceEnum } from '$lib/types';
+
 import { z } from 'zod';
 
 const registrationSchema = z.object({
   email: z.string().email('Invalid email format').max(255),
   username: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens'),
-  password: z.string().min(8),
+  password: z.string().min(8).max(72, 'Password must be less than 72 characters'),
   confirmPassword: z.string(),
   age: z.number().int().min(13).max(120).optional(),
   creature: z.object({
