@@ -38,7 +38,7 @@ export const POST: RequestHandler = async (event) => {
 
     const existingUserByEmail = await db.select()
       .from(schema.user)
-      .where(eq(schema.user.email, data.email))
+      .where(eq(schema.user.email, validatedData.email))
       .limit(1);
 
     if (existingUserByEmail.length > 0) {
@@ -50,7 +50,7 @@ export const POST: RequestHandler = async (event) => {
 
     const existingUserByUsername = await db.select()
       .from(schema.user)
-      .where(eq(schema.user.username, data.username))
+      .where(eq(schema.user.username, validatedData.username))
       .limit(1);
 
     if (existingUserByUsername.length > 0) {
@@ -60,21 +60,21 @@ export const POST: RequestHandler = async (event) => {
       }, { status: 400 });
     }
 
-    const passwordHash = await hashPassword(data.password);
+    const passwordHash = await hashPassword(validatedData.password);
 
     const newUser = await db.transaction(async (tx) => {
       const [user] = await tx.insert(schema.user).values({
-        email: data.email,
-        username: data.username,
-        age: data.age,
+        email: validatedData.email,
+        username: validatedData.username,
+        age: validatedData.age,
         passwordHash
       }).returning();
 
       const [creature] = await tx.insert(schema.creature).values({
         userId: user.id,
-        name: data.creature.name,
-        class: data.creature.class,
-        race: data.creature.race
+        name: validatedData.creature.name,
+        class: validatedData.creature.class,
+        race: validatedData.creature.race
       }).returning();
 
       // Create default creature stats for quest system
