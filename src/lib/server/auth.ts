@@ -117,6 +117,28 @@ export async function createPasswordResetToken(userId: string, dbInstance = db) 
 	return token;
 }
 
+export async function createEmailVerificationToken(userId: string, email: string, dbInstance = db) {
+	// Delete any existing tokens for this user
+	await dbInstance.delete(table.emailVerificationToken).where(eq(table.emailVerificationToken.userId, userId));
+
+	// Create new token
+	const tokenBytes = crypto.getRandomValues(new Uint8Array(32));
+	const token = encodeHexLowerCase(tokenBytes);
+	const tokenId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+	
+	const DAYS_IN_MS = 1000 * 60 * 60 * 24;
+	const expiresAt = new Date(Date.now() + DAYS_IN_MS);
+
+	await dbInstance.insert(table.emailVerificationToken).values({
+		id: tokenId,
+		userId,
+		expiresAt,
+		email,
+	});
+	
+	return token;
+}
+
 export async function validatePasswordResetToken(token: string, dbInstance = db) {
 	const tokenId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 	
@@ -149,6 +171,44 @@ export async function validatePasswordResetToken(token: string, dbInstance = db)
 	return { user, tokenId: resetToken.id };
 }
 
+export async function validateEmailVerificationToken(token: string, dbInstance = db) {
+	const tokenId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+
+	const [result] = await dbInstance
+		.select({
+			user: {
+				id: table.user.id,
+				email: table.user.email,
+				username: table.user.username
+			},
+			token: table.emailVerificationToken
+		})
+		.from(table.emailVerificationToken)
+		.innerJoin(table.user, eq(table.emailVerificationToken.userId, table.user.id))
+		.where(eq(table.emailVerificationToken.id, tokenId));
+	
+	if (!result) {
+		return null;
+	}
+
+	const { user, token: verificationToken } = result;
+
+	// Check if token is expired
+	const tokenExpired = Date.now() >= verificationToken.expiresAt.getTime();
+	if (tokenExpired) {
+		await dbInstance.delete(table.emailVerificationToken).where(eq(table.emailVerificationToken.id, verificationToken.id));
+		return null;
+	}
+
+	return { user, tokenId: verificationToken.id };
+}
+
+export async function markEmailAsVerified(tokenId: string, dbInstance = db) {
+	await dbInstance.update(table.user)
+		.set({ emailVerified: true })
+		.where(eq(table.user.id, tokenId));
+}
+
 export async function invalidatePasswordResetToken(tokenId: string, dbInstance = db) {
 	await dbInstance.delete(table.passwordResetToken).where(eq(table.passwordResetToken.id, tokenId));
 }
@@ -157,4 +217,10 @@ export async function cleanupExpiredTokens(dbInstance = db) {
 	const now = new Date();
 	await dbInstance.delete(table.passwordResetToken)
 		.where(lt(table.passwordResetToken.expiresAt, now));
+}
+
+export async function cleanupExpiredVerificationTokens(dbInstance = db) {
+	const now = new Date();
+	await dbInstance.delete(table.emailVerificationToken)
+		.where(lt(table.emailVerificationToken.expiresAt, now));
 }

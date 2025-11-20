@@ -9,6 +9,8 @@ export const user = sqliteTable('user', {
     username: text('username').notNull().unique(),
     passwordHash: text('password_hash').notNull(),
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+    emailVerified: integer('email_verified', { mode: 'boolean'}).notNull().default(false),
+    emailVerifiedAt: text('email_verified_at'),
 });
 
 export const creature = sqliteTable('creature', {
@@ -225,6 +227,15 @@ export const passwordResetToken = sqliteTable('password_reset_token', {
         .notNull()
         .references(() => user.id, { onDelete: 'cascade' }),
     expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull()
+});
+
+export const emailVerificationToken = sqliteTable('email_verification_token', {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+        .notNull()
+        .references(() => user.id, { onDelete: 'cascade' }),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+    email: text('email').notNull()
 });
 
 export const key = sqliteTable('user_key', {
