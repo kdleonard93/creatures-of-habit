@@ -1,5 +1,7 @@
 import { Resend } from 'resend';
 import { buildEmailVerificationUrl, getCanonicalBaseUrl } from '$lib/utils/url';
+import { escapeHtml } from '$lib/utils/html';
+import { z } from 'zod';
 
 const resendToken = process.env.RESEND_API_KEY;
 let resend: Resend | null = null;
@@ -9,22 +11,14 @@ if (resendToken) {
 
 const SENDER_EMAIL = process.env.SENDER_EMAIL || 'onboarding@resend.dev';
 
-/**
- * Escapes HTML special characters to prevent XSS in email templates
- */
-function escapeHtml(str: string): string {
-	return str.replace(/[&<>"']/g, (ch) => (
-		ch === '&' ? '&amp;' :
-		ch === '<' ? '&lt;' :
-		ch === '>' ? '&gt;' :
-		ch === '"' ? '&quot;' :
-		'&#39;'
-	));
-}
-
 const APP_NAME = 'Creatures of Habit';
 const EMAIL_SUB_FOOTER = 'Building better habits, one creature at a time.';
 const COMPANY = 'A Digital Dopamine App';
+
+// Validation schemas
+const emailSchema = z.string().email('Invalid email format').max(255);
+const usernameSchema = z.string().min(3).max(30).regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens');
+const tokenSchema = z.string().min(1, 'Token is required');
 
 /**
  * Creates the HTML template for verification email
@@ -186,6 +180,22 @@ export async function sendVerificationEmail(
 	username: string,
 	token: string
 ): Promise<{ success: boolean; error?: string }> {
+	// Validate inputs using Zod
+	const emailValidation = emailSchema.safeParse(email);
+	if (!emailValidation.success) {
+		return { success: false, error: emailValidation.error.errors[0].message };
+	}
+	
+	const usernameValidation = usernameSchema.safeParse(username);
+	if (!usernameValidation.success) {
+		return { success: false, error: usernameValidation.error.errors[0].message };
+	}
+	
+	const tokenValidation = tokenSchema.safeParse(token);
+	if (!tokenValidation.success) {
+		return { success: false, error: tokenValidation.error.errors[0].message };
+	}
+	
 	if (!resend) {
 		console.warn('Resend API key not configured - verification email not sent');
 		return { success: false, error: 'Email service not configured' };
@@ -216,6 +226,17 @@ export async function sendWelcomeEmail(
 	email: string,
 	username: string
 ): Promise<{ success: boolean; error?: string }> {
+	// Validate inputs using Zod
+	const emailValidation = emailSchema.safeParse(email);
+	if (!emailValidation.success) {
+		return { success: false, error: emailValidation.error.errors[0].message };
+	}
+	
+	const usernameValidation = usernameSchema.safeParse(username);
+	if (!usernameValidation.success) {
+		return { success: false, error: usernameValidation.error.errors[0].message };
+	}
+	
 	if (!resend) {
 		console.warn('Resend API key not configured - welcome email not sent');
 		return { success: false, error: 'Email service not configured' };

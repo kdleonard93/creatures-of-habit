@@ -7,21 +7,12 @@ import { Resend } from "resend";
 import * as auth from '$lib/server/auth';
 import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 import { buildPasswordResetUrl } from '$lib/utils/url';
+import { escapeHtml } from '$lib/utils/html';
 
 const resendToken = process.env.RESEND_API_KEY;
 let resend: Resend | null = null;
 if (resendToken) {
   resend = new Resend(resendToken);
-}
-
-function escapeHtml(str: string): string {
-  return str.replace(/[&<>"']/g, (ch) => (
-    ch === '&' ? '&amp;' :
-    ch === '<' ? '&lt;'  :
-    ch === '>' ? '&gt;'  :
-    ch === '"' ? '&quot;':
-                 '&#39;'
-  ));
 }
 
 export const actions = {
