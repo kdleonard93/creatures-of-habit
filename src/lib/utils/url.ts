@@ -18,7 +18,7 @@ export function getCanonicalBaseUrl(): string {
 	// Safe fallback for development/testing
 	// In production, CANONICAL_BASE_URL should always be set
 	const fallback = process.env.NODE_ENV === 'production' 
-		? 'https://creatures-of-habit.app' // Replace with your actual domain
+		? 'https://creatures-of-habit-production.up.railway.app'
 		: 'http://localhost:5175';
 	
 	return fallback.replace(/\/$/, '');

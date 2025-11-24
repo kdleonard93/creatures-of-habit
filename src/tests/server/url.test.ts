@@ -28,7 +28,7 @@ describe('URL Utilities', () => {
 		it('should return production fallback when NODE_ENV is production and no CANONICAL_BASE_URL', () => {
 			process.env.NODE_ENV = 'production';
 			delete process.env.CANONICAL_BASE_URL;
-			expect(getCanonicalBaseUrl()).toBe('https://creatures-of-habit.app');
+			expect(getCanonicalBaseUrl()).toBe('https://creatures-of-habit-production.up.railway.app');
 		});
 
 		it('should return development fallback when NODE_ENV is not production', () => {
@@ -71,7 +71,7 @@ describe('URL Utilities', () => {
 			process.env.NODE_ENV = 'production';
 			delete process.env.CANONICAL_BASE_URL;
 			const token = 'secure-token-123';
-			expect(buildPasswordResetUrl(token)).toBe('https://creatures-of-habit.app/reset-password/secure-token-123');
+			expect(buildPasswordResetUrl(token)).toBe('https://creatures-of-habit-production.up.railway.app/reset-password/secure-token-123');
 		});
 	});
 

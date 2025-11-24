@@ -41,7 +41,7 @@ export function createVerificationEmailTemplate(username: string, verificationLi
 			<div style="max-width: 600px; margin: 0 auto; background-color: #1F2937;">
 				<!-- Header -->
 				<div style="background: linear-gradient(135deg, #E09F3E 0%, #D97706 100%); padding: 40px 20px; text-align: center;">
-					<img src="${logoUrl}" alt="${APP_NAME}" style="max-width: 100px; height: auto; margin-bottom: 10px;" />
+					<img src="${logoUrl}" alt="${APP_NAME}" onerror="this.onerror=null; this.outerHTML='<div style=\"font-size: 60px; margin-bottom: 10px;\">🐉</div>';" style="max-width: 100px; height: auto; margin-bottom: 10px;" />
 				</div>
 				
 				<!-- Content -->
@@ -125,7 +125,7 @@ export function createWelcomeEmailTemplate(username: string): string {
 			<div style="max-width: 600px; margin: 0 auto; background-color: #1F2937;">
 				<!-- Header -->
 				<div style="background: linear-gradient(135deg, #E09F3E 0%, #D97706 100%); padding: 40px 20px; text-align: center;">
-					<img src="${logoUrl}" alt="${APP_NAME}" style="max-width: 100px; height: auto; margin-bottom: 10px;" />
+					<img src="${logoUrl}" alt="${APP_NAME}" onerror="this.onerror=null; this.outerHTML='<div style=\"font-size: 60px; margin-bottom: 10px;\">🐉</div>';" style="max-width: 100px; height: auto; margin-bottom: 10px;" />
 					<h1 style="color: #ffffff; margin: 10px 0 0 0; font-size: 28px; font-weight: 600;">You're All Set!</h1>
 				</div>
 				
