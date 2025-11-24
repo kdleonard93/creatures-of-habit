@@ -178,3 +178,8 @@ export interface WaitlistData {
     title: string;
     description: string;
 }
+
+export interface EmailVerificationService {
+	sendVerificationEmail(email: string, username: string, token: string): Promise<{ success: boolean; error?: string }>;
+	sendWelcomeEmail?(email: string, username: string): Promise<{ success: boolean; error?: string }>;
+}

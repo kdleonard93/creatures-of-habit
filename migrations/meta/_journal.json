@@ -190,6 +190,13 @@
       "when": 1761530171213,
       "tag": "0026_nervous_hellfire_club",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "6",
+      "when": 1763611913092,
+      "tag": "0027_gifted_beast",
+      "breakpoints": true
     }
   ]
 }

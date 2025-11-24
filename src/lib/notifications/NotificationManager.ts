@@ -1,6 +1,7 @@
 import { get } from 'svelte/store';
 import type { Notifications, NotificationChannel, NotificationCategory } from '$lib/types';
 import { notifications } from './NotificationStore';
+import { escapeHtml } from '$lib/utils/html';
 
 // Notification Plugin Interface
 export interface NotificationPlugin {
@@ -53,16 +54,6 @@ export class NotificationManager {
         // Store the timeout ID
         this.timeouts.set(id, Number(timeoutId));
     }
-    
-    
-    public escapeHtml(input: string): string {
-    return input
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
 
     public async showNotification(
         id: string, 
@@ -90,7 +81,7 @@ export class NotificationManager {
                         channel: 'email',
                         category,
                         subject,
-                        message: `<h2>${this.escapeHtml(subject)}</h2><p>${this.escapeHtml(message)}</p>`
+                        message: `<h2>${escapeHtml(subject)}</h2><p>${escapeHtml(message)}</p>`
                     })
                 });
                 if (!res.ok) {

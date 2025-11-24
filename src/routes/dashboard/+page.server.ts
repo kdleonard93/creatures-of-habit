@@ -12,6 +12,11 @@ export const load: PageServerLoad = async ({ locals }) => {
     if (!session?.user) {
         throw redirect(302, '/login');
     }
+    
+    // Redirect unverified users to verification pending page
+    if (!session.user.emailVerified) {
+        throw redirect(302, '/verify-email-pending');
+    }
 
     try {
         // Get user's full info
