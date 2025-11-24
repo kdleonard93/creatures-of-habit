@@ -7,7 +7,7 @@ if (resendToken) {
 	resend = new Resend(resendToken);
 }
 
-const SENDER_EMAIL = process.env.SENDER_EMAIL || 'contact@digitaldopamine.dev';
+const SENDER_EMAIL = process.env.SENDER_EMAIL || 'onboarding@resend.dev';
 
 /**
  * Escapes HTML special characters to prevent XSS in email templates
@@ -24,6 +24,7 @@ function escapeHtml(str: string): string {
 
 const APP_NAME = 'Creatures of Habit';
 const EMAIL_SUB_FOOTER = 'Building better habits, one creature at a time.';
+const COMPANY = 'A Digital Dopamine App';
 
 /**
  * Creates the HTML template for verification email
@@ -96,8 +97,11 @@ function createVerificationEmailTemplate(username: string, verificationLink: str
 					<p style="color: #9CA3AF; font-size: 14px; margin: 0 0 10px 0;">
 						<strong>${APP_NAME}</strong>
 					</p>
-					<p style="color: #6B7280; font-size: 12px; margin: 0;">
+					<p style="color: #6B7280; font-size: 12px; margin: 0 0 5px 0;">
 						${EMAIL_SUB_FOOTER}
+					</p>
+					<p style="color: #6B7280; font-size: 11px; margin: 0;">
+						${COMPANY}
 					</p>
 				</div>
 			</div>
@@ -161,8 +165,11 @@ function createWelcomeEmailTemplate(username: string): string {
 					<p style="color: #9CA3AF; font-size: 14px; margin: 0 0 10px 0;">
 						<strong>${APP_NAME}</strong>
 					</p>
-					<p style="color: #6B7280; font-size: 12px; margin: 0;">
+					<p style="color: #6B7280; font-size: 12px; margin: 0 0 5px 0;">
 						${EMAIL_SUB_FOOTER}
+					</p>
+					<p style="color: #6B7280; font-size: 11px; margin: 0;">
+						${COMPANY}
 					</p>
 				</div>
 			</div>
