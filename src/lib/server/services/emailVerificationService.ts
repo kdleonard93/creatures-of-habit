@@ -25,6 +25,7 @@ const tokenSchema = z.string().min(1, 'Token is required');
  */
 function createVerificationEmailTemplate(username: string, verificationLink: string): string {
 	const safeUsername = escapeHtml(username);
+	const safeLink = escapeHtml(verificationLink);
 	const baseUrl = getCanonicalBaseUrl();
 	const logoUrl = `${baseUrl}/logo.png`;
 	
@@ -55,7 +56,7 @@ function createVerificationEmailTemplate(username: string, verificationLink: str
 					
 					<!-- CTA Button -->
 					<div style="text-align: center; margin: 30px 0;">
-						<a href="${verificationLink}" 
+						<a href="${safeLink}" 
 						   style="display: inline-block; 
 								  padding: 14px 32px; 
 								  background: linear-gradient(135deg, #E09F3E 0%, #D97706 100%); 
@@ -73,7 +74,7 @@ function createVerificationEmailTemplate(username: string, verificationLink: str
 						Or copy and paste this link into your browser:
 					</p>
 					<p style="color: #14B8A6; font-size: 13px; word-break: break-all; margin: 10px 0;">
-						${verificationLink}
+						<a href="${safeLink}" style="color: #14B8A6; text-decoration: none;">${safeLink}</a>
 					</p>
 					
 					<div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #374151;">

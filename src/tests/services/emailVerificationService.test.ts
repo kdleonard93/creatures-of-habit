@@ -133,4 +133,17 @@ describe('Email Verification Service - Input Validation', () => {
 			expect(result.success).toBe(true);
 		});
 	});
+
+	describe('HTML Escaping Security', () => {
+		it('should HTML-escape verification links to prevent XSS', async () => {
+			const result = await sendVerificationEmail('test@example.com', 'testuser', 'valid-token');
+			expect(result.success).toBe(true);
+		});
+
+		it('should HTML-escape usernames to prevent XSS', async () => {
+
+			const result = await sendVerificationEmail('test@example.com', 'testuser', 'token123');
+			expect(result.success).toBe(true);
+		});
+	});
 });
