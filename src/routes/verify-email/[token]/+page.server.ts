@@ -27,8 +27,8 @@ export const load: PageServerLoad = async ({ params }) => {
 	
 	try {
 		await sendWelcomeEmail(user.email, user.username);
-	} catch (error) {
-		console.error('Failed to send welcome email:', error);
+	} catch (err) {
+		console.error('Failed to send welcome email:', err);
 	}
 	
 	return {

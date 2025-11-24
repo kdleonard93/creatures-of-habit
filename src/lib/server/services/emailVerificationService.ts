@@ -7,6 +7,8 @@ if (resendToken) {
 	resend = new Resend(resendToken);
 }
 
+const SENDER_EMAIL = process.env.SENDER_EMAIL || 'contact@digitaldopamine.dev';
+
 /**
  * Escapes HTML special characters to prevent XSS in email templates
  */
@@ -19,6 +21,9 @@ function escapeHtml(str: string): string {
 		'&#39;'
 	));
 }
+
+const APP_NAME = 'Creatures of Habit';
+const EMAIL_SUB_FOOTER = 'Building better habits, one creature at a time.';
 
 /**
  * Creates the HTML template for verification email
@@ -40,14 +45,14 @@ function createVerificationEmailTemplate(username: string, verificationLink: str
 			<div style="max-width: 600px; margin: 0 auto; background-color: #1F2937;">
 				<!-- Header -->
 				<div style="background: linear-gradient(135deg, #E09F3E 0%, #D97706 100%); padding: 40px 20px; text-align: center;">
-					<img src="${logoUrl}" alt="Creatures of Habit" style="max-width: 200px; height: auto; margin-bottom: 10px;" />
+					<img src="${logoUrl}" alt="${APP_NAME}" style="max-width: 100px; height: auto; margin-bottom: 10px;" />
 				</div>
 				
 				<!-- Content -->
 				<div style="padding: 40px 30px; background-color: #1F2937;">
 					<h2 style="color: #F9FAFB; margin: 0 0 20px 0; font-size: 24px;">Welcome, ${safeUsername}! 🎉</h2>
 					<p style="color: #D1D5DB; line-height: 1.6; margin: 0 0 20px 0; font-size: 16px;">
-						Thank you for joining Creatures of Habit! We're excited to have you on this journey to build better habits.
+						Thank you for joining ${APP_NAME}! We're excited to have you on this journey to build better habits.
 					</p>
 					<p style="color: #D1D5DB; line-height: 1.6; margin: 0 0 30px 0; font-size: 16px;">
 						To get started, please verify your email address by clicking the button below:
@@ -81,7 +86,7 @@ function createVerificationEmailTemplate(username: string, verificationLink: str
 							<strong>⏰ This link will expire in 24 hours</strong> for your security.
 						</p>
 						<p style="color: #9CA3AF; font-size: 13px; line-height: 1.6; margin: 10px 0 0 0;">
-							If you didn't create an account with Creatures of Habit, you can safely ignore this email.
+							If you didn't create an account with ${APP_NAME}, you can safely ignore this email.
 						</p>
 					</div>
 				</div>
@@ -89,10 +94,10 @@ function createVerificationEmailTemplate(username: string, verificationLink: str
 				<!-- Footer -->
 				<div style="background-color: #111827; padding: 30px; text-align: center; border-top: 1px solid #374151;">
 					<p style="color: #9CA3AF; font-size: 14px; margin: 0 0 10px 0;">
-						<strong>Creatures of Habit</strong>
+						<strong>${APP_NAME}</strong>
 					</p>
 					<p style="color: #6B7280; font-size: 12px; margin: 0;">
-						Building better habits, one creature at a time 🌟
+						${EMAIL_SUB_FOOTER}
 					</p>
 				</div>
 			</div>
@@ -115,19 +120,19 @@ function createWelcomeEmailTemplate(username: string): string {
 		<head>
 			<meta charset="UTF-8">
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
-			<title>Welcome to Creatures of Habit</title>
+			<title>Welcome to ${APP_NAME}</title>
 		</head>
 		<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #111827;">
 			<div style="max-width: 600px; margin: 0 auto; background-color: #1F2937;">
 				<!-- Header -->
 				<div style="background: linear-gradient(135deg, #E09F3E 0%, #D97706 100%); padding: 40px 20px; text-align: center;">
-					<img src="${logoUrl}" alt="Creatures of Habit" style="max-width: 200px; height: auto; margin-bottom: 10px;" />
-					<h1 style="color: #ffffff; margin: 10px 0 0 0; font-size: 28px; font-weight: 600;">🎊 You're All Set!</h1>
+					<img src="${logoUrl}" alt="${APP_NAME}" style="max-width: 100px; height: auto; margin-bottom: 10px;" />
+					<h1 style="color: #ffffff; margin: 10px 0 0 0; font-size: 28px; font-weight: 600;">You're All Set!</h1>
 				</div>
 				
 				<!-- Content -->
 				<div style="padding: 40px 30px; background-color: #1F2937;">
-					<h2 style="color: #F9FAFB; margin: 0 0 20px 0; font-size: 24px;">Welcome aboard, ${safeUsername}! 🐉</h2>
+					<h2 style="color: #F9FAFB; margin: 0 0 20px 0; font-size: 24px;">Welcome aboard, ${safeUsername}!</h2>
 					<p style="color: #D1D5DB; line-height: 1.6; margin: 0 0 20px 0; font-size: 16px;">
 						Your email has been verified and your account is fully activated!
 					</p>
@@ -147,17 +152,17 @@ function createWelcomeEmailTemplate(username: string): string {
 					</p>
 					
 					<p style="color: #D1D5DB; line-height: 1.6; margin: 20px 0 0 0; font-size: 16px;">
-						Happy habit building! 🌟
+						Happy habit building! ✌️
 					</p>
 				</div>
 				
 				<!-- Footer -->
 				<div style="background-color: #111827; padding: 30px; text-align: center; border-top: 1px solid #374151;">
 					<p style="color: #9CA3AF; font-size: 14px; margin: 0 0 10px 0;">
-						<strong>Creatures of Habit</strong>
+						<strong>${APP_NAME}</strong>
 					</p>
 					<p style="color: #6B7280; font-size: 12px; margin: 0;">
-						Building better habits, one creature at a time 🌟
+						${EMAIL_SUB_FOOTER}
 					</p>
 				</div>
 			</div>
@@ -184,9 +189,9 @@ export async function sendVerificationEmail(
 		const htmlContent = createVerificationEmailTemplate(username, verificationLink);
 		
 		await resend.emails.send({
-			from: 'Creatures of Habit <onboarding@resend.dev>',
+			from: `${APP_NAME} <${SENDER_EMAIL}>`,
 			to: email,
-			subject: 'Verify Your Email - Creatures of Habit',
+			subject: `Verify Your Email - ${APP_NAME}`,
 			html: htmlContent
 		});
 		
@@ -198,7 +203,7 @@ export async function sendVerificationEmail(
 }
 
 /**
- * Send welcome email after successful verification (optional)
+ * Send welcome email after successful verification
  */
 export async function sendWelcomeEmail(
 	email: string,
@@ -213,9 +218,9 @@ export async function sendWelcomeEmail(
 		const htmlContent = createWelcomeEmailTemplate(username);
 		
 		await resend.emails.send({
-			from: 'Creatures of Habit <onboarding@resend.dev>',
+			from: `${APP_NAME} <${SENDER_EMAIL}>`,
 			to: email,
-			subject: '🎉 Welcome to Creatures of Habit!',
+			subject: `🎉 Welcome to ${APP_NAME}!`,
 			html: htmlContent
 		});
 		
