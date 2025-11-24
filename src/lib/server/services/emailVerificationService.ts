@@ -73,8 +73,8 @@ export function createVerificationEmailTemplate(username: string, verificationLi
 					<p style="color: #9CA3AF; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0;">
 						Or copy and paste this link into your browser:
 					</p>
-					<p style="color: #14B8A6; font-size: 13px; word-break: break-all; margin: 10px 0;">
-						<a href="${safeLink}" style="color: #14B8A6; text-decoration: none;">${safeLink}</a>
+					<p style="color: #1424b8ff; font-size: 13px; word-break: break-all; margin: 10px 0;">
+						<a href="${safeLink}" style="color: #1424b8ff; text-decoration: none;">${safeLink}</a>
 					</p>
 					
 					<div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #374151;">
