@@ -3,12 +3,13 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import * as schema from '$lib/server/db/schema';
-import { generateSessionToken, createSession, setSessionTokenCookie } from '$lib/server/auth';
+import { generateSessionToken, createSession, setSessionTokenCookie, createEmailVerificationToken } from '$lib/server/auth';
 import { eq } from 'drizzle-orm';
 import { hashPassword } from '$lib/utils/password';
 import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 import type { RegistrationData } from '$lib/types';
 import { CreatureClass as CreatureClassEnum, CreatureRace as CreatureRaceEnum } from '$lib/types';
+import { sendVerificationEmail } from '$lib/server/services/emailVerificationService';
 
 import { z } from 'zod';
 
@@ -111,7 +112,21 @@ export const POST: RequestHandler = async (event) => {
     
     setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
-    return json({ success: true, userId: newUser.id, redirectUrl: '/dashboard'  });
+    // Send verification email (don't block registration if this fails)
+    try {
+      const verificationToken = await createEmailVerificationToken(newUser.id, validatedData.email);
+      await sendVerificationEmail(validatedData.email, validatedData.username, verificationToken);
+    } catch (error) {
+      console.error('Failed to send verification email during registration:', error);
+      // Continue with registration even if email fails
+    }
+
+    return json({ 
+      success: true, 
+      userId: newUser.id, 
+      redirectUrl: '/verify-email-pending',
+      emailVerificationSent: true
+    });
   } catch (error) {
     console.error('Registration error:', error);
 

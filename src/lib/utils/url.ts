@@ -32,3 +32,12 @@ export function buildPasswordResetUrl(token: string): string {
 	const baseUrl = getCanonicalBaseUrl();
 	return `${baseUrl}/reset-password/${encodeURIComponent(token)}`;
 }
+
+/**
+ * Constructs an email verification URL safely using canonical base URL
+ * @param token - The email verification token (will be URL encoded)
+ */
+export function buildEmailVerificationUrl(token: string): string {
+	const baseUrl = getCanonicalBaseUrl();
+	return `${baseUrl}/verify-email/${encodeURIComponent(token)}`;
+}

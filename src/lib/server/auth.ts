@@ -31,7 +31,12 @@ export async function validateSessionToken(token: string, dbInstance = db) {
 	const [result] = await dbInstance
 		.select({
 			// Adjust user table here to tweak returned data
-			user: { id: table.user.id, username: table.user.username },
+			user: { 
+				id: table.user.id, 
+				username: table.user.username,
+				email: table.user.email,
+				emailVerified: table.user.emailVerified
+			},
 			session: table.session
 		})
 		.from(table.session)
@@ -203,10 +208,17 @@ export async function validateEmailVerificationToken(token: string, dbInstance =
 	return { user, tokenId: verificationToken.id };
 }
 
-export async function markEmailAsVerified(tokenId: string, dbInstance = db) {
+export async function markEmailAsVerified(userId: string, dbInstance = db) {
 	await dbInstance.update(table.user)
-		.set({ emailVerified: true })
-		.where(eq(table.user.id, tokenId));
+		.set({ 
+			emailVerified: true,
+			emailVerifiedAt: new Date().toISOString()
+		})
+		.where(eq(table.user.id, userId));
+}
+
+export async function invalidateEmailVerificationToken(tokenId: string, dbInstance = db) {
+	await dbInstance.delete(table.emailVerificationToken).where(eq(table.emailVerificationToken.id, tokenId));
 }
 
 export async function invalidatePasswordResetToken(tokenId: string, dbInstance = db) {
