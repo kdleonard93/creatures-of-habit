@@ -42,6 +42,7 @@ export const actions = {
     if (resend) {
       try {
         const safeUsername = escapeHtml(user.username);
+        const safeResetLink = escapeHtml(resetLink);
         await resend.emails.send({
           from: 'Creatures of Habit <onboarding@resend.dev>',
           to: user.email,
@@ -52,10 +53,10 @@ export const actions = {
             <p>You requested a password reset for your Creatures of Habit account.</p>
             <p><strong>Security Notice:</strong> If you did not request this password reset, please ignore this email and consider changing your password immediately.</p>
             <p>Click the link below to reset your password:</p>
-            <p><a href="${resetLink}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a></p>
+            <p><a href="${safeResetLink}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a></p>
             <p>If you didn't request this, you can safely ignore this email.</p>
             <p><strong>Important:</strong> This link will expire in 1 hour for your security.</p>
-            <p>Link: ${resetLink}</p>
+            <p>Link: ${safeResetLink}</p>
           `
         });
       } catch (error) {

@@ -23,7 +23,7 @@ const tokenSchema = z.string().min(1, 'Token is required');
 /**
  * Creates the HTML template for verification email
  */
-function createVerificationEmailTemplate(username: string, verificationLink: string): string {
+export function createVerificationEmailTemplate(username: string, verificationLink: string): string {
 	const safeUsername = escapeHtml(username);
 	const safeLink = escapeHtml(verificationLink);
 	const baseUrl = getCanonicalBaseUrl();
@@ -108,7 +108,7 @@ function createVerificationEmailTemplate(username: string, verificationLink: str
 /**
  * Creates the HTML template for welcome email (sent after verification)
  */
-function createWelcomeEmailTemplate(username: string): string {
+export function createWelcomeEmailTemplate(username: string): string {
 	const safeUsername = escapeHtml(username);
 	const baseUrl = getCanonicalBaseUrl();
 	const logoUrl = `${baseUrl}/logo.png`;
