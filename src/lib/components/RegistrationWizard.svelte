@@ -530,7 +530,7 @@
       </div>
       <div class="mt-4">
         <Label>Choose Your Creature's Race</Label>
-        <div class="grid grid-cols-3 gap-4 mt-2">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2">
           {#each creatureRaces as creatureRace}
             <button
               type="button"
@@ -548,7 +548,7 @@
       </div>
       <div class="mt-4">
         <Label>Choose Your Creature's Class</Label>
-        <div class="grid grid-cols-3 gap-4 mt-2">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mt-2">
           {#each creatureClasses as creatureClass}
             <button
               type="button"
@@ -582,31 +582,33 @@
             {remainingStatPoints}
           </span>
         </div>
-        <div class="grid grid-cols-2 gap-4 mt-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
           {#each Object.entries(formData.creature.stats) as [stat, value]}
-            <div class="flex items-center justify-between p-2 border rounded">
-              <div class="flex flex-col">
-                <span class="capitalize">{stat}</span>
-                <span class="text-xs text-gray-500">
+            <div class="flex items-center justify-between p-3 border rounded-lg bg-card hover:bg-accent/5 transition-colors">
+              <div class="flex flex-col min-w-0 flex-shrink">
+                <span class="capitalize font-medium text-sm">{stat}</span>
+                <span class="text-xs text-muted-foreground">
                   Cost: {calculateStatCost(value)}
                 </span>
               </div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
+                  class="h-8 w-8 p-0"
                   disabled={value <= STAT_MIN}
                   on:click={() =>
                     modifyStat(stat as keyof CreatureStats, false)}
                 >
                   -
                 </Button>
-                <span class="w-8 text-center">{value}</span>
+                <span class="w-10 text-center font-semibold text-sm">{value}</span>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
+                  class="h-8 w-8 p-0"
                   disabled={value >= STAT_MAX || remainingStatPoints <= 0}
                   on:click={() => modifyStat(stat as keyof CreatureStats, true)}
                 >
