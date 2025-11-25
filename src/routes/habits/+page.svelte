@@ -68,16 +68,16 @@ async function completeHabit(habitId: string) {
 
 </script>
 
-<div class="container mx-auto py-8">
-    <div class="flex justify-between items-center mb-6">
+<div class="container mx-auto px-4 py-6">
+    <div class="flex flex-col gap-4 mb-6">
         <div>
-            <h1 class="text-2xl font-bold">Your Habits</h1>
-            <Button class="bg-primary text-primary-foreground hover:bg-foreground hover:text-background transition-colors duration-200" size="sm" onclick={() => goto('/habits/completed')}>
-                <div class="pr-4"><FolderCheck class="h-4 w-4"  /></div>
+            <h1 class="text-2xl md:text-3xl font-bold mb-3">Your Habits</h1>
+            <Button class="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-foreground hover:text-background transition-colors duration-200" size="sm" onclick={() => goto('/habits/completed')}>
+                <FolderCheck class="h-4 w-4 mr-2" />
                 View Completed Habits
             </Button>
         </div>
-        <Button onclick={navigateToNewHabit} class="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-foreground hover:text-background transition-colors duration-200">
+        <Button onclick={navigateToNewHabit} class="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary text-primary-foreground hover:bg-foreground hover:text-background transition-colors duration-200">
             <CirclePlus class="h-4 w-4" />
             Create New Habit
         </Button>
@@ -87,20 +87,22 @@ async function completeHabit(habitId: string) {
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {#each data.habits as habit (habit.id)}
                 <div class="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col justify-between h-full bg-card">
-                    <div>
-                        <h3 class="font-semibold text-lg">{habit.title}</h3>
-                        {#if habit.description}
-                            <p class="text-sm text-muted-foreground mt-1">{habit.description}</p>
-                        {/if}
-                        <div class="flex items-center gap-2 mt-2">
-                            {#if habit.completedToday}
-                                <div class="flex items-center gap-1 text-success">
-                                    <Trophy class="h-4 w-4" />
-                                    <span class="text-xs font-medium">Completed today</span>
-                                </div>
+                    <div class="space-y-3">
+                        <div>
+                            <h3 class="font-semibold text-base md:text-lg break-words">{habit.title}</h3>
+                            {#if habit.description}
+                                <p class="text-xs md:text-sm text-muted-foreground mt-1 line-clamp-2">{habit.description}</p>
                             {/if}
                         </div>
-                        <div class="mt-3 flex flex-wrap gap-2 text-sm">
+                        
+                        {#if habit.completedToday}
+                            <div class="flex items-center gap-1 text-success text-xs md:text-sm">
+                                <Trophy class="h-4 w-4 flex-shrink-0" />
+                                <span class="font-medium">Completed today</span>
+                            </div>
+                        {/if}
+                        
+                        <div class="flex flex-wrap gap-2">
                             <span class="capitalize px-2 py-1 bg-badge rounded-full text-xs">
                                 {habit.frequency === 'custom' && habit.customFrequency?.days ? 
                                     formatCustomDays(habit.customFrequency.days) : 
@@ -109,41 +111,44 @@ async function completeHabit(habitId: string) {
                             <span class="capitalize px-2 py-1 bg-badge rounded-full text-xs">
                                 {habit.difficulty}
                             </span>
-                            <span class="capitalize px-2 py-1 bg-badge rounded-full text-xs">
+                            <span class="capitalize px-2 py-1 bg-badge rounded-full text-xs truncate">
                                 {habit.category?.name ?? 'Uncategorized'}
                             </span>
                         </div>
                     </div>
                     
-                    <div class="mt-4">
-                        <div class="grid grid-cols-3 gap-2 mb-3">
+                    <div class="mt-4 space-y-3">
+                        <div class="grid grid-cols-3 gap-2">
                             <Button 
                                 variant="outline"
                                 size="sm"
                                 onclick={() => editHabit(habit.id)}
-                                class="flex items-center justify-center"
+                                class="flex items-center justify-center gap-1 text-xs"
+                                title="Edit habit"
                             >
-                                <Pen class="h-3 w-3 mr-1" />
-                                Edit
+                                <Pen class="h-3 w-3" />
+                                <span class="hidden sm:inline">Edit</span>
                             </Button>
                             <Button 
                                 variant="destructive"
                                 size="sm"
                                 onclick={() => deleteHabit(habit.id)}
-                                class="flex items-center justify-center"
+                                class="flex items-center justify-center gap-1 text-xs"
+                                title="Delete habit"
                             >
-                                <Trash2 class="h-3 w-3 mr-1" />
-                                Delete
+                                <Trash2 class="h-3 w-3" />
+                                <span class="hidden sm:inline">Delete</span>
                             </Button>
                             <Button 
                                 variant="success"
                                 size="sm"
                                 onclick={() => completeHabit(habit.id)}
                                 disabled={habit.completedToday}
-                                class="flex items-center justify-center"
+                                class="flex items-center justify-center gap-1 text-xs"
+                                title="Mark as complete"
                             >
-                                <CircleCheck class="h-3 w-3 mr-1" />
-                                Complete
+                                <CircleCheck class="h-3 w-3" />
+                                <span class="hidden sm:inline">Complete</span>
                             </Button>
                         </div>
                         <div class="w-full">
@@ -155,8 +160,8 @@ async function completeHabit(habitId: string) {
         </div>
     {:else}
         <div class="text-center py-12">
-            <p class="text-gray-600">You haven't created any habits yet.</p>
-            <Button onclick={navigateToNewHabit} variant="outline" class="mt-4">
+            <p class="text-gray-600 mb-4">You haven't created any habits yet.</p>
+            <Button onclick={navigateToNewHabit} variant="outline" class="w-full sm:w-auto">
                 Create Your First Habit
             </Button>
         </div>
