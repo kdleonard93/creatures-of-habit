@@ -122,15 +122,15 @@
 		<CardContent>
 			
 			{#if props.data.habits && props.data.habits.length > 0}
-				<div class="space-y-3">
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					{#each props.data.habits as habit (habit.id)}
-						<div class="p-4 border rounded-lg shadow-sm bg-card flex flex-col gap-3">
-							<div class="flex justify-between items-start gap-3">
-								<div class="flex-1 min-w-0">
-									<div class="flex items-center gap-2 flex-wrap">
-										<h3 class="font-semibold text-sm md:text-base break-words">{habit.title}</h3>
+						<div class="p-4 border rounded-lg shadow-sm bg-card flex flex-col">
+							<div class="flex justify-between items-start mb-3">
+								<div class="flex flex-col flex-1 min-w-0">
+									<div class="flex items-center gap-2">
+										<h3 class="font-semibold break-words">{habit.title}</h3>
 										{#if habit.completedToday}
-											<div class="text-success flex-shrink-0">
+											<div class="text-success">
 												<Trophy class="h-4 w-4" />
 											</div>
 										{/if}
@@ -151,11 +151,10 @@
 									size="sm"
 									onclick={() => completeHabit(habit.id)}
 									disabled={habit.completedToday}
-									class="flex items-center gap-1 flex-shrink-0 text-xs md:text-sm"
+									class="flex items-center gap-2 min-w-24 flex-shrink-0"
 								>
 									<CircleCheck class="h-4 w-4" />
-									<span class="hidden sm:inline">{habit.completedToday ? 'Completed' : 'Complete'}</span>
-									<span class="sm:hidden">{habit.completedToday ? '✓' : 'Do'}</span>
+									{habit.completedToday ? 'Completed' : 'Complete'}
 								</Button>
 							</div>
 						</div>
@@ -176,7 +175,7 @@
 		</CardContent>
 	</Card>
 
-	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 		<!-- User Info Card -->
 		<Card>
 			<CardHeader>
@@ -265,15 +264,11 @@
 			</CardContent>
 		</Card>
 	</div>
-
-	<!-- Logout Button -->
-	<div class="flex justify-center pt-4">
-		<form action="/logout" method="POST" use:enhance class="w-full sm:w-auto">
-			<Button type="submit" variant="outline" size="sm" class="w-full sm:w-auto flex items-center justify-center gap-2">
-				<LogOut class="h-4 w-4" />
-				Logout
-			</Button>
-		</form>
-	</div>
 </div>
+<form action="/logout" method="POST" use:enhance>
+	<Button type="submit" variant="outline" size="sm" class="flex items-center gap-2">
+		<LogOut class="h-4 w-4" />
+		Logout
+	</Button>
+</form>
 
