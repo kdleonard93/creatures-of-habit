@@ -82,8 +82,8 @@
           </ul>
         </div>
   
-        <!-- Newsletter -->
-        <div class="space-y-4">
+        <!-- Newsletter - Hidden until feature is implemented -->
+        <!-- <div class="space-y-4">
           <h3 class="text-sm font-medium">Stay Updated</h3>
           <p class="text-sm text-muted-foreground">
             Subscribe to stay up to date on progress and release notes.
@@ -96,7 +96,7 @@
             />
             <Button type="submit" class="w-full">Subscribe</Button>
           </form>
-        </div>
+        </div> -->
       </div>
   
       <!-- Bottom Section -->

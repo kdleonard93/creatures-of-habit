@@ -1,10 +1,11 @@
 <script lang="ts">
     import { Button } from "$lib/components/ui/button";
     import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "$lib/components/ui/sheet";
-    import { Menu } from "@lucide/svelte";
+    import { Menu, LogOut } from "@lucide/svelte";
     import { page } from '$app/stores';
     import { svgLogo } from '$lib/assets/appLogo';
     import NotificationCenter from '$lib/components/notifications/NotificationCenter.svelte';
+    import { enhance } from '$app/forms';
     
     // State for mobile menu
     let menuOpen = $state(false);
@@ -120,20 +121,31 @@
                             <!-- Divider -->
                             <div class="border-t border-border"></div>
                             
-                            <!-- Auth Buttons -->
+                            <!-- Auth Buttons / Logout -->
                             {#if !isAuthenticated}
-                            <div class="space-y-2">
-                                {#each authItems as item}
+                                <div class="flex flex-col gap-3">
+                                    {#each authItems as item}
+                                        <Button 
+                                            href={item.href} 
+                                            variant={item.variant} 
+                                            class="w-full"
+                                            onclick={closeMenu}
+                                        >
+                                            {item.label}
+                                        </Button>
+                                    {/each}
+                                </div>
+                            {:else}
+                                <form action="/logout" method="POST" use:enhance>
                                     <Button 
-                                        href={item.href} 
-                                        variant={item.variant} 
-                                        class="w-full justify-start"
-                                        onclick={closeMenu}
+                                        type="submit" 
+                                        variant="outline" 
+                                        class="w-full flex items-center justify-center gap-2"
                                     >
-                                        {item.label}
+                                        <LogOut class="h-4 w-4" />
+                                        Logout
                                     </Button>
-                                {/each}
-                            </div>
+                                </form>
                             {/if}
                         </div>
                     </SheetContent>

@@ -25,24 +25,24 @@
     }
 </script>
 
-<div class="container mx-auto py-8">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">Completed Habits</h1>
-        <Button variant="outline" onclick={() => goto('/habits')}>
+<div class="container mx-auto px-4 py-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h1 class="text-2xl md:text-3xl font-bold">Completed Habits</h1>
+        <Button variant="outline" onclick={() => goto('/habits')} class="w-full sm:w-auto">
             Back to Active Habits
         </Button>
     </div>
 
     {#if data.completedHabits?.length > 0}
-        <div class="grid gap-4">
+        <div class="space-y-3">
             {#each data.completedHabits as habit}
-                <div class="p-4 border rounded-lg flex justify-between items-start">
-                    <div>
-                        <h3 class="font-semibold">{habit.title}</h3>
+                <div class="p-4 border rounded-lg flex flex-col sm:flex-row justify-between items-start gap-4 bg-card">
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-semibold text-base md:text-lg break-words">{habit.title}</h3>
                         {#if habit.description}
-                            <p class="text-sm text-gray-600">{habit.description}</p>
+                            <p class="text-xs md:text-sm text-muted-foreground mt-1 line-clamp-2">{habit.description}</p>
                         {/if}
-                        <div class="mt-2 text-sm text-gray-500">
+                        <div class="mt-2 text-xs md:text-sm text-muted-foreground">
                             Completed on: {new Date(habit.updatedAt).toLocaleDateString()}
                         </div>
                     </div>
@@ -51,17 +51,18 @@
                         variant="destructive"
                         size="sm"
                         onclick={() => permanentlyDeleteHabit(habit.id)}
-                        class="flex items-center gap-2"
+                        class="w-full sm:w-auto flex items-center justify-center gap-2 flex-shrink-0"
                     >
                         <Trash2 class="h-4 w-4" />
-                        Delete Permanently
+                        <span class="hidden sm:inline">Delete Permanently</span>
+                        <span class="sm:hidden">Delete</span>
                     </Button>
                 </div>
             {/each}
         </div>
     {:else}
         <div class="text-center py-12">
-            <p class="text-gray-600">No completed habits yet.</p>
+            <p class="text-muted-foreground mb-4">No completed habits yet.</p>
         </div>
     {/if}
 </div>

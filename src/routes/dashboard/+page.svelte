@@ -74,10 +74,10 @@
 	}
 </script>
 
-<div class="container mx-auto py-8 space-y-6">
-	<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+<div class="container mx-auto px-4 py-6 space-y-6">
+	<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
 		<div>
-			<p class="text-muted-foreground flex items-center gap-1">
+			<p class="text-muted-foreground flex items-center gap-2">
 				<Calendar class="h-6 w-6" />
 				{formattedDate}
 			</p>
@@ -90,16 +90,16 @@
 	<!-- Today's Habits Section -->
 	<Card>
 		<CardHeader>
-			<div class="flex justify-between items-center">
+			<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
 				<div>
 					<CardTitle>Today's Habits</CardTitle>
 					<CardDescription>Track your daily progress</CardDescription>
 				</div>
-				<div class="flex gap-2">
+				<div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
 					<Button 
 						variant="outline" 
 						size="sm" 
-						class="flex items-center gap-2"
+						class="flex items-center justify-center gap-2"
 						onclick={() => goto('/habits')}
 					>
 						<Filter class="h-4 w-4" />
@@ -108,7 +108,7 @@
 					<Button 
 						variant="outline" 
 						size="sm" 
-						class="flex items-center gap-2"
+						class="flex items-center justify-center gap-2"
 						onclick={() => goto('/habits/new')}
 					>
 						<Plus class="h-4 w-4" />
@@ -124,9 +124,9 @@
 					{#each props.data.habits as habit (habit.id)}
 						<div class="p-4 border rounded-lg shadow-sm bg-card flex flex-col">
 							<div class="flex justify-between items-start mb-3">
-								<div class="flex flex-col">
+								<div class="flex flex-col flex-1 min-w-0">
 									<div class="flex items-center gap-2">
-										<h3 class="font-semibold">{habit.title}</h3>
+										<h3 class="font-semibold break-words">{habit.title}</h3>
 										{#if habit.completedToday}
 											<div class="text-success">
 												<Trophy class="h-4 w-4" />
@@ -149,7 +149,7 @@
 									size="sm"
 									onclick={() => completeHabit(habit.id)}
 									disabled={habit.completedToday}
-									class="flex items-center gap-2 min-w-24"
+									class="flex items-center gap-2 min-w-24 flex-shrink-0"
 								>
 									<CircleCheck class="h-4 w-4" />
 									{habit.completedToday ? 'Completed' : 'Complete'}
@@ -182,8 +182,8 @@
 			</CardHeader>
 			<CardContent>
 				<div class="space-y-4">
-					<div class="space-y-2">
-						<p><span class="font-semibold">Email:</span> {props.data.user.email}</p>
+					<div class="space-y-3 text-sm md:text-base">
+						<p><span class="font-semibold">Email:</span> <span class="break-all">{props.data.user.email}</span></p>
 						<p><span class="font-semibold">Username:</span> {props.data.user.username}</p>
 						<p><span class="font-semibold">Age:</span> {props.data.user.age}</p>
 						<p>
@@ -197,7 +197,7 @@
 							href="/settings/password"
 							variant="outline"
 							size="sm"
-							class="flex items-center gap-2"
+							class="w-full flex items-center justify-center gap-2"
 						>
 							<ShieldAlert class="h-4 w-4" />
 							Change Password
@@ -216,26 +216,30 @@
 			<CardContent>
 				{#if props.data.creature}
 					<div class="space-y-4">
-						<div class="space-y-2">
+						<div class="space-y-3 text-sm md:text-base">
 							<p class="capitalize">
 								<span class="font-semibold">Name:</span>
 								{props.data.creature.name}
 							</p>
-							<p class="flex items-center gap-3">
+							<p class="flex items-center gap-2 flex-wrap">
 								<span class="font-semibold capitalize">Race:</span>
-								{@html raceIcons[props.data.creature.race as CreatureRaceType]}
-								<span class="capitalize">{props.data.creature.race}</span>
+								<span class="flex items-center gap-1">
+									{@html raceIcons[props.data.creature.race as CreatureRaceType]}
+									<span class="capitalize">{props.data.creature.race}</span>
+								</span>
 							</p>
-							<p class="flex items-center gap-3">
+							<p class="flex items-center gap-2 flex-wrap">
 								<span class="font-semibold capitalize">Class:</span>
-								{@html classIcons[props.data.creature.class as CreatureClassType]}
-								<span class="capitalize">{props.data.creature.class}</span>
+								<span class="flex items-center gap-1">
+									{@html classIcons[props.data.creature.class as CreatureClassType]}
+									<span class="capitalize">{props.data.creature.class}</span>
+								</span>
 							</p>
 						</div>
 
 						<!-- Add XP progress bar -->
 						<div class="pt-4 border-t">
-							<h4 class="font-medium mb-2">Experience</h4>
+							<h4 class="font-medium mb-2 text-sm md:text-base">Experience</h4>
 							<XPBar experience={props.data.creature.experience} />
 						</div>
 
