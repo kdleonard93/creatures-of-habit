@@ -122,12 +122,12 @@
                             
                             <!-- Auth Buttons -->
                             {#if !isAuthenticated}
-                            <div class="space-y-2">
+                            <div class="flex flex-col gap-3">
                                 {#each authItems as item}
                                     <Button 
                                         href={item.href} 
                                         variant={item.variant} 
-                                        class="w-full justify-start"
+                                        class="w-full"
                                         onclick={closeMenu}
                                     >
                                         {item.label}

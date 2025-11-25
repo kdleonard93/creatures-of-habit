@@ -28,6 +28,7 @@
     }
 </script>
 
-<div class="container mx-auto py-8">
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl md:text-3xl font-bold mb-6">Create New Habit</h1>
     <HabitForm onSubmit={handleSubmit} categories={data.categories}/>
 </div>
