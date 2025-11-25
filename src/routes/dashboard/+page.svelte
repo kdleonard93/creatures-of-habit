@@ -75,18 +75,16 @@
 </script>
 
 <div class="container mx-auto px-4 py-6 space-y-6">
-	<div class="flex flex-col gap-4">
+	<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
 		<div>
-			<p class="text-muted-foreground flex items-center gap-2 text-sm md:text-base">
-				<Calendar class="h-5 w-5" />
+			<p class="text-muted-foreground flex items-center gap-2">
+				<Calendar class="h-6 w-6" />
 				{formattedDate}
 			</p>
 		</div>
 		
 		<!-- Daily Progress Summary -->
-		<div class="w-full">
-			<DailyProgressSummary data={props.data} />
-		</div>
+		<DailyProgressSummary data={props.data} />
 	</div>
 
 	<!-- Today's Habits Section -->
