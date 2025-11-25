@@ -111,7 +111,7 @@ async function completeHabit(habitId: string) {
                             <span class="capitalize px-2 py-1 bg-badge rounded-full text-xs">
                                 {habit.difficulty}
                             </span>
-                            <span class="capitalize px-2 py-1 bg-badge rounded-full text-xs truncate">
+                            <span class="capitalize px-2 py-1 bg-badge rounded-full text-xs truncate max-w-[120px]">
                                 {habit.category?.name ?? 'Uncategorized'}
                             </span>
                         </div>
@@ -124,20 +124,18 @@ async function completeHabit(habitId: string) {
                                 size="sm"
                                 onclick={() => editHabit(habit.id)}
                                 class="flex items-center justify-center gap-1 text-xs"
-                                title="Edit habit"
                             >
                                 <Pen class="h-3 w-3" />
-                                <span class="hidden sm:inline">Edit</span>
+                                <span class="sr-only sm:not-sr-only">Edit</span>
                             </Button>
                             <Button 
                                 variant="destructive"
                                 size="sm"
                                 onclick={() => deleteHabit(habit.id)}
                                 class="flex items-center justify-center gap-1 text-xs"
-                                title="Delete habit"
                             >
                                 <Trash2 class="h-3 w-3" />
-                                <span class="hidden sm:inline">Delete</span>
+                                <span class="sr-only sm:not-sr-only">Delete</span>
                             </Button>
                             <Button 
                                 variant="success"
@@ -145,10 +143,9 @@ async function completeHabit(habitId: string) {
                                 onclick={() => completeHabit(habit.id)}
                                 disabled={habit.completedToday}
                                 class="flex items-center justify-center gap-1 text-xs"
-                                title="Mark as complete"
                             >
                                 <CircleCheck class="h-3 w-3" />
-                                <span class="hidden sm:inline">Complete</span>
+                                <span class="sr-only sm:not-sr-only">Complete</span>
                             </Button>
                         </div>
                         <div class="w-full">
