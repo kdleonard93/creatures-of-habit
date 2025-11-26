@@ -49,7 +49,9 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
             questionNumber: question.questionNumber,
             questionText: question.questionText,
             choiceA: question.choiceA,
-            choiceB: question.choiceB
+            choiceB: question.choiceB,
+            requiredStat: question.requiredStat,
+            difficultyThreshold: question.difficultyThreshold
         }));
 
         return json({
