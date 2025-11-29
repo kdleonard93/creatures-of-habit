@@ -13,7 +13,7 @@
         goto('/habits/new');
     }
 
-    async function deleteHabit(habitId: string) {
+    async function deleteHabit(habitId: string, habitTitle: string) {
     if (!confirm('Are you sure you want to delete this habit?')) return;
     
     try {
@@ -25,7 +25,7 @@
             throw new Error('Failed to delete habit');
         }
 
-        toast.success(`${habitId} deleted successfully`, {duration: 10000});
+        toast.success(`${habitTitle} deleted successfully`, {duration: 10000});
         await invalidateAll();
     } catch (error) {
         toast.error(`Error deleting habit: ${error}`);
@@ -137,7 +137,7 @@ async function completeHabit(habitId: string) {
                             <Button 
                                 variant="destructive"
                                 size="sm"
-                                onclick={() => deleteHabit(habit.id)}
+                                onclick={() => deleteHabit(habit.id, habit.title)}
                                 class="flex items-center justify-center gap-1 text-xs"
                             >
                                 <Trash2 class="h-3 w-3" />
