@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 
 	interface Props {
-		nextActiveDate: Date | string | null;
+		nextActiveDate: Date | null;
 		isActive: boolean;
 	}
 
@@ -18,8 +18,7 @@
 		}
 
 		const now = new Date();
-		const nextDate = typeof nextActiveDate === 'string' ? new Date(nextActiveDate) : nextActiveDate;
-		const diff = nextDate.getTime() - now.getTime();
+		const diff = nextActiveDate.getTime() - now.getTime();
 
 		if (diff <= 0) {
 			countdown = '';

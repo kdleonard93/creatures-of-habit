@@ -16,7 +16,7 @@
 		isActiveToday: boolean;
 		completedToday: boolean;
 		availabilityMessage: string;
-		nextActiveDate: Date | string | null;
+		nextActiveDate: Date | null;
 	}
 
 	interface Props {

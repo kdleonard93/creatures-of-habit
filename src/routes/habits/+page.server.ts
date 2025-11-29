@@ -104,7 +104,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			customFrequency,
 			completedToday,
 			isActiveToday: status.isActiveToday,
-			nextActiveDate: status.nextActiveDate ? new Date(status.nextActiveDate).toISOString() : null,
+			nextActiveDate: status.nextActiveDate,
 			daysUntilActive: status.daysUntilActive,
 			availabilityMessage: status.availabilityMessage
 		};
