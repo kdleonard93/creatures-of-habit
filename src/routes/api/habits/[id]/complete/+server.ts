@@ -6,7 +6,7 @@ import { eq, and, gte } from 'drizzle-orm';
 import { calculateHabitXp, getLevelFromXp } from '$lib/server/xp';
 import { markHabitCompleted, DailyTrackerError } from '$lib/utils/dailyHabitTracker';
 import { logger } from '$lib/utils/logger';
-import { formatSqliteTimestamp } from '$lib/utils/date';
+import { formatSqliteTimestamp, formatDateOnly } from '$lib/utils/date';
 import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 
 export const POST: RequestHandler = async (event) => {
@@ -31,8 +31,20 @@ export const POST: RequestHandler = async (event) => {
             return json({ error: 'Habit not found' }, { status: 404 });
         }
 
+        const today = formatDateOnly();
         
-        // Get current streak data
+        const existingCompletion = await db
+            .select()
+            .from(habitCompletion)
+            .where(and(
+                eq(habitCompletion.habitId, habitData.id),
+                eq(habitCompletion.completedAt, today)
+            ));
+
+        if (existingCompletion.length > 0) {
+            return json({ error: 'Habit already completed today' }, { status: 400 });
+        }
+
         const [streakData] = await db
             .select()
             .from(habitStreak)
@@ -44,13 +56,12 @@ export const POST: RequestHandler = async (event) => {
             streakData?.currentStreak || 0
         );
 
-        // Record completion
         const [completion] = await db
             .insert(habitCompletion)
             .values({
                 habitId: habitData.id,
                 userId: session.user.id,
-                completedAt: formatSqliteTimestamp(),
+                completedAt: today,
                 experienceEarned,
                 value: 100
             })

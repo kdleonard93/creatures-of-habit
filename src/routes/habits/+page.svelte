@@ -100,7 +100,9 @@ async function completeHabit(habitId: string) {
                                 <Trophy class="h-4 w-4 flex-shrink-0" />
                                 <span class="font-medium">Completed today</span>
                             </div>
-                        {:else if !habit.isActiveToday && habit.availabilityMessage}
+                        {/if}
+                        
+                        {#if !habit.isActiveToday && habit.availabilityMessage}
                             <div class="flex items-center gap-1 text-muted-foreground text-xs md:text-sm">
                                 <span class="font-medium">{habit.availabilityMessage}</span>
                             </div>

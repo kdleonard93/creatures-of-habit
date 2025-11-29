@@ -39,6 +39,12 @@
 	let selected = $state<Selected<string> | undefined>(undefined);
 
 	$effect(() => {
+		if (initialData) {
+			formData = { ...initialData };
+		}
+	});
+
+	$effect(() => {
 		selected = formData.categoryId
 			? {
 					value: formData.categoryId,

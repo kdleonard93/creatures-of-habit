@@ -200,8 +200,10 @@ export function getHabitStatus(
   completedToday: boolean,
   currentDate: Date = new Date()
 ): HabitStatusInfo {
+  const isActive = isHabitActiveToday(habit, lastCompletion, currentDate) && !completedToday;
+  
   return {
-    isActiveToday: isHabitActiveToday(habit, lastCompletion, currentDate),
+    isActiveToday: isActive,
     completedToday,
     nextActiveDate: getNextActiveDate(habit, lastCompletion, currentDate),
     daysUntilActive: getDaysUntilActive(habit, lastCompletion, currentDate),
