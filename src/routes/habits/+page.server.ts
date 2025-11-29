@@ -1,8 +1,10 @@
 import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { habit, habitFrequency, habitCategory, habitCompletion, creature } from '$lib/server/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { habit, habitFrequency, habitCategory, habitCompletion, creature, habitStreak } from '$lib/server/db/schema';
+import { eq, and, desc } from 'drizzle-orm';
+import { getHabitStatus } from '$lib/utils/habitStatus';
+import type { HabitFrequency } from '$lib/types';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const session = await locals.auth();
@@ -37,13 +39,25 @@ export const load: PageServerLoad = async ({ locals }) => {
 		.leftJoin(habitCategory, eq(habit.categoryId, habitCategory.id))
 		.where(and(eq(habit.userId, session.user.id), eq(habit.isArchived, false)));
 
+	// Get today's completions
 	const completions = await db
 		.select({
 			habitId: habitCompletion.habitId,
-			value: habitCompletion.value
+			value: habitCompletion.value,
+			completedAt: habitCompletion.completedAt
 		})
 		.from(habitCompletion)
 		.where(eq(habitCompletion.completedAt, today));
+
+	// Get last completion for each habit (for status calculation)
+	const lastCompletions = await db
+		.select({
+			habitId: habitCompletion.habitId,
+			completedAt: habitCompletion.completedAt
+		})
+		.from(habitCompletion)
+		.where(eq(habitCompletion.userId, session.user.id))
+		.orderBy(desc(habitCompletion.completedAt));
 
 	const userCreature = await db
 		.select()
@@ -51,16 +65,46 @@ export const load: PageServerLoad = async ({ locals }) => {
 		.where(eq(creature.userId, session.user.id))
 		.then((rows) => rows[0]);
 
-	const habitsWithCompletions = habits.map((habit) => ({
-		...habit,
-		frequency: habit.frequency || 'daily',
-		customFrequency: habit.customFrequency
+	// Create a map of last completions by habit ID
+	const lastCompletionMap = new Map<string, string>();
+	for (const completion of lastCompletions) {
+		if (!lastCompletionMap.has(completion.habitId)) {
+			lastCompletionMap.set(completion.habitId, completion.completedAt);
+		}
+	}
+
+	const habitsWithCompletions = habits.map((h) => {
+		const frequency = h.frequency || 'daily';
+		const customFrequency = h.customFrequency
 			? {
-					days: JSON.parse(habit.customFrequency)
+					days: JSON.parse(h.customFrequency)
 				}
-			: undefined,
-		completedToday: completions.some((c) => c.habitId === habit.id)
-	}));
+			: undefined;
+		const completedToday = completions.some((c) => c.habitId === h.id);
+		const lastCompletion = lastCompletionMap.get(h.id);
+
+		// Calculate habit status
+		const status = getHabitStatus(
+			{
+				frequency: frequency as HabitFrequency,
+				customFrequency,
+				createdAt: h.createdAt
+			},
+			lastCompletion ? { completedAt: lastCompletion } : null,
+			completedToday
+		);
+
+		return {
+			...h,
+			frequency,
+			customFrequency,
+			completedToday,
+			isActiveToday: status.isActiveToday,
+			nextActiveDate: status.nextActiveDate,
+			daysUntilActive: status.daysUntilActive,
+			availabilityMessage: status.availabilityMessage
+		};
+	});
 
 	const categories = await db
 		.select({

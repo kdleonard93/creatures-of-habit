@@ -2,9 +2,11 @@ import { redirect, error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { user, creature, habit, habitFrequency, habitCategory, habitCompletion } from '$lib/server/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { ensureDailyTrackerEntries, getDailyProgressStats, DailyTrackerError } from '$lib/utils/dailyHabitTracker';
 import { logger } from '$lib/utils/logger';
+import { getHabitStatus } from '$lib/utils/habitStatus';
+import type { HabitFrequency } from '$lib/types';
 
 export const load: PageServerLoad = async ({ locals }) => {
     const session = await locals.auth();
@@ -69,26 +71,67 @@ export const load: PageServerLoad = async ({ locals }) => {
         const completions = await db
             .select({
                 habitId: habitCompletion.habitId,
-                value: habitCompletion.value
+                value: habitCompletion.value,
+                completedAt: habitCompletion.completedAt
             })
             .from(habitCompletion)
             .where(and(eq(habitCompletion.userId, session.user.id), eq(habitCompletion.completedAt, today)));
 
+        // Get last completion for each habit (for status calculation)
+        const lastCompletions = await db
+            .select({
+                habitId: habitCompletion.habitId,
+                completedAt: habitCompletion.completedAt
+            })
+            .from(habitCompletion)
+            .where(eq(habitCompletion.userId, session.user.id))
+            .orderBy(desc(habitCompletion.completedAt));
+
+        // Create a map of last completions by habit ID
+        const lastCompletionMap = new Map<string, string>();
+        for (const completion of lastCompletions) {
+            if (!lastCompletionMap.has(completion.habitId)) {
+                lastCompletionMap.set(completion.habitId, completion.completedAt);
+            }
+        }
+
         // Add completion status to habits
-        const habitsWithCompletions = habits.map((habit) => ({
-            ...habit,
-            frequency: habit.frequency || 'daily',
-            customFrequency: (() => {
-                if (!habit.customFrequency) return undefined;
+        const habitsWithCompletions = habits.map((h) => {
+            const frequency = h.frequency || 'daily';
+            const customFrequency = (() => {
+                if (!h.customFrequency) return undefined;
                 try {
-                    return { days: JSON.parse(habit.customFrequency) };
+                    return { days: JSON.parse(h.customFrequency) };
                 } catch {
-                    logger.warn('Invalid customFrequency JSON for habit', { habitId: habit.id });
+                    logger.warn('Invalid customFrequency JSON for habit', { habitId: h.id });
                     return undefined;
                 }
-            })(),
-            completedToday: completions.some((c) => c.habitId === habit.id)
-        }));
+            })();
+            const completedToday = completions.some((c) => c.habitId === h.id);
+            const lastCompletion = lastCompletionMap.get(h.id);
+
+            // Calculate habit status
+            const status = getHabitStatus(
+                {
+                    frequency: frequency as HabitFrequency,
+                    customFrequency,
+                    createdAt: h.createdAt
+                },
+                lastCompletion ? { completedAt: lastCompletion } : null,
+                completedToday
+            );
+
+            return {
+                ...h,
+                frequency,
+                customFrequency,
+                completedToday,
+                isActiveToday: status.isActiveToday,
+                nextActiveDate: status.nextActiveDate,
+                daysUntilActive: status.daysUntilActive,
+                availabilityMessage: status.availabilityMessage
+            };
+        });
 
         // Ensure all habits have tracker entries for today
         await ensureDailyTrackerEntries(session.user.id);

@@ -1,0 +1,228 @@
+/**
+ * Habit status utilities for determining if a habit is active on a given day
+ * Handles frequency-based activation logic for daily, weekly, and custom habits
+ */
+
+import type { HabitFrequency } from '$lib/types';
+
+export interface HabitStatusInfo {
+  isActiveToday: boolean;
+  completedToday: boolean;
+  nextActiveDate: Date | null;
+  daysUntilActive: number;
+  availabilityMessage: string;
+}
+
+interface HabitData {
+  frequency: HabitFrequency | null;
+  customFrequency?: { days: number[] } | null;
+  createdAt: string;
+}
+
+interface CompletionData {
+  completedAt: string;
+}
+
+/**
+ * Determines if a habit is active on the current day based on frequency
+ * 
+ * @param habit The habit with frequency info
+ * @param lastCompletion The most recent completion (if any)
+ * @param currentDate The date to check (defaults to today)
+ * @returns Whether the habit is active today
+ */
+export function isHabitActiveToday(
+  habit: HabitData,
+  lastCompletion: CompletionData | null,
+  currentDate: Date = new Date()
+): boolean {
+  const frequency = habit.frequency || 'daily';
+
+  // Daily habits are always active
+  if (frequency === 'daily') {
+    return true;
+  }
+
+  // Weekly habits: active if 7+ days since last completion
+  if (frequency === 'weekly') {
+    if (!lastCompletion) {
+      // Never completed, so it's active
+      return true;
+    }
+
+    const lastCompletedDate = new Date(lastCompletion.completedAt);
+    const daysSinceCompletion = Math.floor(
+      (currentDate.getTime() - lastCompletedDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    return daysSinceCompletion >= 7;
+  }
+
+  // Custom frequency: active only on selected days
+  if (frequency === 'custom' && habit.customFrequency?.days) {
+    const currentDayOfWeek = currentDate.getDay();
+    return habit.customFrequency.days.includes(currentDayOfWeek);
+  }
+
+  return true;
+}
+
+/**
+ * Calculates the next date when a habit will be active
+ * 
+ * @param habit The habit with frequency info
+ * @param lastCompletion The most recent completion (if any)
+ * @param currentDate The date to check from (defaults to today)
+ * @returns The next active date, or null if always active
+ */
+export function getNextActiveDate(
+  habit: HabitData,
+  lastCompletion: CompletionData | null,
+  currentDate: Date = new Date()
+): Date | null {
+  const frequency = habit.frequency || 'daily';
+
+  // Daily habits are always active
+  if (frequency === 'daily') {
+    return null;
+  }
+
+  // Weekly habits: 7 days from last completion
+  if (frequency === 'weekly') {
+    if (!lastCompletion) {
+      return null; // Never completed, so it's active now
+    }
+
+    const lastCompletedDate = new Date(lastCompletion.completedAt);
+    const nextActiveDate = new Date(lastCompletedDate);
+    nextActiveDate.setDate(nextActiveDate.getDate() + 7);
+
+    // If next active date is in the past, it's already active
+    if (nextActiveDate <= currentDate) {
+      return null;
+    }
+
+    return nextActiveDate;
+  }
+
+  // Custom frequency: find next active day
+  if (frequency === 'custom' && habit.customFrequency?.days) {
+    const activeDays = habit.customFrequency.days.sort((a, b) => a - b);
+    const currentDayOfWeek = currentDate.getDay();
+
+    // Find the next active day this week
+    const nextDayThisWeek = activeDays.find((day) => day > currentDayOfWeek);
+    if (nextDayThisWeek !== undefined) {
+      const daysUntil = nextDayThisWeek - currentDayOfWeek;
+      const nextDate = new Date(currentDate);
+      nextDate.setDate(nextDate.getDate() + daysUntil);
+      return nextDate;
+    }
+
+    // No active day this week, find first active day next week
+    const firstDayNextWeek = activeDays[0];
+    const daysUntil = 7 - currentDayOfWeek + firstDayNextWeek;
+    const nextDate = new Date(currentDate);
+    nextDate.setDate(nextDate.getDate() + daysUntil);
+    return nextDate;
+  }
+
+  return null;
+}
+
+/**
+ * Calculates days until a habit becomes active
+ * 
+ * @param habit The habit with frequency info
+ * @param lastCompletion The most recent completion (if any)
+ * @param currentDate The date to check from (defaults to today)
+ * @returns Number of days until active (0 if active now, -1 if always active)
+ */
+export function getDaysUntilActive(
+  habit: HabitData,
+  lastCompletion: CompletionData | null,
+  currentDate: Date = new Date()
+): number {
+  const nextDate = getNextActiveDate(habit, lastCompletion, currentDate);
+
+  if (nextDate === null) {
+    return -1; // Always active or already active
+  }
+
+  const daysUntil = Math.ceil(
+    (nextDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  return Math.max(0, daysUntil);
+}
+
+/**
+ * Formats a user-friendly message about when a habit is available
+ * 
+ * @param habit The habit with frequency info
+ * @param lastCompletion The most recent completion (if any)
+ * @param currentDate The date to check from (defaults to today)
+ * @returns A formatted message string
+ */
+export function formatAvailabilityMessage(
+  habit: HabitData,
+  lastCompletion: CompletionData | null,
+  currentDate: Date = new Date()
+): string {
+  const frequency = habit.frequency || 'daily';
+  const isActive = isHabitActiveToday(habit, lastCompletion, currentDate);
+
+  // If active, no message needed
+  if (isActive) {
+    return '';
+  }
+
+  // Weekly habits
+  if (frequency === 'weekly') {
+    const daysUntil = getDaysUntilActive(habit, lastCompletion, currentDate);
+    if (daysUntil === 1) {
+      return 'Available in 1 day';
+    }
+    return `Available in ${daysUntil} days`;
+  }
+
+  // Custom frequency
+  if (frequency === 'custom' && habit.customFrequency?.days) {
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const activeDayNames = habit.customFrequency.days
+      .sort((a, b) => a - b)
+      .map((day) => dayNames[day]);
+    return `Available on: ${activeDayNames.join(', ')}`;
+  }
+
+  return '';
+}
+
+/**
+ * Gets complete status information for a habit
+ * 
+ * @param habit The habit with frequency info
+ * @param lastCompletion The most recent completion (if any)
+ * @param completedToday Whether the habit was completed today
+ * @param currentDate The date to check from (defaults to today)
+ * @returns Complete status information
+ */
+export function getHabitStatus(
+  habit: HabitData,
+  lastCompletion: CompletionData | null,
+  completedToday: boolean,
+  currentDate: Date = new Date()
+): HabitStatusInfo {
+  const isActive = isHabitActiveToday(habit, lastCompletion, currentDate);
+  const nextActiveDate = getNextActiveDate(habit, lastCompletion, currentDate);
+  const daysUntilActive = getDaysUntilActive(habit, lastCompletion, currentDate);
+  const availabilityMessage = formatAvailabilityMessage(habit, lastCompletion, currentDate);
+
+  return {
+    isActiveToday: isActive,
+    completedToday,
+    nextActiveDate,
+    daysUntilActive,
+    availabilityMessage,
+  };
+}

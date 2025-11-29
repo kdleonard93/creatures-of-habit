@@ -87,14 +87,6 @@ export const POST: RequestHandler = async (event) => {
             })
             .where(eq(creature.userId, session.user.id));
         
-        // Mark the habit as archived so it shows up in the completed route 
-        await db.update(habit)
-            .set({
-                isArchived: true,
-                updatedAt: formatSqliteTimestamp()
-            })
-            .where(eq(habit.id, habitData.id));
-            
         // Mark the habit as completed in the daily tracker for progress bar
         await markHabitCompleted(session.user.id, habitData.id);
 
