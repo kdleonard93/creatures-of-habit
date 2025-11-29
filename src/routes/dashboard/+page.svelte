@@ -11,12 +11,13 @@
 	import { classIcons } from '$lib/assets/classIcons';
 	import { raceIcons } from '$lib/assets/raceIcons';
 	import type { CreatureClassType, CreatureRaceType } from '$lib/types';
-	import { LogOut, ScanEye, ShieldAlert, CircleCheck, Trophy, Plus, Filter, Calendar } from '@lucide/svelte';
+	import { LogOut, ScanEye, ShieldAlert, Plus, Filter, Calendar } from '@lucide/svelte';
 	import { enhance } from '$app/forms';
     import XPBar from '$lib/components/character/XPBar.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
 	import DailyProgressSummary from '$lib/components/dashboard/DailyProgressSummary.svelte';
+	import HabitCard from '$lib/components/habits/HabitCard.svelte';
 
 	const props = $props<{ data: PageData }>();
 	
@@ -27,6 +28,10 @@
 		month: 'long', 
 		day: 'numeric' 
 	}));
+
+	const displayedHabits = $derived(props.data.habits?.slice(0, 6) || []);
+	const totalHabits = $derived(props.data.habits?.length || 0);
+	const hasMoreHabits = $derived(totalHabits > 6);
 	
 
 	async function completeHabit(habitId: string) {
@@ -46,7 +51,6 @@
 				toast.success(`Level up! Now level ${data.newLevel}`);
 			}
 
-			// Refresh the habits list
 			await invalidateAll();
 		} catch (error) {
 			console.error('Error completing habit:', error);
@@ -54,22 +58,26 @@
 		}
 	}
 
-	function formatCustomDays(days: number[] | undefined): string {
-		if (!days || !days.length) return 'Custom';
-		const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-		return days.map(d => dayNames[d]).join(', ');
+	function editHabit(habitId: string) {
+		goto(`/habits/${habitId}/edit`);
 	}
 
-	function getDifficultyColor(difficulty: string): string {
-		switch (difficulty.toLowerCase()) {
-			case 'easy':
-				return 'bg-easy/20 text-easy';
-			case 'medium':
-				return 'bg-medium/20 text-medium';
-			case 'hard':
-				return 'bg-hard/20 text-hard';
-			default:
-				return 'bg-medium/20 text-medium';
+	async function deleteHabit(habitId: string, habitTitle: string) {
+		if (!confirm('Are you sure you want to delete this habit?')) return;
+		
+		try {
+			const response = await fetch(`/api/habits/${habitId}`, {
+				method: 'DELETE'
+			});
+			
+			if (!response.ok) {
+				throw new Error('Failed to delete habit');
+			}
+
+			toast.success(`${habitTitle} deleted successfully`);
+			await invalidateAll();
+		} catch (error) {
+			toast.error(`Error deleting habit: ${error}`);
 		}
 	}
 </script>
@@ -119,48 +127,30 @@
 		</CardHeader>
 		<CardContent>
 			
-			{#if props.data.habits && props.data.habits.length > 0}
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-					{#each props.data.habits as habit (habit.id)}
-						<div class="p-4 border rounded-lg shadow-sm bg-card flex flex-col {!habit.isActiveToday ? 'opacity-60' : ''}">
-							<div class="flex justify-between items-start mb-3">
-								<div class="flex flex-col flex-1 min-w-0">
-									<div class="flex items-center gap-2">
-										<h3 class="font-semibold break-words">{habit.title}</h3>
-										{#if habit.completedToday}
-											<div class="text-success">
-												<Trophy class="h-4 w-4" />
-											</div>
-										{/if}
-									</div>
-									{#if !habit.isActiveToday && habit.availabilityMessage}
-										<p class="text-xs text-muted-foreground mt-1">{habit.availabilityMessage}</p>
-									{/if}
-									<div class="flex flex-wrap gap-2 mt-2">
-										<span class="capitalize px-2 py-0.5 rounded-full text-xs {getDifficultyColor(habit.difficulty)}">
-											{habit.difficulty}
-										</span>
-										<span class="capitalize px-2 py-0.5 bg-muted rounded-full text-xs">
-											{habit.frequency === 'custom' && habit.customFrequency?.days ? 
-												formatCustomDays(habit.customFrequency.days) : 
-												habit.frequency}
-										</span>
-									</div>
-								</div>
-								<Button 
-									variant={habit.completedToday ? "outline" : "success"}
-									size="sm"
-									onclick={() => completeHabit(habit.id)}
-									disabled={habit.completedToday || !habit.isActiveToday}
-									class="flex items-center gap-2 min-w-24 flex-shrink-0"
-								>
-									<CircleCheck class="h-4 w-4" />
-									{habit.completedToday ? 'Completed' : 'Complete'}
-								</Button>
-							</div>
-						</div>
+			{#if displayedHabits.length > 0}
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+					{#each displayedHabits as habit (habit.id)}
+						<HabitCard 
+							{habit}
+							onEdit={editHabit}
+							onDelete={deleteHabit}
+							onComplete={completeHabit}
+							showReminder={false}
+						/>
 					{/each}
 				</div>
+				
+				{#if hasMoreHabits}
+					<div class="mt-6 text-center">
+						<Button 
+							variant="outline" 
+							onclick={() => goto('/habits')}
+							class="w-full sm:w-auto"
+						>
+							View All {totalHabits} Habits
+						</Button>
+					</div>
+				{/if}
 			{:else}
 				<div class="text-center py-8">
 					<p class="text-muted-foreground">You don't have any habits yet.</p>

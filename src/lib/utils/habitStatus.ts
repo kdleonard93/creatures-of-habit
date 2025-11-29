@@ -79,7 +79,14 @@ export function getNextActiveDate(
   const frequency = habit.frequency || 'daily';
 
   if (frequency === 'daily') {
-    return null;
+    if (!lastCompletion) {
+      return null;
+    }
+    
+    const nextMidnight = new Date(currentDate);
+    nextMidnight.setHours(24, 0, 0, 0);
+    
+    return nextMidnight;
   }
 
   if (frequency === 'weekly') {
