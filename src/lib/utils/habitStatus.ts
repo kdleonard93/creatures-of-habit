@@ -84,7 +84,8 @@ export function getNextActiveDate(
     }
     
     const nextMidnight = new Date(currentDate);
-    nextMidnight.setHours(24, 0, 0, 0);
+    nextMidnight.setDate(nextMidnight.getDate() + 1);
+    nextMidnight.setHours(0, 0, 0, 0);
     
     return nextMidnight;
   }
@@ -97,6 +98,7 @@ export function getNextActiveDate(
     const lastCompletedDate = new Date(lastCompletion.completedAt);
     const nextActiveDate = new Date(lastCompletedDate);
     nextActiveDate.setDate(nextActiveDate.getDate() + 7);
+    nextActiveDate.setHours(0, 0, 0, 0);
 
     if (nextActiveDate <= currentDate) {
       return null;
@@ -109,11 +111,47 @@ export function getNextActiveDate(
     const activeDays = [...habit.customFrequency.days].sort((a, b) => a - b);
     const currentDayOfWeek = currentDate.getDay();
 
+    // If today is an active day and habit hasn't been completed, return null (active now)
+    const isTodayActive = activeDays.includes(currentDayOfWeek);
+    if (isTodayActive && !lastCompletion) {
+      return null;
+    }
+
+    // If today is an active day and was completed today, find next occurrence
+    if (isTodayActive && lastCompletion) {
+      const lastCompletedDate = new Date(lastCompletion.completedAt);
+      const today = new Date(currentDate);
+      today.setHours(0, 0, 0, 0);
+      lastCompletedDate.setHours(0, 0, 0, 0);
+      
+      // If completed today, skip to next active day
+      if (lastCompletedDate.getTime() === today.getTime()) {
+        // Find next occurrence (skip today)
+        const nextDayThisWeek = activeDays.find((day) => day > currentDayOfWeek);
+        if (nextDayThisWeek !== undefined) {
+          const daysUntil = nextDayThisWeek - currentDayOfWeek;
+          const nextDate = new Date(currentDate);
+          nextDate.setDate(nextDate.getDate() + daysUntil);
+          nextDate.setHours(0, 0, 0, 0);
+          return nextDate;
+        }
+
+        const firstDayNextWeek = activeDays[0];
+        const daysUntil = 7 - currentDayOfWeek + firstDayNextWeek;
+        const nextDate = new Date(currentDate);
+        nextDate.setDate(nextDate.getDate() + daysUntil);
+        nextDate.setHours(0, 0, 0, 0);
+        return nextDate;
+      }
+    }
+
+    // Find next active day
     const nextDayThisWeek = activeDays.find((day) => day > currentDayOfWeek);
     if (nextDayThisWeek !== undefined) {
       const daysUntil = nextDayThisWeek - currentDayOfWeek;
       const nextDate = new Date(currentDate);
       nextDate.setDate(nextDate.getDate() + daysUntil);
+      nextDate.setHours(0, 0, 0, 0);
       return nextDate;
     }
 
@@ -121,6 +159,7 @@ export function getNextActiveDate(
     const daysUntil = 7 - currentDayOfWeek + firstDayNextWeek;
     const nextDate = new Date(currentDate);
     nextDate.setDate(nextDate.getDate() + daysUntil);
+    nextDate.setHours(0, 0, 0, 0);
     return nextDate;
   }
 
@@ -146,9 +185,9 @@ export function getDaysUntilActive(
     return -1;
   }
 
-  const daysUntil = Math.ceil(
+  const daysUntil = Math.floor(
     (nextDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
-  ) - 1;
+  );
 
   return Math.max(0, daysUntil);
 }
@@ -175,6 +214,9 @@ export function formatAvailabilityMessage(
 
   if (frequency === 'weekly') {
     const daysUntil = getDaysUntilActive(habit, lastCompletion, currentDate);
+    if (daysUntil === -1) {
+      return '';
+    }
     if (daysUntil === 1) {
       return 'Available in 1 day';
     }
