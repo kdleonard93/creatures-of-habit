@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
-import { habit, habitCategory } from '$lib/server/db/schema';
+import { habit, habitCategory, habitFrequency } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
@@ -12,8 +12,20 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     }
 
     const [habitData] = await db
-        .select()
+        .select({
+            id: habit.id,
+            title: habit.title,
+            description: habit.description,
+            categoryId: habit.categoryId,
+            difficulty: habit.difficulty,
+            startDate: habit.startDate,
+            endDate: habit.endDate,
+            frequencyId: habit.frequencyId,
+            frequency: habitFrequency.name,
+            customFrequency: habitFrequency.days,
+        })
         .from(habit)
+        .leftJoin(habitFrequency, eq(habit.frequencyId, habitFrequency.id))
         .where(and(
             eq(habit.id, params.id),
             eq(habit.userId, session.user.id)

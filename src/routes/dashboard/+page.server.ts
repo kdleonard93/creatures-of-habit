@@ -2,9 +2,11 @@ import { redirect, error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { user, creature, habit, habitFrequency, habitCategory, habitCompletion } from '$lib/server/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, desc, inArray, sql } from 'drizzle-orm';
 import { ensureDailyTrackerEntries, getDailyProgressStats, DailyTrackerError } from '$lib/utils/dailyHabitTracker';
 import { logger } from '$lib/utils/logger';
+import { getHabitStatus } from '$lib/utils/habitStatus';
+import type { HabitFrequency } from '$lib/types';
 
 export const load: PageServerLoad = async ({ locals }) => {
     const session = await locals.auth();
@@ -65,32 +67,81 @@ export const load: PageServerLoad = async ({ locals }) => {
             .leftJoin(habitCategory, eq(habit.categoryId, habitCategory.id))
             .where(and(eq(habit.userId, session.user.id), eq(habit.isArchived, false)));
 
-        // Get today's completions
         const completions = await db
             .select({
                 habitId: habitCompletion.habitId,
-                value: habitCompletion.value
+                value: habitCompletion.value,
+                completedAt: habitCompletion.completedAt
             })
             .from(habitCompletion)
             .where(and(eq(habitCompletion.userId, session.user.id), eq(habitCompletion.completedAt, today)));
 
-        // Add completion status to habits
-        const habitsWithCompletions = habits.map((habit) => ({
-            ...habit,
-            frequency: habit.frequency || 'daily',
-            customFrequency: (() => {
-                if (!habit.customFrequency) return undefined;
+        // Collect habit IDs for efficient filtering
+        const habitIds = habits.map(h => h.id);
+        
+        // Fetch only the most recent completion per habit using a subquery
+        // This is more efficient than fetching all completions and filtering in JS
+        let lastCompletions: Array<{ habitId: string; completedAt: string }> = [];
+        if (habitIds.length > 0) {
+            lastCompletions = await db
+                .select({
+                    habitId: habitCompletion.habitId,
+                    completedAt: habitCompletion.completedAt
+                })
+                .from(habitCompletion)
+                .where(and(
+                    eq(habitCompletion.userId, session.user.id),
+                    inArray(habitCompletion.habitId, habitIds),
+                    sql`${habitCompletion.completedAt} = (
+                        SELECT MAX(completed_at)
+                        FROM habit_completion hc2
+                        WHERE hc2.habit_id = ${habitCompletion.habitId}
+                        AND hc2.user_id = ${habitCompletion.userId}
+                    )`
+                ));
+        }
+
+        const lastCompletionMap = new Map<string, string>();
+        for (const completion of lastCompletions) {
+            lastCompletionMap.set(completion.habitId, completion.completedAt);
+        }
+
+        const habitsWithCompletions = habits.map((h) => {
+            const frequency = h.frequency || 'daily';
+            const customFrequency = (() => {
+                if (!h.customFrequency) return undefined;
                 try {
-                    return { days: JSON.parse(habit.customFrequency) };
+                    return { days: JSON.parse(h.customFrequency) };
                 } catch {
-                    logger.warn('Invalid customFrequency JSON for habit', { habitId: habit.id });
+                    logger.warn('Invalid customFrequency JSON for habit', { habitId: h.id });
                     return undefined;
                 }
-            })(),
-            completedToday: completions.some((c) => c.habitId === habit.id)
-        }));
+            })();
+            const completedToday = completions.some((c) => c.habitId === h.id);
+            const lastCompletion = lastCompletionMap.get(h.id);
 
-        // Ensure all habits have tracker entries for today
+            const status = getHabitStatus(
+                {
+                    frequency: frequency as HabitFrequency,
+                    customFrequency,
+                    createdAt: h.createdAt
+                },
+                lastCompletion ? { completedAt: lastCompletion } : null,
+                completedToday
+            );
+
+            return {
+                ...h,
+                frequency,
+                customFrequency,
+                completedToday,
+                isActiveToday: status.isActiveToday,
+                nextActiveDate: status.nextActiveDate,
+                daysUntilActive: status.daysUntilActive,
+                availabilityMessage: status.availabilityMessage
+            };
+        });
+
         await ensureDailyTrackerEntries(session.user.id);
         
         // Get daily progress stats from the tracker

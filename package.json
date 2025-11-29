@@ -23,6 +23,8 @@
 		"db:up": "drizzle-kit up",
 		"db:studio": "drizzle-kit studio",
 		"db:local": "turso dev --db-file local-db.db",
+		"db:migrate:unarchive:dryrun": "tsx scripts/migrate-unarchive-active-habits-dryrun.ts",
+		"db:migrate:unarchive": "tsx scripts/migrate-unarchive-active-habits.ts",
 		"quest:generate": "tsx scripts/generate-quest-content.ts",
 		"format": "biome format --write .",
 		"format:check": "biome check",

@@ -11,12 +11,13 @@
         title: data.habit.title,
         categoryId: data.habit.categoryId ?? undefined,
         description: data.habit.description || '',
-        frequency: data.habit.frequencyId ? 'custom' : 'daily',
-        customFrequency: {
-            days: []
-        },
+        frequency: data.habit.frequency || 'daily',
+        customFrequency: data.habit.customFrequency
+            ? { days: JSON.parse(data.habit.customFrequency) }
+            : { days: [] },
         difficulty: data.habit.difficulty,
-        startDate: data.habit.startDate ?? new Date().toISOString()
+        startDate: data.habit.startDate ?? new Date().toISOString().split('T')[0],
+        endDate: data.habit.endDate || undefined
     };
 
     async function handleSubmit(formData: HabitData) {

@@ -62,9 +62,17 @@ export const POST = (async (event) => {
     try {
         const habitData = await event.request.json() as HabitData;
         
-        // Create the habit frequency first if it's custom
         let frequencyId = null;
-        if (habitData.frequency === 'custom' && habitData.customFrequency) {
+        if (habitData.frequency === 'weekly') {
+            const [frequency] = await db
+                .insert(habitFrequency)
+                .values({
+                    name: 'weekly',
+                    days: null,
+                })
+                .returning();
+            frequencyId = frequency.id;
+        } else if (habitData.frequency === 'custom' && habitData.customFrequency) {
             const [frequency] = await db
                 .insert(habitFrequency)
                 .values({
@@ -75,7 +83,6 @@ export const POST = (async (event) => {
             frequencyId = frequency.id;
         }
 
-        // Create the habit
         const [newHabit] = await db
             .insert(habit)
             .values({
