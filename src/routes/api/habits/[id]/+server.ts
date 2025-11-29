@@ -44,7 +44,6 @@ export const PUT = (async ({ locals, params, request }) => {
    try {
        const habitData = await request.json() as HabitData;
        
-       // Update frequency for weekly and custom habits
        let frequencyId = null;
        if (habitData.frequency === 'weekly') {
            const [frequency] = await db
@@ -65,7 +64,6 @@ export const PUT = (async ({ locals, params, request }) => {
                .returning();
            frequencyId = frequency.id;
        }
-       // Daily habits keep frequencyId = null
 
        const [updatedHabit] = await db
            .update(habit)

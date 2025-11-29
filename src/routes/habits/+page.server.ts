@@ -39,7 +39,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 		.leftJoin(habitCategory, eq(habit.categoryId, habitCategory.id))
 		.where(and(eq(habit.userId, session.user.id), eq(habit.isArchived, false)));
 
-	// Get today's completions
 	const completions = await db
 		.select({
 			habitId: habitCompletion.habitId,
@@ -49,7 +48,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 		.from(habitCompletion)
 		.where(eq(habitCompletion.completedAt, today));
 
-	// Get last completion for each habit (for status calculation)
 	const lastCompletions = await db
 		.select({
 			habitId: habitCompletion.habitId,
@@ -65,7 +63,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 		.where(eq(creature.userId, session.user.id))
 		.then((rows) => rows[0]);
 
-	// Create a map of last completions by habit ID
 	const lastCompletionMap = new Map<string, string>();
 	for (const completion of lastCompletions) {
 		if (!lastCompletionMap.has(completion.habitId)) {
@@ -83,7 +80,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 		const completedToday = completions.some((c) => c.habitId === h.id);
 		const lastCompletion = lastCompletionMap.get(h.id);
 
-		// Calculate habit status
 		const status = getHabitStatus(
 			{
 				frequency: frequency as HabitFrequency,

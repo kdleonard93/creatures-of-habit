@@ -38,15 +38,12 @@ export function isHabitActiveToday(
 ): boolean {
   const frequency = habit.frequency || 'daily';
 
-  // Daily habits are always active
   if (frequency === 'daily') {
     return true;
   }
 
-  // Weekly habits: active if 7+ days since last completion
   if (frequency === 'weekly') {
     if (!lastCompletion) {
-      // Never completed, so it's active
       return true;
     }
 
@@ -58,7 +55,6 @@ export function isHabitActiveToday(
     return daysSinceCompletion >= 7;
   }
 
-  // Custom frequency: active only on selected days
   if (frequency === 'custom' && habit.customFrequency?.days) {
     const currentDayOfWeek = currentDate.getDay();
     return habit.customFrequency.days.includes(currentDayOfWeek);
@@ -82,22 +78,19 @@ export function getNextActiveDate(
 ): Date | null {
   const frequency = habit.frequency || 'daily';
 
-  // Daily habits are always active
   if (frequency === 'daily') {
     return null;
   }
 
-  // Weekly habits: 7 days from last completion
   if (frequency === 'weekly') {
     if (!lastCompletion) {
-      return null; // Never completed, so it's active now
+      return null;
     }
 
     const lastCompletedDate = new Date(lastCompletion.completedAt);
     const nextActiveDate = new Date(lastCompletedDate);
     nextActiveDate.setDate(nextActiveDate.getDate() + 7);
 
-    // If next active date is in the past, it's already active
     if (nextActiveDate <= currentDate) {
       return null;
     }
@@ -105,12 +98,10 @@ export function getNextActiveDate(
     return nextActiveDate;
   }
 
-  // Custom frequency: find next active day
   if (frequency === 'custom' && habit.customFrequency?.days) {
     const activeDays = habit.customFrequency.days.sort((a, b) => a - b);
     const currentDayOfWeek = currentDate.getDay();
 
-    // Find the next active day this week
     const nextDayThisWeek = activeDays.find((day) => day > currentDayOfWeek);
     if (nextDayThisWeek !== undefined) {
       const daysUntil = nextDayThisWeek - currentDayOfWeek;
@@ -119,7 +110,6 @@ export function getNextActiveDate(
       return nextDate;
     }
 
-    // No active day this week, find first active day next week
     const firstDayNextWeek = activeDays[0];
     const daysUntil = 7 - currentDayOfWeek + firstDayNextWeek;
     const nextDate = new Date(currentDate);
@@ -146,7 +136,7 @@ export function getDaysUntilActive(
   const nextDate = getNextActiveDate(habit, lastCompletion, currentDate);
 
   if (nextDate === null) {
-    return -1; // Always active or already active
+    return -1;
   }
 
   const daysUntil = Math.ceil(
@@ -172,12 +162,10 @@ export function formatAvailabilityMessage(
   const frequency = habit.frequency || 'daily';
   const isActive = isHabitActiveToday(habit, lastCompletion, currentDate);
 
-  // If active, no message needed
   if (isActive) {
     return '';
   }
 
-  // Weekly habits
   if (frequency === 'weekly') {
     const daysUntil = getDaysUntilActive(habit, lastCompletion, currentDate);
     if (daysUntil === 1) {
@@ -186,7 +174,6 @@ export function formatAvailabilityMessage(
     return `Available in ${daysUntil} days`;
   }
 
-  // Custom frequency
   if (frequency === 'custom' && habit.customFrequency?.days) {
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const activeDayNames = habit.customFrequency.days
@@ -213,16 +200,11 @@ export function getHabitStatus(
   completedToday: boolean,
   currentDate: Date = new Date()
 ): HabitStatusInfo {
-  const isActive = isHabitActiveToday(habit, lastCompletion, currentDate);
-  const nextActiveDate = getNextActiveDate(habit, lastCompletion, currentDate);
-  const daysUntilActive = getDaysUntilActive(habit, lastCompletion, currentDate);
-  const availabilityMessage = formatAvailabilityMessage(habit, lastCompletion, currentDate);
-
   return {
-    isActiveToday: isActive,
+    isActiveToday: isHabitActiveToday(habit, lastCompletion, currentDate),
     completedToday,
-    nextActiveDate,
-    daysUntilActive,
-    availabilityMessage,
+    nextActiveDate: getNextActiveDate(habit, lastCompletion, currentDate),
+    daysUntilActive: getDaysUntilActive(habit, lastCompletion, currentDate),
+    availabilityMessage: formatAvailabilityMessage(habit, lastCompletion, currentDate),
   };
 }
