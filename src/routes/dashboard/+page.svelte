@@ -122,7 +122,7 @@
 			{#if props.data.habits && props.data.habits.length > 0}
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					{#each props.data.habits as habit (habit.id)}
-						<div class="p-4 border rounded-lg shadow-sm bg-card flex flex-col">
+						<div class="p-4 border rounded-lg shadow-sm bg-card flex flex-col {!habit.isActiveToday ? 'opacity-60' : ''}">
 							<div class="flex justify-between items-start mb-3">
 								<div class="flex flex-col flex-1 min-w-0">
 									<div class="flex items-center gap-2">
@@ -133,6 +133,9 @@
 											</div>
 										{/if}
 									</div>
+									{#if !habit.isActiveToday && habit.availabilityMessage}
+										<p class="text-xs text-muted-foreground mt-1">{habit.availabilityMessage}</p>
+									{/if}
 									<div class="flex flex-wrap gap-2 mt-2">
 										<span class="capitalize px-2 py-0.5 rounded-full text-xs {getDifficultyColor(habit.difficulty)}">
 											{habit.difficulty}
@@ -148,7 +151,7 @@
 									variant={habit.completedToday ? "outline" : "success"}
 									size="sm"
 									onclick={() => completeHabit(habit.id)}
-									disabled={habit.completedToday}
+									disabled={habit.completedToday || !habit.isActiveToday}
 									class="flex items-center gap-2 min-w-24 flex-shrink-0"
 								>
 									<CircleCheck class="h-4 w-4" />

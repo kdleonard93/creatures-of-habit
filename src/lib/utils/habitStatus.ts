@@ -151,7 +151,7 @@ export function getDaysUntilActive(
 
   const daysUntil = Math.ceil(
     (nextDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
-  );
+  ) - 1;
 
   return Math.max(0, daysUntil);
 }

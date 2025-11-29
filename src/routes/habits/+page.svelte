@@ -86,7 +86,7 @@ async function completeHabit(habitId: string) {
     {#if data.habits?.length > 0}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {#each data.habits as habit (habit.id)}
-                <div class="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col justify-between h-full bg-card">
+                <div class="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col justify-between h-full bg-card {!habit.isActiveToday ? 'opacity-60' : ''}">
                     <div class="space-y-3">
                         <div>
                             <h3 class="font-semibold text-base md:text-lg break-words">{habit.title}</h3>
@@ -99,6 +99,10 @@ async function completeHabit(habitId: string) {
                             <div class="flex items-center gap-1 text-success text-xs md:text-sm">
                                 <Trophy class="h-4 w-4 flex-shrink-0" />
                                 <span class="font-medium">Completed today</span>
+                            </div>
+                        {:else if !habit.isActiveToday && habit.availabilityMessage}
+                            <div class="flex items-center gap-1 text-muted-foreground text-xs md:text-sm">
+                                <span class="font-medium">{habit.availabilityMessage}</span>
                             </div>
                         {/if}
                         
@@ -141,7 +145,7 @@ async function completeHabit(habitId: string) {
                                 variant="success"
                                 size="sm"
                                 onclick={() => completeHabit(habit.id)}
-                                disabled={habit.completedToday}
+                                disabled={habit.completedToday || !habit.isActiveToday}
                                 class="flex items-center justify-center gap-1 text-xs"
                             >
                                 <CircleCheck class="h-3 w-3" />
