@@ -2,7 +2,7 @@ import { redirect, error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { user, creature, habit, habitFrequency, habitCategory, habitCompletion } from '$lib/server/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, inArray, sql } from 'drizzle-orm';
 import { ensureDailyTrackerEntries, getDailyProgressStats, DailyTrackerError } from '$lib/utils/dailyHabitTracker';
 import { logger } from '$lib/utils/logger';
 import { getHabitStatus } from '$lib/utils/habitStatus';
@@ -76,20 +76,34 @@ export const load: PageServerLoad = async ({ locals }) => {
             .from(habitCompletion)
             .where(and(eq(habitCompletion.userId, session.user.id), eq(habitCompletion.completedAt, today)));
 
-        const lastCompletions = await db
-            .select({
-                habitId: habitCompletion.habitId,
-                completedAt: habitCompletion.completedAt
-            })
-            .from(habitCompletion)
-            .where(eq(habitCompletion.userId, session.user.id))
-            .orderBy(desc(habitCompletion.completedAt));
+        // Collect habit IDs for efficient filtering
+        const habitIds = habits.map(h => h.id);
+        
+        // Fetch only the most recent completion per habit using a subquery
+        // This is more efficient than fetching all completions and filtering in JS
+        let lastCompletions: Array<{ habitId: string; completedAt: string }> = [];
+        if (habitIds.length > 0) {
+            lastCompletions = await db
+                .select({
+                    habitId: habitCompletion.habitId,
+                    completedAt: habitCompletion.completedAt
+                })
+                .from(habitCompletion)
+                .where(and(
+                    eq(habitCompletion.userId, session.user.id),
+                    inArray(habitCompletion.habitId, habitIds),
+                    sql`${habitCompletion.completedAt} = (
+                        SELECT MAX(completed_at)
+                        FROM habit_completion hc2
+                        WHERE hc2.habit_id = ${habitCompletion.habitId}
+                        AND hc2.user_id = ${habitCompletion.userId}
+                    )`
+                ));
+        }
 
         const lastCompletionMap = new Map<string, string>();
         for (const completion of lastCompletions) {
-            if (!lastCompletionMap.has(completion.habitId)) {
-                lastCompletionMap.set(completion.habitId, completion.completedAt);
-            }
+            lastCompletionMap.set(completion.habitId, completion.completedAt);
         }
 
         const habitsWithCompletions = habits.map((h) => {

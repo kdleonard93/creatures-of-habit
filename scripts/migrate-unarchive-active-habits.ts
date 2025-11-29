@@ -14,14 +14,14 @@ import 'dotenv/config';
 import * as schema from '../src/lib/server/db/schema';
 import { drizzle } from 'drizzle-orm/libsql';
 import { createClient } from '@libsql/client';
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, and } from 'drizzle-orm';
 
 const { habit, habitCompletion } = schema;
 
 // Initialize database connection
 const tursoUrl = process.env.TURSO_DATABASE_URL ?? process.env.DATABASE_URL;
 const localUrl = process.env.LOCAL_DATABASE_URL;
-const dbUrl = tursoUrl ?? (localUrl ?? 'file:local.db');
+const dbUrl = tursoUrl ?? localUrl;
 const authToken = process.env.TURSO_AUTH_TOKEN;
 
 if (!dbUrl) {
@@ -57,7 +57,10 @@ async function runMigration() {
       .select({ id: habit.id, title: habit.title })
       .from(habit)
       .where(
-        inArray(habit.id, habitsWithCompletions) && eq(habit.isArchived, true)
+        and(
+          inArray(habit.id, habitsWithCompletions),
+          eq(habit.isArchived, true)
+        )
       );
 
     console.log(
@@ -94,7 +97,12 @@ async function runMigration() {
     const verifyArchivedCount = await db
       .select({ id: habit.id })
       .from(habit)
-      .where(inArray(habit.id, habitIdsToRestore) && eq(habit.isArchived, true));
+      .where(
+        and(
+          inArray(habit.id, habitIdsToRestore),
+          eq(habit.isArchived, true)
+        )
+      );
 
     if (verifyArchivedCount.length === 0) {
       console.log('✅ Verification passed: All habits successfully restored\n');

@@ -4,6 +4,7 @@ import { db } from '$lib/server/db';
 import { habit, habitFrequency, habitCategory, habitCompletion, creature, habitStreak } from '$lib/server/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { getHabitStatus } from '$lib/utils/habitStatus';
+import { logger } from '$lib/utils/logger';
 import type { HabitFrequency } from '$lib/types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -72,11 +73,15 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	const habitsWithCompletions = habits.map((h) => {
 		const frequency = h.frequency || 'daily';
-		const customFrequency = h.customFrequency
-			? {
-					days: JSON.parse(h.customFrequency)
-				}
-			: undefined;
+		const customFrequency = (() => {
+			if (!h.customFrequency) return undefined;
+			try {
+				return { days: JSON.parse(h.customFrequency) };
+			} catch (error) {
+				logger.warn('Invalid customFrequency JSON for habit', { habitId: h.id, error: error instanceof Error ? error.message : String(error) });
+				return undefined;
+			}
+		})();
 		const completedToday = completions.some((c) => c.habitId === h.id);
 		const lastCompletion = lastCompletionMap.get(h.id);
 

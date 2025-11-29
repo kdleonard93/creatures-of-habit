@@ -202,13 +202,17 @@ export async function getDailyProgressStats(userId: string): Promise<{
     // Ensure all habits have tracker entries
     await ensureDailyTrackerEntries(userId);
     
-    // Get all tracker entries for today
+    // Get tracker entries for today, but only for active (non-archived) habits
     const entries = await db
-      .select()
+      .select({
+        completed: dailyHabitTracker.completed
+      })
       .from(dailyHabitTracker)
+      .innerJoin(habit, eq(dailyHabitTracker.habitId, habit.id))
       .where(and(
         eq(dailyHabitTracker.userId, userId),
-        eq(dailyHabitTracker.date, today)
+        eq(dailyHabitTracker.date, today),
+        eq(habit.isArchived, false)
       ));
     
     const total = entries.length;

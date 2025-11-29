@@ -16,14 +16,14 @@ import 'dotenv/config';
 import * as schema from '../src/lib/server/db/schema';
 import { drizzle } from 'drizzle-orm/libsql';
 import { createClient } from '@libsql/client';
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, and, not } from 'drizzle-orm';
 
 const { habit, habitCompletion } = schema;
 
 // Initialize database connection
 const tursoUrl = process.env.TURSO_DATABASE_URL ?? process.env.DATABASE_URL;
 const localUrl = process.env.LOCAL_DATABASE_URL;
-const dbUrl = tursoUrl ?? (localUrl ?? 'file:local.db');
+const dbUrl = tursoUrl ?? localUrl;
 const authToken = process.env.TURSO_AUTH_TOKEN;
 
 if (!dbUrl) {
@@ -50,26 +50,42 @@ async function runDryRun() {
     // Find archived habits that have completions
     console.log('🔍 Finding archived habits with completion history...');
     
-    const archivedHabitsWithCompletions = await db
-      .select({ id: habit.id, title: habit.title, userId: habit.userId })
-      .from(habit)
-      .where(
-        inArray(habit.id, habitsWithCompletions) && eq(habit.isArchived, true)
-      );
+    let archivedHabitsWithCompletions: Array<{ id: string; title: string; userId: string }> = [];
+    if (habitsWithCompletions.length > 0) {
+      archivedHabitsWithCompletions = await db
+        .select({ id: habit.id, title: habit.title, userId: habit.userId })
+        .from(habit)
+        .where(
+          and(
+            inArray(habit.id, habitsWithCompletions),
+            eq(habit.isArchived, true)
+          )
+        );
+    }
 
     console.log(
       `   Found ${archivedHabitsWithCompletions.length} archived habits to restore\n`
     );
 
     // Find truly deleted habits (archived with NO completions)
-    const allArchivedHabits = await db
-      .select({ id: habit.id, title: habit.title })
-      .from(habit)
-      .where(eq(habit.isArchived, true));
-
-    const trulyDeletedHabits = allArchivedHabits.filter(
-      (h) => !habitsWithCompletions.includes(h.id)
-    );
+    let trulyDeletedHabits: Array<{ id: string; title: string }> = [];
+    if (habitsWithCompletions.length > 0) {
+      trulyDeletedHabits = await db
+        .select({ id: habit.id, title: habit.title })
+        .from(habit)
+        .where(
+          and(
+            eq(habit.isArchived, true),
+            not(inArray(habit.id, habitsWithCompletions))
+          )
+        );
+    } else {
+      // If no habits have completions, all archived habits are truly deleted
+      trulyDeletedHabits = await db
+        .select({ id: habit.id, title: habit.title })
+        .from(habit)
+        .where(eq(habit.isArchived, true));
+    }
 
     console.log(
       `   Found ${trulyDeletedHabits.length} truly deleted habits (will remain archived)\n`
@@ -102,24 +118,30 @@ async function runDryRun() {
     console.log('💾 DATA SUMMARY');
     console.log('═══════════════════════════════════════════════════════════\n');
 
-    console.log(`Total archived habits: ${allArchivedHabits.length}`);
+    const totalArchivedHabits = archivedHabitsWithCompletions.length + trulyDeletedHabits.length;
+    console.log(`Total archived habits: ${totalArchivedHabits}`);
     console.log(`  → Will be restored: ${archivedHabitsWithCompletions.length}`);
     console.log(`  → Will remain deleted: ${trulyDeletedHabits.length}`);
     console.log();
 
-    // Get completion counts for context
-    const completionStats = await db
-      .select({
-        habitId: habitCompletion.habitId
-      })
-      .from(habitCompletion)
-      .then((rows) => {
-        const counts = new Map<string, number>();
-        rows.forEach((r) => {
-          counts.set(r.habitId, (counts.get(r.habitId) ?? 0) + 1);
+    // Get completion counts for habits to be restored
+    let completionStats = new Map<string, number>();
+    if (archivedHabitsWithCompletions.length > 0) {
+      const stats = await db
+        .select({
+          habitId: habitCompletion.habitId
+        })
+        .from(habitCompletion)
+        .where(inArray(habitCompletion.habitId, archivedHabitsWithCompletions.map(h => h.id)))
+        .then((rows) => {
+          const counts = new Map<string, number>();
+          rows.forEach((r) => {
+            counts.set(r.habitId, (counts.get(r.habitId) ?? 0) + 1);
+          });
+          return counts;
         });
-        return counts;
-      });
+      completionStats = stats;
+    }
 
     console.log('📈 Completion counts for habits to be restored:');
     let totalCompletions = 0;

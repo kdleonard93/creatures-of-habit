@@ -105,8 +105,8 @@ export function getNextActiveDate(
     return nextActiveDate;
   }
 
-  if (frequency === 'custom' && habit.customFrequency?.days) {
-    const activeDays = habit.customFrequency.days.sort((a, b) => a - b);
+  if (frequency === 'custom' && Array.isArray(habit.customFrequency?.days) && habit.customFrequency.days.length > 0) {
+    const activeDays = [...habit.customFrequency.days].sort((a, b) => a - b);
     const currentDayOfWeek = currentDate.getDay();
 
     const nextDayThisWeek = activeDays.find((day) => day > currentDayOfWeek);
@@ -181,9 +181,9 @@ export function formatAvailabilityMessage(
     return `Available in ${daysUntil} days`;
   }
 
-  if (frequency === 'custom' && habit.customFrequency?.days) {
+  if (frequency === 'custom' && Array.isArray(habit.customFrequency?.days) && habit.customFrequency.days.length > 0) {
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const activeDayNames = habit.customFrequency.days
+    const activeDayNames = [...habit.customFrequency.days]
       .sort((a, b) => a - b)
       .map((day) => dayNames[day]);
     return `Available on: ${activeDayNames.join(', ')}`;

@@ -1,5 +1,4 @@
 <script lang="ts">
-    import HabitForm from '$lib/components/habits/HabitForm.svelte';
     import HabitCard from '$lib/components/habits/HabitCard.svelte';
     import type { PageData } from './$types';
     import { goto, invalidateAll } from '$app/navigation';

@@ -42,7 +42,27 @@ export const PUT = (async ({ locals, params, request }) => {
    }
 
    try {
-       const habitData = await request.json() as HabitData;
+       const body = await request.json();
+       
+       // Check if this is a simple restore/archive operation
+       if (body.isArchived !== undefined && Object.keys(body).length === 1) {
+           const [updatedHabit] = await db
+               .update(habit)
+               .set({
+                   isArchived: body.isArchived,
+                   updatedAt: new Date().toISOString()
+               })
+               .where(and(
+                   eq(habit.id, params.id),
+                   eq(habit.userId, session.user.id)
+               ))
+               .returning();
+           
+           return json({ habit: updatedHabit });
+       }
+       
+       // Otherwise, treat as full habit update
+       const habitData = body as HabitData;
        
        let frequencyId = null;
        if (habitData.frequency === 'weekly') {

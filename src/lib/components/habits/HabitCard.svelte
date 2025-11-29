@@ -31,8 +31,18 @@
 
 	function formatCustomDays(days: number[] | undefined): string {
 		if (!days || !days.length) return 'Custom';
+		
 		const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-		return days.map(d => dayNames[d]).join(', ');
+		const validDays = days.filter(d => {
+			const isValid = Number.isInteger(d) && d >= 0 && d <= 6;
+			if (!isValid && typeof window !== 'undefined') {
+				console.warn(`Invalid day index: ${d}. Expected integer between 0-6.`);
+			}
+			return isValid;
+		});
+		
+		if (validDays.length === 0) return 'Custom';
+		return validDays.map(d => dayNames[d]).join(', ');
 	}
 </script>
 
