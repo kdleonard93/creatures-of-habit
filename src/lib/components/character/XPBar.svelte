@@ -8,14 +8,12 @@
 </script>
 
 <div class="space-y-2 w-full">
-  <div class="flex justify-between text-sm">
+  <div class="flex flex-col sm:flex-row sm:justify-between text-sm">
     <span>Level {progress.currentLevel}</span>
     <span>{progress.xpProgress} / {progress.nextLevelXp - progress.currentLevelXp} XP</span>
   </div>
   
   <Progress value={progress.progressPercentage} />
   
-  <div class="text-xs text-center text-muted-foreground">
-    {progress.xpProgress} XP to next level ({progress.progressPercentage}%)
-  </div>
+
 </div>
