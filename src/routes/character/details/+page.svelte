@@ -157,10 +157,6 @@
             <div class="flex-1 text-center md:text-left">
                 <h3 class="font-medium mb-1">Experience</h3>
                 <XPBar experience={creature.experience} />
-                <p class="text-sm text-muted-foreground mt-1">
-                    {levelProgress.currentLevelXp} / {levelProgress.nextLevelXp} XP 
-                    ({Math.floor(levelProgress.xpProgress * 100)}% to level {creature.level + 1})
-                </p>
             </div>
         </div>
     </div>
