@@ -8,7 +8,7 @@ import type { HabitFrequency } from '$lib/types';
 export interface HabitStatusInfo {
   isActiveToday: boolean;
   completedToday: boolean;
-  nextActiveDate: Date | null;
+  nextActiveDate: string | null;
   daysUntilActive: number;
   availabilityMessage: string;
 }
@@ -75,7 +75,7 @@ export function getNextActiveDate(
   habit: HabitData,
   lastCompletion: CompletionData | null,
   currentDate: Date = new Date()
-): Date | null {
+): string | null {
   const frequency = habit.frequency || 'daily';
 
   if (frequency === 'daily') {
@@ -83,11 +83,10 @@ export function getNextActiveDate(
       return null;
     }
     
-    const nextMidnight = new Date(currentDate);
-    nextMidnight.setDate(nextMidnight.getDate() + 1);
-    nextMidnight.setHours(0, 0, 0, 0);
-    
-    return nextMidnight;
+    // Return tomorrow's date as YYYY-MM-DD
+    const tomorrow = new Date(currentDate);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
   }
 
   if (frequency === 'weekly') {
@@ -98,13 +97,15 @@ export function getNextActiveDate(
     const lastCompletedDate = new Date(lastCompletion.completedAt);
     const nextActiveDate = new Date(lastCompletedDate);
     nextActiveDate.setDate(nextActiveDate.getDate() + 7);
-    nextActiveDate.setHours(0, 0, 0, 0);
 
-    if (nextActiveDate <= currentDate) {
+    // Check if already past (compare dates only)
+    const nextDateStr = nextActiveDate.toISOString().split('T')[0];
+    const todayStr = currentDate.toISOString().split('T')[0];
+    if (nextDateStr <= todayStr) {
       return null;
     }
 
-    return nextActiveDate;
+    return nextDateStr;
   }
 
   if (frequency === 'custom' && Array.isArray(habit.customFrequency?.days) && habit.customFrequency.days.length > 0) {
@@ -132,16 +133,14 @@ export function getNextActiveDate(
           const daysUntil = nextDayThisWeek - currentDayOfWeek;
           const nextDate = new Date(currentDate);
           nextDate.setDate(nextDate.getDate() + daysUntil);
-          nextDate.setHours(0, 0, 0, 0);
-          return nextDate;
+          return nextDate.toISOString().split('T')[0];
         }
 
         const firstDayNextWeek = activeDays[0];
         const daysUntil = 7 - currentDayOfWeek + firstDayNextWeek;
         const nextDate = new Date(currentDate);
         nextDate.setDate(nextDate.getDate() + daysUntil);
-        nextDate.setHours(0, 0, 0, 0);
-        return nextDate;
+        return nextDate.toISOString().split('T')[0];
       }
     }
 
@@ -151,16 +150,14 @@ export function getNextActiveDate(
       const daysUntil = nextDayThisWeek - currentDayOfWeek;
       const nextDate = new Date(currentDate);
       nextDate.setDate(nextDate.getDate() + daysUntil);
-      nextDate.setHours(0, 0, 0, 0);
-      return nextDate;
+      return nextDate.toISOString().split('T')[0];
     }
 
     const firstDayNextWeek = activeDays[0];
     const daysUntil = 7 - currentDayOfWeek + firstDayNextWeek;
     const nextDate = new Date(currentDate);
     nextDate.setDate(nextDate.getDate() + daysUntil);
-    nextDate.setHours(0, 0, 0, 0);
-    return nextDate;
+    return nextDate.toISOString().split('T')[0];
   }
 
   return null;
@@ -179,14 +176,20 @@ export function getDaysUntilActive(
   lastCompletion: CompletionData | null,
   currentDate: Date = new Date()
 ): number {
-  const nextDate = getNextActiveDate(habit, lastCompletion, currentDate);
+  const nextDateString = getNextActiveDate(habit, lastCompletion, currentDate);
 
-  if (nextDate === null) {
+  if (nextDateString === null) {
     return -1;
   }
 
+  // Parse date string (YYYY-MM-DD) to midnight in local timezone
+  const [year, month, day] = nextDateString.split('-').map(Number);
+  const nextDate = new Date(year, month - 1, day, 0, 0, 0, 0);
+  const today = new Date(currentDate);
+  today.setHours(0, 0, 0, 0);
+  
   const daysUntil = Math.floor(
-    (nextDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
+    (nextDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
   );
 
   return Math.max(0, daysUntil);

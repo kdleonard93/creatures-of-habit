@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 
 	interface Props {
-		nextActiveDate: Date | null;
+		nextActiveDate: string | null;
 		isActive: boolean;
 	}
 
@@ -17,8 +17,12 @@
 			return;
 		}
 
+		// Parse date string (YYYY-MM-DD) to midnight in user's local timezone
+		const [year, month, day] = nextActiveDate.split('-').map(Number);
+		const nextDate = new Date(year, month - 1, day, 0, 0, 0, 0);
+		
 		const now = new Date();
-		const diff = nextActiveDate.getTime() - now.getTime();
+		const diff = nextDate.getTime() - now.getTime();
 
 		if (diff <= 0) {
 			countdown = '';

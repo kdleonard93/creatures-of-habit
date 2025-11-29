@@ -100,17 +100,17 @@ describe('Habit Status Logic', () => {
 		it('should show correct countdown days', () => {
 			const lastCompletion = { completedAt: '2024-11-21' };
 
-			// Day 1 after completion (4 days until midnight of day 7)
+			// Day 1 after completion (6 days until midnight of day 7 in local timezone)
 			const day1 = new Date('2024-11-22T10:00:00Z');
-			expect(getDaysUntilActive(weeklyHabit, lastCompletion, day1)).toBe(4);
+			expect(getDaysUntilActive(weeklyHabit, lastCompletion, day1)).toBe(6);
 
-			// Day 3 after completion (2 days until midnight of day 7)
+			// Day 3 after completion (4 days until midnight of day 7)
 			const day3 = new Date('2024-11-24T10:00:00Z');
-			expect(getDaysUntilActive(weeklyHabit, lastCompletion, day3)).toBe(2);
+			expect(getDaysUntilActive(weeklyHabit, lastCompletion, day3)).toBe(4);
 
-			// Day 6 after completion (already past midnight of day 7, so -1 = active)
+			// Day 6 after completion (1 day until midnight of day 7)
 			const day6 = new Date('2024-11-27T10:00:00Z');
-			expect(getDaysUntilActive(weeklyHabit, lastCompletion, day6)).toBe(-1);
+			expect(getDaysUntilActive(weeklyHabit, lastCompletion, day6)).toBe(1);
 
 			// Day 7 (active again)
 			const day7 = new Date('2024-11-28T10:00:00Z');
@@ -122,11 +122,11 @@ describe('Habit Status Logic', () => {
 
 			const day1 = new Date('2024-11-22T10:00:00Z');
 			expect(formatAvailabilityMessage(weeklyHabit, lastCompletion, day1)).toBe(
-				'Available in 4 days'
+				'Available in 6 days'
 			);
 
 			const day6 = new Date('2024-11-27T10:00:00Z');
-			expect(formatAvailabilityMessage(weeklyHabit, lastCompletion, day6)).toBe('');
+			expect(formatAvailabilityMessage(weeklyHabit, lastCompletion, day6)).toBe('Available in 1 day');
 
 			const day7 = new Date('2024-11-28T10:00:00Z');
 			expect(formatAvailabilityMessage(weeklyHabit, lastCompletion, day7)).toBe('');
@@ -206,7 +206,7 @@ describe('Habit Status Logic', () => {
 			// Tuesday (next active is Friday)
 			const tuesday = new Date('2024-11-26T10:00:00Z');
 			const nextFromTuesday = getNextActiveDate(customHabit, null, tuesday);
-			expect(nextFromTuesday?.toISOString().split('T')[0]).toBe('2024-11-29'); // Friday
+			expect(nextFromTuesday).toBe('2024-11-29'); // Friday
 
 			// Saturday (active today and not completed, returns null)
 			const saturday = new Date('2024-11-30T10:00:00Z');
