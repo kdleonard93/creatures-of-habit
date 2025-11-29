@@ -47,7 +47,10 @@ export const load: PageServerLoad = async ({ locals }) => {
 			completedAt: habitCompletion.completedAt
 		})
 		.from(habitCompletion)
-		.where(eq(habitCompletion.completedAt, today));
+		.where(and(
+			eq(habitCompletion.userId, session.user.id),
+			eq(habitCompletion.completedAt, today)
+		));
 
 	const lastCompletions = await db
 		.select({
