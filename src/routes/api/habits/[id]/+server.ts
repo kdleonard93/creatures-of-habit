@@ -44,9 +44,18 @@ export const PUT = (async ({ locals, params, request }) => {
    try {
        const habitData = await request.json() as HabitData;
        
-       // Update frequency if custom
+       // Update frequency for weekly and custom habits
        let frequencyId = null;
-       if (habitData.frequency === 'custom' && habitData.customFrequency) {
+       if (habitData.frequency === 'weekly') {
+           const [frequency] = await db
+               .insert(habitFrequency)
+               .values({
+                   name: 'weekly',
+                   days: null,
+               })
+               .returning();
+           frequencyId = frequency.id;
+       } else if (habitData.frequency === 'custom' && habitData.customFrequency) {
            const [frequency] = await db
                .insert(habitFrequency)
                .values({
@@ -56,6 +65,7 @@ export const PUT = (async ({ locals, params, request }) => {
                .returning();
            frequencyId = frequency.id;
        }
+       // Daily habits keep frequencyId = null
 
        const [updatedHabit] = await db
            .update(habit)
