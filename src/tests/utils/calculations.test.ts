@@ -3,8 +3,27 @@ import {
   getXpRequiredForLevel, 
   getLevelFromXp, 
   getLevelProgress, 
-  calculateHabitXp 
+  calculateHabitXp,
+  getXpForLevelUp
 } from '$lib/server/xp/calculations';
+
+/**
+ * XP Progression Table (for reference)
+ * Formula: 25 * (level - 1)^1.8
+ * 
+ * Level | Total XP | XP Gap (to reach this level)
+ * ------+----------+-----------------------------
+ *   1   |     0    |  -
+ *   2   |    25    |  25
+ *   3   |    87    |  62
+ *   4   |   180    |  93
+ *   5   |   303    | 123
+ *  10   | 1,304    | 249
+ *  15   | 2,890    | 361
+ *  20   | 5,008    | 465
+ *  30   | 10,721   | 619
+ *  50   | 27,560   | 688
+ */
 
 describe('XP Calculations', () => {
   describe('getXpRequiredForLevel', () => {
@@ -12,12 +31,52 @@ describe('XP Calculations', () => {
       expect(getXpRequiredForLevel(1)).toBe(0);
     });
 
-    it('should return correct XP for each level', () => {
-      expect(getXpRequiredForLevel(2)).toBe(25);
-      expect(getXpRequiredForLevel(3)).toBe(50);
-      expect(getXpRequiredForLevel(4)).toBe(75);
-      expect(getXpRequiredForLevel(5)).toBe(100);
-      expect(getXpRequiredForLevel(10)).toBe(300);
+    it('should return 0 for invalid levels', () => {
+      expect(getXpRequiredForLevel(0)).toBe(0);
+      expect(getXpRequiredForLevel(-1)).toBe(0);
+    });
+
+    it('should return correct XP for early levels (polynomial curve)', () => {
+      // Formula: 25 * (level - 1)^1.8
+      expect(getXpRequiredForLevel(2)).toBe(25);   // 25 * 1^1.8 = 25
+      expect(getXpRequiredForLevel(3)).toBe(87);   // 25 * 2^1.8 = 87
+      expect(getXpRequiredForLevel(4)).toBe(180);  // 25 * 3^1.8 = 180
+      expect(getXpRequiredForLevel(5)).toBe(303);  // 25 * 4^1.8 = 303
+    });
+
+    it('should return correct XP for mid-game levels', () => {
+      expect(getXpRequiredForLevel(10)).toBe(1304);  // 25 * 9^1.8
+      expect(getXpRequiredForLevel(15)).toBe(2890);  // 25 * 14^1.8
+      expect(getXpRequiredForLevel(20)).toBe(5008);  // 25 * 19^1.8
+    });
+
+    it('should return correct XP for high levels', () => {
+      expect(getXpRequiredForLevel(30)).toBe(10721);  // 25 * 29^1.8
+      expect(getXpRequiredForLevel(50)).toBe(27560);  // 25 * 49^1.8
+    });
+
+    it('should have progressively increasing XP gaps between levels', () => {
+      // Verify the XP gap increases as levels increase (no plateaus)
+      const gap2to3 = getXpRequiredForLevel(3) - getXpRequiredForLevel(2);
+      const gap10to11 = getXpRequiredForLevel(11) - getXpRequiredForLevel(10);
+      const gap20to21 = getXpRequiredForLevel(21) - getXpRequiredForLevel(20);
+      
+      expect(gap10to11).toBeGreaterThan(gap2to3);
+      expect(gap20to21).toBeGreaterThan(gap10to11);
+    });
+  });
+
+  describe('getXpForLevelUp', () => {
+    it('should return the XP gap to reach the next level', () => {
+      expect(getXpForLevelUp(1)).toBe(25);  // 25 - 0
+      expect(getXpForLevelUp(2)).toBe(62);  // 87 - 25
+      expect(getXpForLevelUp(3)).toBe(93);  // 180 - 87
+    });
+
+    it('should always return positive values', () => {
+      for (let level = 1; level <= 50; level++) {
+        expect(getXpForLevelUp(level)).toBeGreaterThan(0);
+      }
     });
   });
 
@@ -26,12 +85,22 @@ describe('XP Calculations', () => {
       expect(getLevelFromXp(0)).toBe(1);
     });
 
-    it('should return correct level for XP', () => {
-      expect(getLevelFromXp(20)).toBe(1);  // Not enough for level 2
-      expect(getLevelFromXp(25)).toBe(2);  // Just enough for level 2
-      expect(getLevelFromXp(49)).toBe(2);  // Not enough for level 3
-      expect(getLevelFromXp(50)).toBe(3);  // Just enough for level 3
-      expect(getLevelFromXp(300)).toBe(10);  // Just enough for level 10
+    it('should return level 1 for negative XP', () => {
+      expect(getLevelFromXp(-100)).toBe(1);
+    });
+
+    it('should return correct level for XP thresholds', () => {
+      expect(getLevelFromXp(24)).toBe(1);    // Not enough for level 2
+      expect(getLevelFromXp(25)).toBe(2);    // Just enough for level 2
+      expect(getLevelFromXp(86)).toBe(2);    // Not enough for level 3
+      expect(getLevelFromXp(87)).toBe(3);    // Just enough for level 3
+      expect(getLevelFromXp(1304)).toBe(10); // Just enough for level 10
+    });
+
+    it('should handle mid-progress XP correctly', () => {
+      expect(getLevelFromXp(50)).toBe(2);    // Between level 2 and 3
+      expect(getLevelFromXp(500)).toBe(6);   // Between level 6 and 7
+      expect(getLevelFromXp(2000)).toBe(12); // Between level 12 and 13
     });
   });
 
@@ -46,12 +115,18 @@ describe('XP Calculations', () => {
     });
 
     it('should calculate progress for higher levels', () => {
-      const progress = getLevelProgress(60);
+      const progress = getLevelProgress(100);
       expect(progress.currentLevel).toBe(3);
-      expect(progress.currentLevelXp).toBe(50);
-      expect(progress.nextLevelXp).toBe(75);
-      expect(progress.xpProgress).toBe(10);
-      expect(progress.progressPercentage).toBe(40);
+      expect(progress.currentLevelXp).toBe(87);
+      expect(progress.nextLevelXp).toBe(180);
+      expect(progress.xpProgress).toBe(13);  // 100 - 87
+      expect(progress.progressPercentage).toBe(13); // 13 / 93 ≈ 13%
+    });
+
+    it('should cap progress percentage at 100', () => {
+      // Edge case: if somehow XP exceeds next level threshold
+      const progress = getLevelProgress(25);
+      expect(progress.progressPercentage).toBeLessThanOrEqual(100);
     });
   });
 

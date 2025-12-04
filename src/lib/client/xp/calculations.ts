@@ -1,32 +1,19 @@
 /**
- * Calculates XP required for a given level
+ * XP Progression Constants
+ * 
+ * Formula: baseXp * (level - 1)^exponent
  */
+const BASE_XP = 25;
+const GROWTH_EXPONENT = 1.8;
+
 export function getXpRequiredForLevel(level: number): number {
-  const baseXp = 25;
-  
   if (level <= 1) return 0;
-  if (level === 2) return baseXp;            
-  if (level === 3) return baseXp * 2;
-  if (level === 4) return baseXp * 3;
-  if (level === 5) return baseXp * 4;
-  if (level === 6) return baseXp * 5;
-  if (level === 7) return baseXp * 6;
-  if (level === 8) return baseXp * 8;
-  if (level === 9) return baseXp * 10;
-  if (level === 10) return baseXp * 12;
-  if (level === 11) return baseXp * 14;
-  if (level === 12) return baseXp * 16;
-  if (level === 13) return baseXp * 18;
-  if (level === 14) return baseXp * 20;
-  if (level === 15) return baseXp * 24;
-  if (level < 30) {
-    // Medium curve for levels 16-29
-    return Math.floor(baseXp * (level * 2));
-  }
   
-  // Steeper but still achievable curve for level 30+
-  // Level 30 will require 1,600 XP instead of 10,292 XP
-  return Math.floor(baseXp * (level * 2.5));
+  return Math.floor(BASE_XP * (level - 1) ** GROWTH_EXPONENT);
+}
+
+export function getXpForLevelUp(level: number): number {
+  return getXpRequiredForLevel(level + 1) - getXpRequiredForLevel(level);
 }
 
 /**
