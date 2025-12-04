@@ -7,24 +7,6 @@ import {
   getXpForLevelUp
 } from '$lib/server/xp/calculations';
 
-/**
- * XP Progression Table (for reference)
- * Formula: 25 * (level - 1)^1.8
- * 
- * Level | Total XP | XP Gap (to reach this level)
- * ------+----------+-----------------------------
- *   1   |     0    |  -
- *   2   |    25    |  25
- *   3   |    87    |  62
- *   4   |   180    |  93
- *   5   |   303    | 123
- *  10   | 1,304    | 249
- *  15   | 2,890    | 361
- *  20   | 5,008    | 465
- *  30   | 10,721   | 619
- *  50   | 27,560   | 688
- */
-
 describe('XP Calculations', () => {
   describe('getXpRequiredForLevel', () => {
     it('should return 0 for level 1', () => {
@@ -123,8 +105,8 @@ describe('XP Calculations', () => {
       expect(progress.progressPercentage).toBe(13); // 13 / 93 ≈ 13%
     });
 
-    it('should cap progress percentage at 100', () => {
-      // Edge case: if somehow XP exceeds next level threshold
+    it('should never return progress percentage above 100', () => {
+      // Verify the Math.min(100, ...) safeguard exists
       const progress = getLevelProgress(25);
       expect(progress.progressPercentage).toBeLessThanOrEqual(100);
     });

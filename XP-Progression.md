@@ -46,8 +46,8 @@ Below are selected levels using the formula `25 * (level - 1)^1.8` (floored):
 | 10    | 1,304    | 249                  |
 | 15    | 2,890    | 361                  |
 | 20    | 5,008    | 465                  |
-| 30    | 10,721   | 619                  |
-| 50    | 27,560   | 688                  |
+| 30    | 10,721   | 656                  |
+| 50    | 27,560   | 1,004                |
 
 Observations:
 
