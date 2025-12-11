@@ -1,7 +1,7 @@
 import { get } from 'svelte/store';
-import type { Notifications, NotificationChannel, NotificationCategory } from '$lib/types';
+import type { Notifications, NotificationChannel, NotificationCategory, NotificationBackend } from '$lib/types';
 import { notifications } from './NotificationStore';
-import { escapeHtml } from '$lib/utils/html';
+import { ApiNotificationBackend } from './ApiNotificationBackend';
 
 // Notification Plugin Interface
 export interface NotificationPlugin {
@@ -12,8 +12,10 @@ export class NotificationManager {
     private timeouts: Map<string, number> = new Map();
     private plugins: NotificationPlugin[] = [];
     private permission: NotificationPermission = 'default';
+    private backend: NotificationBackend;
 
-    constructor() {
+    constructor(backend: NotificationBackend = new ApiNotificationBackend()) {
+        this.backend = backend;
         this.requestPermission();
     }
 
@@ -71,25 +73,9 @@ export class NotificationManager {
             category
         };
 
-        // Send email notification via API if channel is email
-        if (channel === 'email' && typeof window !== 'undefined') {
-            try {
-                const res = await fetch('/api/notifications', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        channel: 'email',
-                        category,
-                        subject,
-                        message: `<h2>${escapeHtml(subject)}</h2><p>${escapeHtml(message)}</p>`
-                    })
-                });
-                if (!res.ok) {
-                    throw new Error('Failed to send email notification');
-                }
-            } catch (error) {
-                console.error('Failed to send email notification:', error);
-            }
+        // Send email notification via backend if channel is email
+        if (channel === 'email') {
+            await this.backend.sendEmail(subject, message, category);
         }
 
         // Show browser notification if permission granted
