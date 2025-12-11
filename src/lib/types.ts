@@ -169,9 +169,12 @@ export interface Notifications {
 	category?: NotificationCategory;
 }
 
+export interface NotificationBackend {
+    sendEmail(subject: string, message: string, category?: NotificationCategory): Promise<void>;
+}
+
 export type NotificationChannel = 'email' | 'push' | 'in-app';
 export type NotificationCategory = 'reminder' | 'achievement' | 'system' | 'quest';
-
 export type NotificationType = NotificationChannel;
 
 export interface WaitlistData {
@@ -182,4 +185,22 @@ export interface WaitlistData {
 export interface EmailVerificationService {
 	sendVerificationEmail(email: string, username: string, token: string): Promise<{ success: boolean; error?: string }>;
 	sendWelcomeEmail?(email: string, username: string): Promise<{ success: boolean; error?: string }>;
+}
+
+export interface Cache {
+    get<T>(key: string): Promise<T | null>;
+    set(key: string, value: any, ttlMs: number): Promise<void>;
+    delete(key: string): Promise<void>;
+    clear(): Promise<void>;
+}
+
+export interface EmailOptions {
+	from: string;
+	to: string;
+	subject: string;
+	html: string;
+}
+
+export interface EmailProvider {
+	sendEmail(options: EmailOptions): Promise<{ success: boolean; error?: string }>;
 }

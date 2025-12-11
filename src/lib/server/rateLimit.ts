@@ -1,24 +1,21 @@
 import type { RequestEvent } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
+import { isIP } from 'node:net';
+import type { Cache } from '$lib/types';
+import { MemoryCache } from './cache/MemoryCache';
 
 interface RateLimitEntry {
 	count: number;
 	resetTime: number;
 }
 
-const rateLimitStore = new Map<string, RateLimitEntry>();
-setInterval(() => {
-	const now = Date.now();
-	for (const [key, entry] of rateLimitStore.entries()) {
-		if (now > entry.resetTime) {
-			rateLimitStore.delete(key);
-		}
-	}
-}, 5 * 60 * 1000);
+// Default cache implementation (In-Memory)
+// Can be swapped for RedisCache in the future
+const defaultCache: Cache = new MemoryCache();
 
 // Export for testing purposes
 export function clearRateLimitStore(): void {
-	rateLimitStore.clear();
+	defaultCache.clear();
 }
 
 export interface RateLimitConfig {
@@ -31,7 +28,8 @@ export interface RateLimitConfig {
 export async function rateLimit(
 	event: RequestEvent,
 	config: RateLimitConfig,
-	keyGenerator?: (event: RequestEvent) => string
+	keyGenerator?: (event: RequestEvent) => string,
+    cache: Cache = defaultCache
 ): Promise<void> {
 	const {
 		maxRequests,
@@ -45,11 +43,15 @@ export async function rateLimit(
 		: `${getClientIP(event)}:${event.url.pathname}`;
 
 	const now = Date.now();
-	const entry = rateLimitStore.get(key);
+    
+    // Retrieve from cache
+	let entry = await cache.get<RateLimitEntry>(key);
 
 	if (!entry || now > entry.resetTime) {
 		const resetTime = now + windowMs;
-		rateLimitStore.set(key, { count: 1, resetTime });
+        entry = { count: 1, resetTime };
+        // Set with TTL equal to the window
+		await cache.set(key, entry, windowMs);
 		setRateLimitHeaders(event, maxRequests, maxRequests - 1, resetTime);
 		return;
 	}
@@ -61,7 +63,11 @@ export async function rateLimit(
 	}
 
 	entry.count++;
-	rateLimitStore.set(key, entry);
+    // Update cache
+    // We calculate remaining TTL to keep the original reset time
+    const remainingTtl = Math.max(0, entry.resetTime - now);
+	await cache.set(key, entry, remainingTtl);
+    
 	setRateLimitHeaders(event, maxRequests, maxRequests - entry.count, entry.resetTime);
 }
 
@@ -84,7 +90,7 @@ function setRateLimitHeaders(
 	
 	event.setHeaders(headers);
 }
-import { isIP } from 'node:net';
+
 function getClientIP(event: RequestEvent): string {
 	const trustProxy = process.env.TRUST_PROXY === 'true';
 	if (trustProxy) {
@@ -116,3 +122,4 @@ export const RateLimitPresets = {
 		message: 'Rate limit exceeded. Please try again later.'
 	}
 } as const;
+
