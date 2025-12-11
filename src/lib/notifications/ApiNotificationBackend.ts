@@ -21,7 +21,7 @@ export class ApiNotificationBackend implements NotificationBackend {
             }
         } catch (error) {
             console.error('Failed to send email notification:', error);
-            // We re-throw or handle based on app needs, for now just logging as per original
+            throw error;
         }
     }
 }
