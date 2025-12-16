@@ -134,7 +134,7 @@
 						Leveling Up
 					</h4>
 					<p class="text-sm text-muted-foreground">
-						Your creature levels up as you accumulate XP. Level 2 requires 25 XP, with requirements increasing progressively. Every 4 levels, you can allocate additional stat points to strengthen your creature's abilities and improve quest performance.
+						Your creature levels up as you accumulate XP. Level 2 requires 25 XP, Level 5 needs 303 XP, and the 25 × (level − 1)<sup>1.8</sup> curve keeps each milestone feeling meaningful. Level ups showcase your mastery while stat growth comes from the stat boost points you earn through quests.
 					</p>
 				</div>
 				<div class="space-y-2">
@@ -143,7 +143,7 @@
 						Stat Boost Points
 					</h4>
 					<p class="text-sm text-muted-foreground">
-						Earn stat boost points by completing quests with 3+ correct answers. Use these points to permanently increase any of your creature's six core stats, making future quests and challenges easier to overcome.
+						Earn 1 stat boost point every time you answer at least 3 of the 5 quest questions correctly, and grab a bonus point when your creature passes all five stat checks (max 2 per quest). Spend these points to permanently increase any of your creature's six core stats, making future quests and challenges easier to overcome.
 					</p>
 				</div>
 				<div class="flex items-center gap-2 bg-primary/10 p-3 rounded-lg">
@@ -231,7 +231,7 @@
 						</div>
 						<div class="flex items-start gap-2 text-sm">
 							<Award class="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-							<span class="text-muted-foreground">Earn 1-2 stat boost points per quest</span>
+							<span class="text-muted-foreground">Stat boosts: +1 point for 3+ correct answers, an additional +1 for passing all 5 stat checks</span>
 						</div>
 					</div>
 				</div>

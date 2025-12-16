@@ -140,11 +140,11 @@
 					</div>
 					<div class="flex items-center gap-2 text-xs">
 						<div class="h-2 w-2 rounded-full bg-primary"></div>
-						<span>50-150 XP per quest</span>
+						<span>50 XP base +100 XP bonus for 3+ correct</span>
 					</div>
 					<div class="flex items-center gap-2 text-xs">
 						<div class="h-2 w-2 rounded-full bg-accent"></div>
-						<span>Earn stat boost points</span>
+						<span>1 stat point for 3+ correct, +1 for all 5 stat checks</span>
 					</div>
 				</div>
 			</CardContent>
