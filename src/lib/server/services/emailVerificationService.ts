@@ -17,6 +17,18 @@ const defaultEmailProvider = new ResendEmailProvider(process.env.RESEND_API_KEY)
 const emailSchema = z.string().email('Invalid email format').max(255);
 const usernameSchema = z.string().min(3).max(30).regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens');
 const tokenSchema = z.string().min(1, 'Token is required');
+const habitTitleSchema = z.string().min(1, 'Habit title is required').max(200, 'Habit title must be 200 characters or less');
+
+function sanitizeEmailSubject(subject: string): string {
+    return subject
+        .split('')
+        .filter(char => {
+            const code = char.charCodeAt(0);
+            return code >= 0x20 && code !== 0x7F;
+        })
+        .join('')
+        .trim();
+}
 
 /**
  * Creates the HTML template for verification email
@@ -347,15 +359,22 @@ export class EmailVerificationService {
             return { success: false, error: usernameValidation.error.errors[0].message };
         }
         
+        const habitTitleValidation = habitTitleSchema.safeParse(habitTitle);
+        if (!habitTitleValidation.success) {
+            return { success: false, error: habitTitleValidation.error.errors[0].message };
+        }
+        
         try {
             const baseUrl = getCanonicalBaseUrl();
             const dashboardLink = `${baseUrl}/dashboard`;
             const htmlContent = createHabitReminderEmailTemplate(username, habitTitle, dashboardLink);
             
+            const sanitizedHabitTitle = sanitizeEmailSubject(habitTitle);
+            
             return await this.emailProvider.sendEmail({
                 from: `${APP_NAME} <${SENDER_EMAIL}>`,
                 to: email,
-                subject: `Reminder: ${habitTitle} - ${APP_NAME}`,
+                subject: `Reminder: ${sanitizedHabitTitle} - ${APP_NAME}`,
                 html: htmlContent
             });
         } catch (error) {
