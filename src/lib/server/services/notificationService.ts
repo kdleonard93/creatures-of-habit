@@ -6,6 +6,8 @@ import type { EmailProvider } from '$lib/types';
 import { ResendEmailProvider } from './email/ResendEmailProvider';
 
 // Default configuration
+const SENDER_EMAIL = process.env.SENDER_EMAIL || 'onboarding@resend.dev';
+const APP_NAME = 'Creatures of Habit';
 const defaultEmailProvider = new ResendEmailProvider(process.env.RESEND_API_KEY);
 
 export type NotificationType = NotificationChannel;
@@ -103,7 +105,7 @@ export class NotificationService {
         htmlContent: string
     ): Promise<NotificationResult> {
         const result = await this.emailProvider.sendEmail({
-            from: 'Creatures of Habit <onboarding@resend.dev>',
+            from: `${APP_NAME} <${SENDER_EMAIL}>`,
             to,
             subject,
             html: htmlContent
