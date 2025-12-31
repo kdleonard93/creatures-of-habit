@@ -11,7 +11,7 @@ export const POST: RequestHandler = async (event) => {
     }
 
     const body = await request.json();
-    const { type, channel, category, subject, message } = body;
+    const { type, channel, category, subject, message, habitTitle } = body;
 
     let notificationChannel: NotificationChannel;
     let notificationCategory: NotificationCategory | undefined;
@@ -53,7 +53,8 @@ export const POST: RequestHandler = async (event) => {
         notificationChannel,
         subject,
         message,
-        notificationCategory
+        notificationCategory,
+        habitTitle
     );
 
     if (result.sent) {

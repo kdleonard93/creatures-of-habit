@@ -4,8 +4,11 @@ import { eq } from 'drizzle-orm';
 import type { NotificationChannel, NotificationCategory } from '$lib/types';
 import type { EmailProvider } from '$lib/types';
 import { ResendEmailProvider } from './email/ResendEmailProvider';
+import { sendHabitReminderEmail } from './emailVerificationService';
 
 // Default configuration
+const SENDER_EMAIL = process.env.SENDER_EMAIL || 'onboarding@resend.dev';
+const APP_NAME = 'Creatures of Habit';
 const defaultEmailProvider = new ResendEmailProvider(process.env.RESEND_API_KEY);
 
 export type NotificationType = NotificationChannel;
@@ -26,7 +29,8 @@ export class NotificationService {
         channel: NotificationChannel,
         subject: string,
         message: string,
-        category?: NotificationCategory
+        category?: NotificationCategory,
+        habitTitle?: string
     ): Promise<NotificationResult> {
         const userData = await db.query.user.findFirst({
             where: eq(user.id, userId)
@@ -54,6 +58,16 @@ export class NotificationService {
             case 'email':
                 if (!userData.email) {
                     return { sent: false, reason: 'User has no email' };
+                }
+                if (category === 'reminder' && habitTitle) {
+                    const result = await sendHabitReminderEmail(
+                        userData.email,
+                        userData.username,
+                        habitTitle
+                    );
+                    return result.success 
+                        ? { sent: true }
+                        : { sent: false, reason: result.error || 'Failed to send reminder email' };
                 }
                 return await this.sendEmail(userData.email, subject, message);
             case 'push':
@@ -103,7 +117,7 @@ export class NotificationService {
         htmlContent: string
     ): Promise<NotificationResult> {
         const result = await this.emailProvider.sendEmail({
-            from: 'Creatures of Habit <onboarding@resend.dev>',
+            from: `${APP_NAME} <${SENDER_EMAIL}>`,
             to,
             subject,
             html: htmlContent

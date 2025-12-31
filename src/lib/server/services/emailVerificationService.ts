@@ -17,6 +17,18 @@ const defaultEmailProvider = new ResendEmailProvider(process.env.RESEND_API_KEY)
 const emailSchema = z.string().email('Invalid email format').max(255);
 const usernameSchema = z.string().min(3).max(30).regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens');
 const tokenSchema = z.string().min(1, 'Token is required');
+const habitTitleSchema = z.string().min(1, 'Habit title is required').max(200, 'Habit title must be 200 characters or less');
+
+function sanitizeEmailSubject(subject: string): string {
+    return subject
+        .split('')
+        .filter(char => {
+            const code = char.charCodeAt(0);
+            return code >= 0x20 && code !== 0x7F;
+        })
+        .join('')
+        .trim();
+}
 
 /**
  * Creates the HTML template for verification email
@@ -172,6 +184,93 @@ export function createWelcomeEmailTemplate(username: string): string {
 }
 
 /**
+ * Creates the HTML template for habit reminder email
+ * Matches the exact design of the verification email
+ */
+export function createHabitReminderEmailTemplate(username: string, habitTitle: string, dashboardLink: string): string {
+    const safeUsername = escapeHtml(username);
+    const safeHabitTitle = escapeHtml(habitTitle);
+    const safeLink = escapeHtml(dashboardLink);
+    const baseUrl = getCanonicalBaseUrl();
+    const logoUrl = `${baseUrl}/logo.png`;
+    
+    return `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Habit Reminder</title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #111827;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #1F2937;">
+                <!-- Header -->
+                <div style="background: linear-gradient(135deg, #E09F3E 0%, #D97706 100%); padding: 40px 20px; text-align: center;">
+                    <img src="${logoUrl}" alt="${APP_NAME}" style="max-width: 100px; height: auto; margin-bottom: 10px;" />
+                </div>
+                
+                <!-- Content -->
+                <div style="padding: 40px 30px; background-color: #1F2937;">
+                    <h2 style="color: #F9FAFB; margin: 0 0 20px 0; font-size: 24px;">Hey ${safeUsername}! 🌟</h2>
+                    <p style="color: #D1D5DB; line-height: 1.6; margin: 0 0 20px 0; font-size: 16px;">
+                        Just a friendly reminder to complete your habit: <strong>"${safeHabitTitle}"</strong>
+                    </p>
+                    <p style="color: #D1D5DB; line-height: 1.6; margin: 0 0 30px 0; font-size: 16px;">
+                        Keep up the great work building better habits! Click below to view your dashboard:
+                    </p>
+                    
+                    <!-- CTA Button -->
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="${safeLink}" 
+                           style="display: inline-block; 
+                                  padding: 14px 32px; 
+                                  background: linear-gradient(135deg, #E09F3E 0%, #D97706 100%); 
+                                  color: #ffffff; 
+                                  text-decoration: none; 
+                                  border-radius: 8px; 
+                                  font-weight: 600;
+                                  font-size: 16px;
+                                  box-shadow: 0 4px 12px rgba(224, 159, 62, 0.4);">
+                            View Dashboard
+                        </a>
+                    </div>
+                    
+                    <p style="color: #9CA3AF; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0;">
+                        Or copy and paste this link into your browser:
+                    </p>
+                    <p style="color: #1424b8ff; font-size: 13px; word-break: break-all; margin: 10px 0;">
+                        <a href="${safeLink}" style="color: #1424b8ff; text-decoration: none;">${safeLink}</a>
+                    </p>
+                    
+                    <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #374151;">
+                        <p style="color: #9CA3AF; font-size: 13px; line-height: 1.6; margin: 0;">
+                            <strong>💡 Tip:</strong> Consistency is key! Even small actions add up to big results over time.
+                        </p>
+                        <p style="color: #9CA3AF; font-size: 13px; line-height: 1.6; margin: 10px 0 0 0;">
+                            You can manage your notification preferences in your account settings.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <div style="background-color: #111827; padding: 30px; text-align: center; border-top: 1px solid #374151;">
+                    <p style="color: #9CA3AF; font-size: 14px; margin: 0 0 10px 0;">
+                        <strong>${APP_NAME}</strong>
+                    </p>
+                    <p style="color: #6B7280; font-size: 12px; margin: 0 0 5px 0;">
+                        ${EMAIL_SUB_FOOTER}
+                    </p>
+                    <p style="color: #6B7280; font-size: 11px; margin: 0;">
+                        ${COMPANY}
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+}
+
+/**
  * Service class for handling email verification
  */
 export class EmailVerificationService {
@@ -182,7 +281,7 @@ export class EmailVerificationService {
         username: string,
         token: string
     ): Promise<{ success: boolean; error?: string }> {
-        // Validate inputs using Zod
+
         const emailValidation = emailSchema.safeParse(email);
         if (!emailValidation.success) {
             return { success: false, error: emailValidation.error.errors[0].message };
@@ -218,7 +317,7 @@ export class EmailVerificationService {
         email: string,
         username: string
     ): Promise<{ success: boolean; error?: string }> {
-        // Validate inputs using Zod
+
         const emailValidation = emailSchema.safeParse(email);
         if (!emailValidation.success) {
             return { success: false, error: emailValidation.error.errors[0].message };
@@ -243,6 +342,46 @@ export class EmailVerificationService {
             return { success: false, error: 'Failed to send email' };
         }
     }
+
+    async sendHabitReminderEmail(
+        email: string,
+        username: string,
+        habitTitle: string
+    ): Promise<{ success: boolean; error?: string }> {
+
+        const emailValidation = emailSchema.safeParse(email);
+        if (!emailValidation.success) {
+            return { success: false, error: emailValidation.error.errors[0].message };
+        }
+        
+        const usernameValidation = usernameSchema.safeParse(username);
+        if (!usernameValidation.success) {
+            return { success: false, error: usernameValidation.error.errors[0].message };
+        }
+        
+        const habitTitleValidation = habitTitleSchema.safeParse(habitTitle);
+        if (!habitTitleValidation.success) {
+            return { success: false, error: habitTitleValidation.error.errors[0].message };
+        }
+        
+        try {
+            const baseUrl = getCanonicalBaseUrl();
+            const dashboardLink = `${baseUrl}/dashboard`;
+            const htmlContent = createHabitReminderEmailTemplate(username, habitTitle, dashboardLink);
+            
+            const sanitizedHabitTitle = sanitizeEmailSubject(habitTitle);
+            
+            return await this.emailProvider.sendEmail({
+                from: `${APP_NAME} <${SENDER_EMAIL}>`,
+                to: email,
+                subject: `Reminder: ${sanitizedHabitTitle} - ${APP_NAME}`,
+                html: htmlContent
+            });
+        } catch (error) {
+            console.error('Failed to send habit reminder email:', error);
+            return { success: false, error: 'Failed to send email' };
+        }
+    }
 }
 
 // Export singleton for backward compatibility
@@ -250,3 +389,4 @@ const emailService = new EmailVerificationService(defaultEmailProvider);
 
 export const sendVerificationEmail = emailService.sendVerificationEmail.bind(emailService);
 export const sendWelcomeEmail = emailService.sendWelcomeEmail.bind(emailService);
+export const sendHabitReminderEmail = emailService.sendHabitReminderEmail.bind(emailService);

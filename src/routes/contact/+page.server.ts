@@ -7,6 +7,7 @@ import type { ContactFormData } from "$lib/types";
 import {contacts} from "$lib/server/db/schema";
 
 const resendToken = process.env.RESEND_API_KEY;
+const SENDER_EMAIL = process.env.SENDER_EMAIL || 'no-reply@digitaldopamine.dev';
 
 // Create Resend instance
 let resend: Resend | null = null;
@@ -39,7 +40,7 @@ export const actions = {
       // Send email using Resend
       if (resend) {
         await resend.emails.send({
-          from: "Contact Form <no-reply@digitaldopamine.dev>",
+          from: `Contact Form <${SENDER_EMAIL}>`,
           to: "contact@digitaldopamine.dev",
           subject: `New Contact Form Submission from ${name}`,
           text: `

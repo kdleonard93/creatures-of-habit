@@ -7,6 +7,8 @@ import { Resend } from "resend";
 import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 
 const resendToken = process.env.RESEND_API_KEY;
+const SENDER_EMAIL = process.env.SENDER_EMAIL || 'onboarding@resend.dev';
+const APP_NAME = 'Creatures of Habit';
 let resend: Resend | null = null;
 if (resendToken) {
   resend = new Resend(resendToken);
@@ -51,9 +53,9 @@ export const actions = {
     if (resend) {
       try {
         await resend.emails.send({
-          from: 'Creatures of Habit <onboarding@resend.dev>',
+          from: `${APP_NAME} <${SENDER_EMAIL}>`,
           to: sanitizedEmail,
-          subject: 'Your Username - Creatures of Habit',
+          subject: `Your Username - ${APP_NAME}`,
           html: `
             <h2>Your Username</h2>
             <p>Hello,</p>

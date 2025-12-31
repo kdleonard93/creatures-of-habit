@@ -128,7 +128,7 @@ describe('POST /api/notifications', () => {
 
         expect(response.status).toBe(200);
         expect(data).toEqual({ success: true, message: 'Notification sent' });
-        expect(sendNotification).toHaveBeenCalledWith('user-1', 'email', 'Test', 'Test Message', undefined);
+        expect(sendNotification).toHaveBeenCalledWith('user-1', 'email', 'Test', 'Test Message', undefined, undefined);
     });
 
     it('should return success with new channel + category API', async () => {
@@ -142,7 +142,8 @@ describe('POST /api/notifications', () => {
                     channel: 'email', 
                     category: 'reminder',
                     subject: 'Habit Reminder', 
-                    message: 'Time to complete your habit!' 
+                    message: 'Time to complete your habit!',
+                    habitTitle: 'Morning Meditation'
                 })
             }),
             locals: {
@@ -155,7 +156,7 @@ describe('POST /api/notifications', () => {
 
         expect(response.status).toBe(200);
         expect(data).toEqual({ success: true, message: 'Notification sent' });
-        expect(sendNotification).toHaveBeenCalledWith('user-1', 'email', 'Habit Reminder', 'Time to complete your habit!', 'reminder');
+        expect(sendNotification).toHaveBeenCalledWith('user-1', 'email', 'Habit Reminder', 'Time to complete your habit!', 'reminder', 'Morning Meditation');
     });
 
     it('should map legacy reminder type to email channel with reminder category', async () => {
@@ -176,7 +177,7 @@ describe('POST /api/notifications', () => {
         const data = await response.json();
 
         expect(response.status).toBe(200);
-        expect(sendNotification).toHaveBeenCalledWith('user-1', 'email', 'Reminder', 'Test', 'reminder');
+        expect(sendNotification).toHaveBeenCalledWith('user-1', 'email', 'Reminder', 'Test', 'reminder', undefined);
     });
 
     it('should return 400 when notification fails to send', async () => {
