@@ -1,6 +1,10 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { sendNotification } from '$lib/server/services/notificationService';
+import { sendHabitReminderEmail } from '$lib/server/services/emailVerificationService';
+import { db } from '$lib/server/db';
+import { user } from '$lib/server/db/schema';
+import { eq } from 'drizzle-orm';
 import type { NotificationChannel, NotificationCategory } from '$lib/types';
 
 export const POST: RequestHandler = async (event) => {
@@ -11,7 +15,7 @@ export const POST: RequestHandler = async (event) => {
     }
 
     const body = await request.json();
-    const { type, channel, category, subject, message } = body;
+    const { type, channel, category, subject, message, habitTitle } = body;
 
     let notificationChannel: NotificationChannel;
     let notificationCategory: NotificationCategory | undefined;
@@ -44,6 +48,38 @@ export const POST: RequestHandler = async (event) => {
     if (!validChannels.includes(notificationChannel)) {
         return json(
             { error: `Invalid channel. Must be one of: ${validChannels.join(', ')}` },
+            { status: 400 }
+        );
+    }
+
+    // category === 'reminder' OR habitTitle provided OR message matches habit reminder pattern
+    const isHabitReminder = notificationCategory === 'reminder' || 
+                            habitTitle || 
+                            message.includes('Time to complete your habit:');
+    
+    if (notificationChannel === 'email' && isHabitReminder) {
+        const userData = await db.query.user.findFirst({
+            where: eq(user.id, authSession.user.id)
+        });
+
+        if (!userData?.email) {
+            return json({ success: false, reason: 'User email not found' }, { status: 400 });
+        }
+
+        const extractedHabitTitle = habitTitle || message.replace('Time to complete your habit: ', '');
+        
+        const result = await sendHabitReminderEmail(
+            userData.email,
+            userData.username,
+            extractedHabitTitle
+        );
+
+        if (result.success) {
+            return json({ success: true, message: 'Notification sent' });
+        }
+        
+        return json(
+            { success: false, reason: result.error || 'Failed to send email' },
             { status: 400 }
         );
     }

@@ -57,7 +57,8 @@
                 `Time to complete your habit: ${props.habitTitle}`,
                 'email',
                 'Habit Reminder',
-                delay
+                delay,
+                'reminder'
             );
             
             if (hasLocalStorage) {

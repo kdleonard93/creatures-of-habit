@@ -7,7 +7,25 @@ vi.mock('$lib/server/services/notificationService', () => ({
     sendNotification: vi.fn()
 }));
 
+// Mock the email verification service (for habit reminder emails)
+vi.mock('$lib/server/services/emailVerificationService', () => ({
+    sendHabitReminderEmail: vi.fn()
+}));
+
+// Mock the database
+vi.mock('$lib/server/db', () => ({
+    db: {
+        query: {
+            user: {
+                findFirst: vi.fn()
+            }
+        }
+    }
+}));
+
 import { sendNotification } from '../../lib/server/services/notificationService';
+import { sendHabitReminderEmail } from '../../lib/server/services/emailVerificationService';
+import { db } from '../../lib/server/db';
 
 describe('POST /api/notifications', () => {
     beforeEach(() => {
@@ -132,7 +150,13 @@ describe('POST /api/notifications', () => {
     });
 
     it('should return success with new channel + category API', async () => {
-        vi.mocked(sendNotification).mockResolvedValue({ sent: true });
+        // Reminder emails now use sendHabitReminderEmail with styled template
+        vi.mocked(db.query.user.findFirst).mockResolvedValue({
+            id: 'user-1',
+            email: 'test@example.com',
+            username: 'testuser'
+        } as never);
+        vi.mocked(sendHabitReminderEmail).mockResolvedValue({ success: true });
 
         const mockEvent = {
             request: new Request('http://localhost/api/notifications', {
@@ -155,11 +179,17 @@ describe('POST /api/notifications', () => {
 
         expect(response.status).toBe(200);
         expect(data).toEqual({ success: true, message: 'Notification sent' });
-        expect(sendNotification).toHaveBeenCalledWith('user-1', 'email', 'Habit Reminder', 'Time to complete your habit!', 'reminder');
+        expect(sendHabitReminderEmail).toHaveBeenCalledWith('test@example.com', 'testuser', 'Time to complete your habit!');
     });
 
     it('should map legacy reminder type to email channel with reminder category', async () => {
-        vi.mocked(sendNotification).mockResolvedValue({ sent: true });
+        // Reminder emails now use sendHabitReminderEmail with styled template
+        vi.mocked(db.query.user.findFirst).mockResolvedValue({
+            id: 'user-1',
+            email: 'test@example.com',
+            username: 'testuser'
+        } as never);
+        vi.mocked(sendHabitReminderEmail).mockResolvedValue({ success: true });
 
         const mockEvent = {
             request: new Request('http://localhost/api/notifications', {
@@ -176,7 +206,7 @@ describe('POST /api/notifications', () => {
         const data = await response.json();
 
         expect(response.status).toBe(200);
-        expect(sendNotification).toHaveBeenCalledWith('user-1', 'email', 'Reminder', 'Test', 'reminder');
+        expect(sendHabitReminderEmail).toHaveBeenCalledWith('test@example.com', 'testuser', 'Test');
     });
 
     it('should return 400 when notification fails to send', async () => {
