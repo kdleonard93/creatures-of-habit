@@ -22,7 +22,9 @@ const registrationSchema = z.object({
   creature: z.object({
     name: z.string().min(2).max(50).regex(/^[a-zA-Z0-9 '.,-]+$/),
     class: z.string(),
-    race: z.string()
+    race: z.string(),
+    background: z.string().optional(),
+    customBackground: z.string().min(10).max(1000).optional()
   })
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -77,7 +79,9 @@ export const POST: RequestHandler = async (event) => {
         userId: user.id,
         name: validatedData.creature.name,
         class: validatedData.creature.class,
-        race: validatedData.creature.race
+        race: validatedData.creature.race,
+        background: validatedData.creature.background,
+        customBackground: validatedData.creature.customBackground,
       }).returning();
 
       // Create default creature stats for quest system
