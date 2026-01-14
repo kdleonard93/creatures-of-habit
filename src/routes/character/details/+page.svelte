@@ -255,6 +255,21 @@
                             </ul>
                         </div>
                     </div>
+                    <!-- Creature Background -->
+                     {#if creature.background}
+                        <div class="pt-4 border-t">
+                            <h3 class="font-medium mb-2">Background</h3>
+                            {#if creature.customBackground}
+                                <p class="text-sm text-muted-foreground">{creature.customBackground}</p>
+                            {:else}
+                                <!-- Look up the preset description from raceDefinitions -->
+                                <p class="font-medium">{creature.background}</p>
+                                <p class="text-sm text-muted-foreground">
+                                    {raceInfo.backgroundOptions.find(b => b.title === creature.background)?.description}
+                                </p>
+                            {/if}
+                        </div>
+                    {/if}
                 </div>
             </CardContent>
         </Card>

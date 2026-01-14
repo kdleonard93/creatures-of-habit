@@ -21,6 +21,8 @@ export const creature = sqliteTable('creature', {
     name: text('name').notNull(),
     class: text('class', { enum: Object.values(CreatureClass) as [string, ...string[]] }).notNull(),
     race: text('race', { enum: Object.values(CreatureRace) as [string, ...string[]] }).notNull(),
+    background: text('background'),
+    customBackground: text('custom_background'),
     experience: integer('experience', { mode: 'number' }).notNull().default(0),
     level: integer('level', { mode: 'number' }).default(1),
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),

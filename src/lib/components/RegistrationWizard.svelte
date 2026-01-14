@@ -54,6 +54,7 @@
         charisma: 10,
       },
       background: undefined,
+      customBackground: undefined,
     },
     general: "",
   });
@@ -88,6 +89,7 @@
     age: "",
     creature: "",
     background: "",
+    customBackground: "",
     general: "",
   });
 
@@ -126,6 +128,7 @@
       age: "",
       creature: "",
       background: "",
+      customBackground: "",
       general: "",
     };
 
@@ -205,6 +208,12 @@
             return false;
           }
         }
+        if (formData.creature.background === "custom") {
+            if (!formData.creature.customBackground || formData.creature.customBackground.trim().length < 10) {
+                errors.customBackground = "Custom background must be at least 10 characters long";
+                return false;
+            }
+        }
         if (remainingStatPoints > 0) {
           // Set a warning flag instead of returning false
           statsWarning = `You have ${remainingStatPoints} unused stat points. Are you sure you want to continue?`;
@@ -228,6 +237,7 @@
         age: "",
         creature: "",
         background: "",
+        customBackground: "",
         general: "",
       };
 
@@ -630,8 +640,10 @@
                         {formData.creature.background === background.title
                   ? 'border-primary bg-primary/10'
                   : 'hover:bg-primary/5'}"
-                onclick={() =>
-                  (formData.creature.background = background.title)}
+                onclick={() => {
+                  formData.creature.background = background.title;
+                  formData.creature.customBackground = undefined;
+              }}
               >
                 <span class="font-medium">{background.title}</span>
                 <p class="text-sm text-muted-foreground mt-1">
@@ -639,6 +651,37 @@
                 </p>
               </button>
             {/each}
+            <button type="button" class="p-4 border rounded-lg text-left transition-colors
+                    {formData.creature.background === 'custom'
+                        ? 'border-primary bg-primary/10'
+                        : 'hover:bg-primary/5'}"
+                onclick={() => {
+                    formData.creature.background = "custom";
+                }}
+            >
+                <span class="font-medium">Write Your Own</span>
+                <p class="text-sm text-muted-foreground mt-1">
+                    Create a custom background story for your creature.
+                </p>
+            </button>
+            {#if formData.creature.background === "custom"}
+                <div class="mt-4">
+                    <Label for="customBackground">Write Your Background Story</Label>
+                    <textarea
+                        id="customBackground"
+                        bind:value={formData.creature.customBackground}
+                        placeholder="Tell us about your creature's origins..."
+                        class="w-full p-3 border rounded-lg min-h-[120px] resize-y bg-background text-foreground"
+                        maxlength="1000"
+                    ></textarea>
+                    <p class="text-sm text-muted-foreground mt-1">
+                        {formData.creature.customBackground?.trim().length || 0}/1000 characters (minimum 10)
+                    </p>
+                    {#if errors.customBackground}
+                        <p class="text-red-500 text-sm mt-1">{errors.customBackground}</p>
+                    {/if}
+                </div>
+            {/if}
           </div>
         </div>
       {/if}

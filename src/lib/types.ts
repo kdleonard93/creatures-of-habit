@@ -72,6 +72,7 @@ export interface RegistrationData {
 		race: CreatureRaceType;
 		stats: CreatureStats;
 		background?: string;
+		customBackground?: string;
 	};
 	general: string;
 }
