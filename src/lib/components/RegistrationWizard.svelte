@@ -671,12 +671,15 @@
                         id="customBackground"
                         bind:value={formData.creature.customBackground}
                         placeholder="Tell us about your creature's origins..."
-                        class="w-full p-3 border rounded-lg min-h-[120px] resize-y text-black"
+                        class="w-full p-3 border rounded-lg min-h-[120px] resize-y bg-background text-foreground"
                         maxlength="1000"
                     ></textarea>
                     <p class="text-sm text-muted-foreground mt-1">
-                        {formData.creature.customBackground?.length || 0}/1000 characters (minimum 10)
+                        {formData.creature.customBackground?.trim().length || 0}/1000 characters (minimum 10)
                     </p>
+                    {#if errors.customBackground}
+                        <p class="text-red-500 text-sm mt-1">{errors.customBackground}</p>
+                    {/if}
                 </div>
             {/if}
           </div>
