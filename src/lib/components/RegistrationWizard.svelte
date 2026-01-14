@@ -208,6 +208,12 @@
             return false;
           }
         }
+        if (formData.creature.background === "custom") {
+            if (!formData.creature.customBackground || formData.creature.customBackground.trim().length < 10) {
+                errors.customBackground = "Custom background must be at least 10 characters long";
+                return false;
+            }
+        }
         if (remainingStatPoints > 0) {
           // Set a warning flag instead of returning false
           statsWarning = `You have ${remainingStatPoints} unused stat points. Are you sure you want to continue?`;
