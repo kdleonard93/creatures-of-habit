@@ -10,6 +10,7 @@ import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 import type { RegistrationData } from '$lib/types';
 import { CreatureClass as CreatureClassEnum, CreatureRace as CreatureRaceEnum } from '$lib/types';
 import { sendVerificationEmail } from '$lib/server/services/emailVerificationService';
+import { INITIAL_STAT_POINTS } from '$lib/server/xp/stats';
 
 import { z } from 'zod';
 
@@ -23,6 +24,21 @@ const registrationSchema = z.object({
     name: z.string().min(2).max(50).regex(/^[a-zA-Z0-9 '.,-]+$/),
     class: z.string(),
     race: z.string(),
+    stats: z.object({
+    strength: z.number().int().min(8).max(15),
+    dexterity: z.number().int().min(8).max(15),
+    constitution: z.number().int().min(8).max(15),
+    intelligence: z.number().int().min(8).max(15),
+    wisdom: z.number().int().min(8).max(15),
+    charisma: z.number().int().min(8).max(15),
+  }).refine((stats) => {
+    const totalSpent = stats.strength + stats.dexterity + stats.constitution + 
+                      stats.intelligence + stats.wisdom + stats.charisma - (6 * 8);
+    return totalSpent <= INITIAL_STAT_POINTS;
+  }, {
+    message: `Total stat points exceed ${INITIAL_STAT_POINTS}`,
+    path: ["stats"]
+  }),
     background: z.string().optional(),
     customBackground: z.string().min(10).max(1000).optional()
   })
@@ -87,12 +103,12 @@ export const POST: RequestHandler = async (event) => {
       // Create default creature stats for quest system
       await tx.insert(schema.creatureStats).values({
         creatureId: creature.id,
-        strength: 10,
-        dexterity: 10,
-        constitution: 10,
-        intelligence: 10,
-        wisdom: 10,
-        charisma: 10,
+        strength: validatedData.creature.stats.strength,
+        dexterity: validatedData.creature.stats.dexterity,
+        constitution: validatedData.creature.stats.constitution,
+        intelligence: validatedData.creature.stats.intelligence,
+        wisdom: validatedData.creature.stats.wisdom,
+        charisma: validatedData.creature.stats.charisma,
         statBoostPoints: 0
       });
 
