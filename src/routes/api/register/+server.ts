@@ -10,6 +10,7 @@ import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 import type { RegistrationData } from '$lib/types';
 import { CreatureClass as CreatureClassEnum, CreatureRace as CreatureRaceEnum } from '$lib/types';
 import { sendVerificationEmail } from '$lib/server/services/emailVerificationService';
+import { INITIAL_STAT_POINTS } from '$lib/server/xp/stats';
 
 import { z } from 'zod';
 
@@ -30,6 +31,13 @@ const registrationSchema = z.object({
     intelligence: z.number().int().min(8).max(15),
     wisdom: z.number().int().min(8).max(15),
     charisma: z.number().int().min(8).max(15),
+  }).refine((stats) => {
+    const totalSpent = stats.strength + stats.dexterity + stats.constitution + 
+                      stats.intelligence + stats.wisdom + stats.charisma - (6 * 8);
+    return totalSpent <= INITIAL_STAT_POINTS;
+  }, {
+    message: `Total stat points exceed ${INITIAL_STAT_POINTS}`,
+    path: ["stats"]
   }),
     background: z.string().optional(),
     customBackground: z.string().min(10).max(1000).optional()
