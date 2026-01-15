@@ -135,7 +135,8 @@ export const POST: RequestHandler = async (event) => {
     // Send verification email (don't block registration if this fails)
     try {
       const verificationToken = await createEmailVerificationToken(newUser.id, validatedData.email);
-      await sendVerificationEmail(validatedData.email, validatedData.username, verificationToken);
+      const baseUrl = `${event.url.protocol}//${event.url.host}`;
+      await sendVerificationEmail(validatedData.email, validatedData.username, verificationToken, baseUrl);
     } catch (error) {
       console.error('Failed to send verification email during registration:', error);
       // Continue with registration even if email fails

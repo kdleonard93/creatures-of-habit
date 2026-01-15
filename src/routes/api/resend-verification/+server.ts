@@ -35,7 +35,8 @@ export const POST = async (event: RequestEvent) => {
 	
 	try {
 		const token = await createEmailVerificationToken(user.id, user.email);
-		await sendVerificationEmail(user.email, user.username, token);
+		const baseUrl = `${event.url.protocol}//${event.url.host}`;
+		await sendVerificationEmail(user.email, user.username, token, baseUrl);
 	} catch (error) {
 		console.error('Failed to resend verification email:', error);
 	}

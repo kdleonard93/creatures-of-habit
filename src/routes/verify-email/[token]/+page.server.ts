@@ -1,5 +1,5 @@
-import { fail, redirect, error } from '@sveltejs/kit';
-import type { Actions, PageServerLoad } from './$types';
+import { error } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types';
 import { 
 	validateEmailVerificationToken, 
 	markEmailAsVerified,
@@ -11,7 +11,15 @@ import { sendWelcomeEmail } from '$lib/server/services/emailVerificationService'
 export const load: PageServerLoad = async ({ params }) => {
 	const token = params.token;
 	
-	const result = await validateEmailVerificationToken(token);
+	let result: Awaited<ReturnType<typeof validateEmailVerificationToken>>;
+	try {
+		result = await validateEmailVerificationToken(token);
+	} catch (err) {
+		console.error('Error validating email verification token:', err);
+		throw error(500, {
+			message: 'An error occurred while verifying your email. Please try again.'
+		});
+	}
 	
 	if (!result) {
 		throw error(400, {
@@ -21,15 +29,20 @@ export const load: PageServerLoad = async ({ params }) => {
 	
 	const { user, tokenId } = result;
 	
-	await markEmailAsVerified(user.id);
-	
-	await invalidateEmailVerificationToken(tokenId);
-	
 	try {
-		await sendWelcomeEmail(user.email, user.username);
+		await markEmailAsVerified(user.id);
+		await invalidateEmailVerificationToken(tokenId);
 	} catch (err) {
-		console.error('Failed to send welcome email:', err);
+		console.error('Error marking email as verified:', err);
+		throw error(500, {
+			message: 'An error occurred while verifying your email. Please try again.'
+		});
 	}
+	
+	// Send welcome email in the background (non-blocking)
+	void sendWelcomeEmail(user.email, user.username).catch((err) => {
+		console.error('Failed to send welcome email:', err);
+	});
 	
 	return {
 		success: true,

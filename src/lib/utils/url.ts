@@ -17,9 +17,10 @@ export function getCanonicalBaseUrl(): string {
 	
 	// Safe fallback for development/testing
 	// In production, CANONICAL_BASE_URL should always be set
+	const devPort = process.env.VITE_DEV_PORT || '5175';
 	const fallback = process.env.NODE_ENV === 'production' 
 		? 'https://creatures-of-habit-production.up.railway.app'
-		: 'http://localhost:5175';
+		: `http://localhost:${devPort}`;
 	
 	return fallback.replace(/\/$/, '');
 }

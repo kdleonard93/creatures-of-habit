@@ -21,7 +21,7 @@
 		"db:seed:quests": "tsx scripts/seed-quests.ts",
 		"db:check": "drizzle-kit check",
 		"db:up": "drizzle-kit up",
-		"db:studio": "drizzle-kit studio",
+		"db:studio": "lsof -ti:4983 | xargs kill -9 2>/dev/null || true && drizzle-kit studio",
 		"db:local": "turso dev --db-file local-db.db",
 		"db:migrate:unarchive:dryrun": "tsx scripts/migrate-unarchive-active-habits-dryrun.ts",
 		"db:migrate:unarchive": "tsx scripts/migrate-unarchive-active-habits.ts",
