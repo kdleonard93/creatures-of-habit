@@ -298,8 +298,8 @@ export class EmailVerificationService {
         }
         
         try {
-            const verificationLink = buildEmailVerificationUrl(token);
-            const htmlContent = createVerificationEmailTemplate(username, verificationLink);
+            const verificationUrl = buildEmailVerificationUrl(token);
+            const htmlContent = createVerificationEmailTemplate(username, verificationUrl);
             
             return await this.emailProvider.sendEmail({
                 from: `${APP_NAME} <${SENDER_EMAIL}>`,

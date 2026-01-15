@@ -3,7 +3,10 @@ import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
 	plugins: [sveltekit()],
-
+	server: {
+		port: 5175,
+		strictPort: true
+	},
 	test: {
 		globals: true,
 		environment: 'jsdom',
@@ -15,5 +18,5 @@ export default defineConfig({
 		deps: {
 		  inline: [/bits-ui/, /lucide-svelte/]
 		}
-	  }
-	});
+	}
+});
