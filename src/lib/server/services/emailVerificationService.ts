@@ -279,8 +279,7 @@ export class EmailVerificationService {
     async sendVerificationEmail(
         email: string,
         username: string,
-        token: string,
-        baseUrl?: string
+        token: string
     ): Promise<{ success: boolean; error?: string }> {
 
         const emailValidation = emailSchema.safeParse(email);
@@ -299,9 +298,7 @@ export class EmailVerificationService {
         }
         
         try {
-            const verificationUrl = baseUrl 
-                ? `${baseUrl}/verify-email/${encodeURIComponent(token)}`
-                : buildEmailVerificationUrl(token);
+            const verificationUrl = buildEmailVerificationUrl(token);
             const htmlContent = createVerificationEmailTemplate(username, verificationUrl);
             
             return await this.emailProvider.sendEmail({
