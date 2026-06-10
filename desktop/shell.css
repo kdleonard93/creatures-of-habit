@@ -1,0 +1,84 @@
+/* Matches the app theme in src/app.css */
+:root {
+	--background: #111827;
+	--foreground: #f9fafb;
+	--muted-foreground: #9ca3af;
+	--primary: #d97706;
+	--primary-foreground: #ffffff;
+	--radius: 0.5rem;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+html,
+body {
+	height: 100%;
+}
+
+body {
+	display: grid;
+	place-items: center;
+	background: var(--background);
+	color: var(--foreground);
+	font-family:
+		system-ui,
+		-apple-system,
+		'Segoe UI',
+		Roboto,
+		sans-serif;
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+.shell {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1rem;
+	text-align: center;
+	padding: 2rem;
+}
+
+.logo {
+	border-radius: 1.5rem;
+	animation: pulse 2s ease-in-out infinite;
+}
+
+h1 {
+	font-size: 1.5rem;
+	font-weight: 700;
+}
+
+#status {
+	color: var(--muted-foreground);
+	min-height: 1.5rem;
+}
+
+#retry {
+	background: var(--primary);
+	color: var(--primary-foreground);
+	border: none;
+	border-radius: var(--radius);
+	padding: 0.625rem 1.5rem;
+	font-size: 1rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+#retry:hover {
+	filter: brightness(1.1);
+}
+
+@keyframes pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.6;
+	}
+}
