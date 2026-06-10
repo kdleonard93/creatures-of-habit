@@ -4,36 +4,31 @@
   "version": "0.1.0",
   "identifier": "com.creaturesofhabit.app",
   "build": {
-    "frontendDist": [
-      "../.svelte-kit/output/client"
-    ],
+    "frontendDist": "../desktop",
     "devUrl": "http://localhost:5175",
-    "beforeDevCommand": "pnpm run dev",
-    "beforeBuildCommand": "pnpm build"
+    "beforeDevCommand": "pnpm run dev"
   },
   "app": {
-    "windows": [
-      {
-        "title": "Creatures of Habit",
-        "width": 800,
-        "height": 600,
-        "resizable": true,
-        "fullscreen": false
-      }
-    ],
+    "windows": [],
     "security": {
-      "csp": "default-src 'self' 'unsafe-inline' 'unsafe-eval' data:; connect-src 'self' http://localhost:* https:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:;"
+      "csp": "default-src 'self'; img-src 'self' https://creatures-of-habit-production.up.railway.app; connect-src 'self' https://creatures-of-habit-production.up.railway.app; style-src 'self'"
     }
   },
   "bundle": {
     "active": true,
     "targets": "all",
+    "category": "Productivity",
+    "shortDescription": "Gamified habit tracking",
+    "longDescription": "Creatures of Habit is a gamified habit tracking application that helps users build consistent routines by leveling up a creature as they complete real-life habits.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    }
   }
 }

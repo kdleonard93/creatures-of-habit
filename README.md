@@ -133,6 +133,49 @@ pnpm format
 
 Pre-commit hooks are configured to run these checks automatically before committing.
 
+## Desktop App (Tauri)
+
+The desktop app is a [Tauri v2](https://v2.tauri.app/) shell around the web app. Because the
+app is server-rendered (adapter-node) with all auth/database logic on the server, the desktop
+build does not bundle the Node server — instead it ships a small local launch page
+(`desktop/`) that connects to the production deployment, keeping database credentials and API
+keys on the server where they belong. External links open in the system browser.
+
+### Prerequisites
+
+- [Rust](https://www.rust-lang.org/tools/install) 1.88+ (`brew install rust` or rustup)
+- Xcode Command Line Tools on macOS
+
+### Development
+
+```bash
+# Starts the Vite dev server (full SSR against your local .env) inside a native window
+pnpm desktop:dev
+```
+
+### Production build
+
+```bash
+# Produces .app and .dmg bundles in src-tauri/target/release/bundle/
+pnpm desktop:build
+```
+
+If the DMG step fails with `error running bundle_dmg.sh` (it uses AppleScript to style the
+DMG window, which needs Finder automation permission), run it with the styling skipped:
+
+```bash
+CI=true pnpm desktop:build
+```
+
+The production URL is defined in three places that must stay in sync:
+- `ALLOWED_HOSTS` in `src-tauri/src/lib.rs` (navigation allowlist)
+- `APP_URL` in `desktop/shell.js` (launch redirect)
+- the CSP in `src-tauri/tauri.conf.json`
+
+Note: macOS builds are unsigned by default. For distribution outside your own machine you will
+need an Apple Developer ID certificate and notarization (see the
+[Tauri macOS distribution guide](https://v2.tauri.app/distribute/macos-application-bundle/)).
+
 ## Project Structure
 
 ```
@@ -147,6 +190,8 @@ creatures-of-habit/
 │   ├── routes/          # SvelteKit routes
 │   └── tests/           # Test files
 ├── static/              # Static assets
+├── desktop/             # Local launch page served by the Tauri desktop app
+├── src-tauri/           # Tauri desktop app (Rust shell, config, icons)
 └── ...configuration files
 ```
 
@@ -156,4 +201,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details
+This project is licensed under the MIT License - see the LICENSE file for details.

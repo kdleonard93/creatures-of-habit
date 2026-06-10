@@ -1,0 +1,28 @@
+<!doctype html>
+<!--
+  Desktop launch shell for the Tauri app.
+
+  Tauri serves this page locally (frontendDist) when the packaged app starts.
+  It pings the production server and redirects there once it is reachable,
+  showing a branded retry screen instead of a webview error page when offline.
+
+  The production URL lives in shell.js and must stay in sync with
+  ALLOWED_HOSTS in src-tauri/src/lib.rs and the CSP in src-tauri/tauri.conf.json.
+-->
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Creatures of Habit</title>
+		<link rel="stylesheet" href="shell.css" />
+	</head>
+	<body>
+		<main class="shell">
+			<img class="logo" src="logo.png" alt="Creatures of Habit logo" width="120" height="120" />
+			<h1>Creatures of Habit</h1>
+			<p id="status" role="status">Connecting&hellip;</p>
+			<button id="retry" type="button" hidden>Try again</button>
+		</main>
+		<script src="shell.js"></script>
+	</body>
+</html>
