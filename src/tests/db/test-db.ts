@@ -7,6 +7,7 @@ import {
 	mkdirSync,
 	readFileSync,
 	readdirSync,
+	renameSync,
 	rmSync,
 	statSync,
 	writeFileSync
@@ -89,7 +90,10 @@ async function ensureSchemaStatements(): Promise<string[]> {
 	client.close();
 
 	const statements = ddlRows.rows.map((row) => String(row.sql));
-	writeFileSync(SCHEMA_CACHE, JSON.stringify(statements));
+	// Write atomically so parallel workers never read a partial cache.
+	const tmpCache = `${SCHEMA_CACHE}.${process.pid}.tmp`;
+	writeFileSync(tmpCache, JSON.stringify(statements));
+	renameSync(tmpCache, SCHEMA_CACHE);
 	rmSync(target, { force: true });
 
 	return statements;

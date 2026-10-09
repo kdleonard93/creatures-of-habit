@@ -19,6 +19,17 @@ process.env.TURSO_AUTH_TOKEN = '';
 process.env.DATABASE_URL = '';
 process.env.LOCAL_DATABASE_URL = testDbUrl;
 
+// Silence the expected log noise from handlers under test (validation errors,
+// 429s, duplicate completions). Tests assert behavior, not console output. Set
+// DEBUG_TESTS=1 to see the logs while debugging.
+if (!process.env.DEBUG_TESTS) {
+	vi.spyOn(console, 'error').mockImplementation(() => {});
+	vi.spyOn(console, 'warn').mockImplementation(() => {});
+	vi.spyOn(console, 'info').mockImplementation(() => {});
+	vi.spyOn(console, 'debug').mockImplementation(() => {});
+	vi.spyOn(console, 'log').mockImplementation(() => {});
+}
+
 process.env.RESEND_API_KEY = 'test-api-key';
 
 // Configure Svelte for testing
