@@ -10,7 +10,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test:unit": "vitest",
-		"test": "pnpm run test:unit -- --run",
+		"test": "vitest run",
 		"test:rate-limit": "tsx scripts/test-rate-limiting.ts",
 		"test:rate-limit:unit": "vitest src/tests/server/rateLimit.test.ts",
 		"test:notifications": "tsx scripts/test-notifications.ts",

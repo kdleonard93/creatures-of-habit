@@ -2,6 +2,14 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import './svelte.d.ts';
 
+// Test isolation guard: tests must never touch the production Turso database.
+// `.env` holds live credentials, and `dotenv` won't override keys that already
+// exist, so we override them here and point all access at a throwaway file.
+process.env.TURSO_DATABASE_URL = process.env.TURSO_DATABASE_URL || 'file:./local-test.db';
+process.env.TURSO_AUTH_TOKEN = '';
+process.env.DATABASE_URL = '';
+process.env.LOCAL_DATABASE_URL = process.env.LOCAL_DATABASE_URL || 'file:./local-test.db';
+
 process.env.RESEND_API_KEY = 'test-api-key';
 
 // Configure Svelte for testing
