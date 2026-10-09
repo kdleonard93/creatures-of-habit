@@ -9,18 +9,24 @@ import { createClient } from '@libsql/client';
 import { drizzle } from 'drizzle-orm/libsql';
 import * as schema from '../src/lib/server/db/schema';
 
-// Use the same database as drizzle config
-const dbUrl = process.env.TURSO_DATABASE_URL;
-const authToken = process.env.TURSO_AUTH_TOKEN;
+// Target the local database by default. Pass --remote to seed Turso.
+const remote = process.argv.includes('--remote');
+const dbUrl = remote
+    ? process.env.TURSO_DATABASE_URL
+    : process.env.LOCAL_DATABASE_URL || 'file:local.db';
+const authToken = remote ? process.env.TURSO_AUTH_TOKEN : undefined;
 
-if (!dbUrl || !authToken) {
-    console.error('Missing database configuration. Please set:');
-    console.error('  TURSO_DATABASE_URL');
-    console.error('  TURSO_AUTH_TOKEN');
+if (!dbUrl) {
+    console.error('Missing database URL. Set LOCAL_DATABASE_URL, or TURSO_DATABASE_URL with --remote.');
+    process.exit(1);
+}
+if (remote && !authToken) {
+    console.error('--remote requires TURSO_AUTH_TOKEN.');
     process.exit(1);
 }
 
-const client = createClient({ url: dbUrl, authToken });
+console.log(`Target database: ${dbUrl}`);
+const client = createClient({ url: dbUrl, ...(authToken ? { authToken } : {}) });
 const db = drizzle(client, { schema });
 
 const { questTemplates } = schema;
@@ -95,6 +101,12 @@ const templates: Array<{
 
 async function seedQuestTemplates(): Promise<void> {
     try {
+        const existing = await db.select().from(questTemplates).limit(1);
+        if (existing.length > 0) {
+            console.log('Quest templates already exist, skipping seed.');
+            return;
+        }
+
         console.log('Seeding quest templates...');
         await db.insert(questTemplates).values(templates);
         console.log(`Seeded ${templates.length} quest templates successfully!`);
