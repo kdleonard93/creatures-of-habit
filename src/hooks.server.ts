@@ -105,6 +105,8 @@ export const handleError: HandleServerError = async ({ error, status, event }) =
 
     posthogClient.captureException(error, event?.locals?.user?.id, {
         status_code: status,
+        environment: process.env.NODE_ENV,
+        ...(process.env.APP_RELEASE ? { release: process.env.APP_RELEASE } : {}),
         route: event?.route?.id,
         method: event?.request?.method,
         path: event?.url?.pathname

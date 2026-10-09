@@ -4,6 +4,8 @@ import { getPostHogKey, posthogConfig } from '$lib/plugins/PostHog';
 
 // Initialize PostHog on the client side
 let posthogReady = false;
+const release = import.meta.env.VITE_APP_RELEASE as string | undefined;
+const environment = import.meta.env.MODE;
 if (typeof window !== 'undefined') {
 	const posthogKey = getPostHogKey();
 	if (posthogKey) {
@@ -12,6 +14,10 @@ if (typeof window !== 'undefined') {
 			debug: false
 		});
 		posthogReady = true;
+		posthog.register({
+			environment,
+			...(release ? { release } : {})
+		});
 	}
 }
 
@@ -33,6 +39,8 @@ export const handleError: HandleClientError = ({ error, status, event }) => {
 
 	captureException(error, {
 		status_code: status,
+		environment,
+		...(release ? { release } : {}),
 		url: typeof window !== 'undefined' ? window.location.href : event?.url?.pathname,
 		route: event?.route?.id,
 		timestamp: new Date().toISOString()
