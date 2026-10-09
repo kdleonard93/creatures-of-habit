@@ -43,9 +43,12 @@ Completion also updates `habit_streak`, updates the creature's XP and level, and
 - **Custom**: complete it on every assigned weekday.
 - Missing a scheduled occurrence resets that habit's streak to 0.
 
+**Confirmed on scope and weekly timing**:
+- Scope is per habit. A missed scheduled occurrence resets only that habit's streak (matches the `habit_streak` table).
+- Weekly habits count only the assigned weekday. Completing on a different day does not continue the streak.
+
 **Open**:
-- Scope: per habit (matches the `habit_streak` table, the default) or a single global daily streak. The owner's phrasing ("missing any task scheduled for that day") could imply global.
-- Weekly: does completing on a non-assigned day count toward the streak, or only the assigned weekday?
+- The schema stores no weekday for weekly habits, so the assigned weekday must be added or derived from `startDate`. See `open-questions.md` 1.
 
 **Current implementation (wrong)**:
 - `src/routes/api/habits/[id]/complete/+server.ts` always increments `currentStreak` by 1 and never resets it. `lastCompletedAt` is set to now.

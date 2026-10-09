@@ -19,6 +19,50 @@ Each finding records:
 - **Proposed fix**: the change, gated behind a representative test.
 - **Decision needed**: link to `open-questions.md` when applicable.
 
+## Phase 3 consolidated results
+
+Seven parallel audit tracks completed on 2026-10-09. Full detail is in `docs/reports/`. Note: `docs/` is currently listed in `.gitignore` (`/docs`, added in commit `b93c10f`), so the reports on disk are not tracked. See the decision at the end of this file.
+
+| Track | Report | Findings | Critical | High | Medium | Low |
+| --- | --- | --- | --- | --- | --- | --- |
+| Server and API | `docs/reports/01-server-api.md` | 11 | 0 | 4 | 4 | 3 |
+| Database | `docs/reports/02-db.md` | 10 | 0 | 3 | 5 | 2 |
+| Observability | `docs/reports/03-observability.md` | 12 | 0 | 4 | 6 | 2 |
+| Auth and security | `docs/reports/04-auth-security.md` | 11 | 0 | 1 | 3 | 7 |
+| Correctness | `docs/reports/05-correctness.md` | 14 | 1 | 6 | 5 | 2 |
+| Abuse | `docs/reports/06-abuse.md` | 7 | 0 | 2 | 4 | 1 |
+| Tests | `docs/reports/07-tests.md` | 16 | 0 | n/a | n/a | n/a |
+
+### Highest priority, cross-cutting
+
+1. **C-1, C-8, C-9, C-10, C-12 (correctness, critical and high).** Streaks never reset and are implemented as a cooldown; the streak module is dead code with a test-only hack; the schema has no weekday for weekly habits; daily quests can duplicate and are not idempotent. This is the core gameplay loop and the confirmed rules require a rewrite.
+2. **A-6 (auth, high).** Email verification is not enforced. Only `/dashboard` checks `emailVerified`, so an unverified session can use `/habits`, `/settings/password`, and every JSON API, and registration issues the session before verification. Contradicts the confirmed requirement.
+3. **O-8 (observability, high).** The verify-email-pending poll loop is 677 of the top signature: every 5 seconds, no catch, no backoff, captured by several mechanisms.
+4. **O-1, O-2 (observability, high).** Server `handleError` captures every non-404 including expected 4xx with no context; one client failure is captured by up to five mechanisms plus the SDK.
+5. **C-2, C-6, C-7 (correctness, high).** Quest stat checks are deterministic instead of probability-based; the quest API strips `requiredStat` while the UI reads it (live crash); `nextActiveDate` is a Date in some producers and a string in consumers.
+6. **S-1, S-8, S-2 (server, high).** Habit writes trust unvalidated bodies and skip `categoryId` ownership; completion is non-atomic and can double-award XP and streak; quest and boost endpoints turn every Error into 400 with the raw message.
+7. **D-1, D-4, D-2 (database, high).** Schema, snapshot, and journal drift on quest indexes, and the `0022` journal tag points at a missing file so replay is broken; migration 0020 `quest_answers` foreign keys lack `ON DELETE CASCADE` (reproduced locally as a delete failure); uniqueness for completions, daily quests, streaks, and equipment is enforced only in application code.
+8. **P-1, P-3, P-2 (abuse, high).** The contact form is an abusable relay with zero anti-automation and user-controlled headers; the waitlist stores the raw `x-forwarded-for` value.
+9. **T-1 through T-16 (tests).** 17 of 29 files give false confidence and 37 of 38 route modules have zero real execution. Needs the real harness rebuild.
+
+### Track highlights
+
+- **Server/API:** unvalidated habit writes (S-1), raw-error 400s (S-2), non-atomic completion and boost spend (S-3, S-8), non-idempotent defaults (S-4), `forgot-username` case bug (S-5), malformed JSON 500s (S-6), silent 200 on foreign habit PUT (S-7), contract mismatches (S-9), limiter gaps (S-10), bot 405 noise (S-11).
+- **Database:** migration and journal drift (D-1), app-only uniqueness (D-2), no snapshot procedure (D-3), missing cascade (D-4), FK pragma reliance (D-5), redundant indexes (D-6), mixed timestamps (D-7), boolean typing (D-8), missing hot-path indexes and a `date()` predicate that defeats one (D-9), unsafe transactions (D-10).
+- **Observability:** capture fan-out (O-1, O-2), double `$pageview` (O-3), `logger.error` double capture (O-4), per-request PostHog client (O-5), contact PII (O-6), no release or environment tags and no source maps (O-7), poll loop (O-8), waitlist false failures and weak hash (O-9), no `identify` (O-10), dead error module (O-11), `new Function` under CSP (O-12).
+- **Auth/security:** verification not enforced (A-6), session invalidation inconsistency (A-1), per-instance limits and gaps (A-2), email HTML and header injection (A-3), Resend errors treated as success (A-4), missing cross-origin headers and proxy HSTS (A-5), login timing enumeration (A-7), bcrypt cost and 72-byte truncation (A-8), `new Function` logger (A-9), CSRF adequate but SameSite-only (A-10), secrets not committed (A-11).
+- **Correctness:** confirmed streak and stat-check algorithm specifications are included at the end of `docs/reports/05-correctness.md` and should be copied into `docs/domain-rules.md` once approved.
+- **Abuse:** full proposed implementation (schema, migration and snapshot, shared anti-abuse helper, action and endpoint changes, rate-limit presets, guarded `/admin` surface, options and tradeoffs).
+- **Tests:** per-file verdicts, a coverage-gap matrix, and a conversion plan (real in-memory libsql helper, `createRequestEvent`, load/action invocation, real component rendering, timezone pinning, CI and coverage fixes).
+
+### Decisions needed
+
+1. `docs/` ignore: keep the knowledge base and reports in the repo (recommended, matches the earlier decision) or out of git.
+2. Streak scope and weekly non-assigned-day behavior (`open-questions.md` 1 and 2) before C-1 is implemented.
+3. Stats design approval (`open-questions.md` 5) before C-4.
+4. Contact/waitlist admin scope and waitlist usage (`open-questions.md` 10 and 11) before P-5.
+5. Fix order approval and whether to start with the streaks rewrite (C-1) plus the test harness (T-track), or the quick high-value wins (O-8, A-6, C-6) first.
+
 ## PostHog evidence (Phase 2)
 
 Source: project "Creatures of Habit" (122220), window of 400 days (project lifetime).
