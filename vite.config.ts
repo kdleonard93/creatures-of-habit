@@ -12,6 +12,9 @@ export default defineConfig({
 		environment: 'jsdom',
 		include: ['src/**/*.{test,spec}.{js,ts}'],
 		setupFiles: ['./src/tests/setup.ts'],
+		// Database tests share one throwaway file db, so run test files
+		// sequentially to avoid cross-worker lock contention.
+		fileParallelism: false,
 		env: {
 			RESEND_API_KEY: 'test-api-key',
 			// Test isolation: block the live Turso credentials from `.env` so tests
