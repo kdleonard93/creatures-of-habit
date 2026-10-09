@@ -1,6 +1,7 @@
 import { createClient, type Client } from '@libsql/client';
 import { drizzle, type LibSQLDatabase } from 'drizzle-orm/libsql';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import {
 	existsSync,
 	mkdirSync,
@@ -26,6 +27,7 @@ const SCHEMA_CACHE = join(ARTIFACT_DIR, 'schema.json');
 const SCHEMA_SOURCE = join(process.cwd(), 'src/lib/server/db/schema.ts');
 const TYPES_SOURCE = join(process.cwd(), 'src/lib/types.ts');
 const MIGRATIONS_DIR = join(process.cwd(), 'migrations');
+const META_TABLE = '_test_meta';
 
 function latestMtimeIn(dir: string): number {
 	let latest = 0;
@@ -96,7 +98,7 @@ async function ensureSchemaStatements(): Promise<string[]> {
 async function resetClient(client: Client): Promise<void> {
 	await client.execute('PRAGMA foreign_keys = OFF');
 	const tables = await client.execute(
-		"SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"
+		`SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name != '${META_TABLE}'`
 	);
 	for (const row of tables.rows) {
 		await client.execute(`DELETE FROM "${String(row.name)}"`);
@@ -128,13 +130,40 @@ export async function createTestDb(): Promise<TestDb> {
 	// Cascades and foreign keys must be enforced. See docs/audit-backlog.md D-5.
 	await client.execute('PRAGMA foreign_keys = ON');
 
-	const existing = await client.execute(
-		"SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'user'"
+	// The shared test database file can outlive a schema change. Track a schema
+	// version and rebuild the tables when it does not match the current
+	// migrations, so tests never run against a stale schema.
+	const version = createHash('sha1').update(JSON.stringify(statements)).digest('hex');
+
+	const metaExists = await client.execute(
+		`SELECT name FROM sqlite_master WHERE type = 'table' AND name = '${META_TABLE}'`
 	);
-	if (existing.rows.length === 0) {
+	let currentVersion: string | null = null;
+	if (metaExists.rows.length > 0) {
+		const rows = await client.execute(`SELECT version FROM ${META_TABLE} LIMIT 1`);
+		currentVersion = rows.rows[0]?.version ? String(rows.rows[0].version) : null;
+	}
+
+	if (currentVersion !== version) {
+		await client.execute('PRAGMA foreign_keys = OFF');
+		const tables = await client.execute(
+			"SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"
+		);
+		for (const row of tables.rows) {
+			await client.execute(`DROP TABLE IF EXISTS "${String(row.name)}"`);
+		}
+		await client.execute('PRAGMA foreign_keys = ON');
+
 		for (const statement of statements) {
 			await client.execute(statement);
 		}
+
+		await client.execute(`CREATE TABLE IF NOT EXISTS ${META_TABLE} (version text not null)`);
+		await client.execute(`DELETE FROM ${META_TABLE}`);
+		await client.execute({
+			sql: `INSERT INTO ${META_TABLE} (version) VALUES (?)`,
+			args: [version]
+		});
 	}
 
 	return {

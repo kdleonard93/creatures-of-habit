@@ -28,7 +28,8 @@ const PROTECTED_PAGE_PREFIXES = [
 	'/quests',
 	'/character',
 	'/settings',
-	'/notifications'
+	'/notifications',
+	'/admin'
 ];
 
 export type VerificationGate = 'allow' | 'api' | 'redirect';

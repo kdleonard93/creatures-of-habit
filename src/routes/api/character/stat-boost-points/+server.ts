@@ -98,6 +98,10 @@ export const GET: RequestHandler = async ({ cookies }) => {
             levelStatPointsEarned: getLevelStatPoints(level),
             levelStatPointsSpent,
             availableLevelPoints: getAvailableLevelPoints(level, levelStatPointsSpent),
+            // Base (pre-bonus) stats are returned so the UI can disable a spend
+            // once a base stat reaches the cap of 15. The top-level fields below
+            // stay effective (race, class, equipment applied) for display.
+            baseStats,
             strength: effectiveStats.strength,
             dexterity: effectiveStats.dexterity,
             constitution: effectiveStats.constitution,

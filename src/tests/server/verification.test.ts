@@ -17,7 +17,8 @@ describe('getVerificationGate', () => {
 			'/character/details',
 			'/settings',
 			'/settings/password',
-			'/notifications'
+			'/notifications',
+			'/admin'
 		]) {
 			expect(getVerificationGate(path, false)).toBe('redirect');
 		}
