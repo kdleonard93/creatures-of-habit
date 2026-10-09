@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { sendNotification } from '../../lib/server/services/notificationService';
+import { sendNotification, NotificationService } from '../../lib/server/services/notificationService';
 import { db } from '../../lib/server/db';
 
 // Mock the database
@@ -159,6 +159,45 @@ describe('Notification Service', () => {
 
             expect(result.sent).toBe(false);
             expect(result.reason).toBe('Push notifications not yet implemented');
+        });
+
+        it('escapes HTML in the message and sanitizes the subject', async () => {
+            vi.mocked(db.query.user.findFirst).mockResolvedValue({
+                id: 'user-1',
+                email: 'test@example.com',
+                username: 'testuser',
+                passwordHash: 'hash',
+                age: null,
+                createdAt: new Date().toISOString()
+            });
+            vi.mocked(db.query.userPreferences.findFirst).mockResolvedValue(undefined);
+
+            const received: Array<{ subject: string; html: string }> = [];
+            const provider = {
+                sendEmail: vi.fn(async (options: { subject: string; html: string }) => {
+                    received.push(options);
+                    return { success: true };
+                })
+            };
+
+            const service = new NotificationService(provider);
+            const result = await service.sendNotification(
+                'user-1',
+                'email',
+                'Reminder\r\nBcc: attacker@example.com',
+                '<img src=x onerror=alert(1)>'
+            );
+
+            expect(result.sent).toBe(true);
+            expect(received).toHaveLength(1);
+
+            // The body is escaped, so markup cannot be injected into the email.
+            expect(received[0].html).not.toContain('<img');
+            expect(received[0].html).toContain('&lt;img');
+
+            // Control characters cannot smuggle extra headers into the subject.
+            expect(received[0].subject).not.toContain('\r');
+            expect(received[0].subject).not.toContain('\n');
         });
     });
 });

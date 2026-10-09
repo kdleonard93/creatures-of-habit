@@ -17,7 +17,6 @@
 	let loading = true;
 	let error = '';
 	let isAnswering = false;
-	let isUpdatingStats = false;
 
 	// Quest states
 	let showQuestion = false;
@@ -135,33 +134,10 @@
 		}
 	}
 
-	async function boostStat(stat: string) {
-		try {
-			isUpdatingStats = true;
-			const response = await fetch('/api/character/boost-stat', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					stat,
-					points: 1
-				})
-			});
-			
-			if (!response.ok) {
-				throw new Error('Failed to boost stat');
-			}
-			
-			// Reload user stats
-			const statsResponse = await fetch('/api/character/stat-boost-points');
-			if (statsResponse.ok) {
-				userStats = await statsResponse.json();
-			}
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to boost stat';
-		} finally {
-			isUpdatingStats = false;
+	async function reloadUserStats() {
+		const statsResponse = await fetch('/api/character/stat-boost-points');
+		if (statsResponse.ok) {
+			userStats = await statsResponse.json();
 		}
 	}
 
@@ -243,8 +219,7 @@
 				{#if userStats && (showStatBoost || dailyQuest?.status === 'completed')}
 					<StatBoostPanel
 						stats={userStats}
-						onBoostStat={boostStat}
-						isUpdating={isUpdatingStats}
+						onBoosted={reloadUserStats}
 					/>
 				{/if}
 
@@ -280,9 +255,9 @@
 									<span class="font-medium">{userStats.charisma}</span>
 								</div>
 							</div>
-							{#if userStats.statBoostPoints > 0}
+							{#if (userStats.statBoostPoints ?? 0) > 0 || (userStats.availableLevelPoints ?? 0) > 0}
 								<Button onclick={viewStatBoost} class="w-full mt-4" size="sm">
-									Spend Stat Points ({userStats.statBoostPoints})
+									Spend Stat Points ({(userStats.statBoostPoints ?? 0) + (userStats.availableLevelPoints ?? 0)})
 								</Button>
 							{/if}
 						</CardContent>

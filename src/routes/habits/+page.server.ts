@@ -4,6 +4,7 @@ import { db } from '$lib/server/db';
 import { habit, habitFrequency, habitCategory, habitCompletion, creature, habitStreak } from '$lib/server/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { getHabitStatus } from '$lib/utils/habitStatus';
+import { getDateOnlyInTimeZone } from '$lib/shared/streaks/schedule';
 import { logger } from '$lib/utils/logger';
 import type { HabitFrequency } from '$lib/types';
 
@@ -14,7 +15,10 @@ export const load: PageServerLoad = async ({ locals }) => {
 		throw redirect(302, '/login');
 	}
 
-	const today = new Date().toISOString().split('T')[0];
+	// Compute "today" in the user's time zone so the habits page matches the
+	// completion endpoint near a UTC midnight boundary. See C-3.
+	const timeZone = session.user.timezone ?? 'UTC';
+	const today = getDateOnlyInTimeZone(new Date(), timeZone);
 
 	const habits = await db
 		.select({
@@ -92,10 +96,13 @@ export const load: PageServerLoad = async ({ locals }) => {
 			{
 				frequency: frequency as HabitFrequency,
 				customFrequency,
-				createdAt: h.createdAt
+				createdAt: h.createdAt,
+				startDate: h.startDate
 			},
 			lastCompletion ? { completedAt: lastCompletion } : null,
-			completedToday
+			completedToday,
+			new Date(),
+			timeZone
 		);
 
 		return {

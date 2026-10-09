@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { spendStatBoostPoints } from '$lib/server/services/questService';
+import { spendStatBoostPoints, QuestError } from '$lib/server/services/questService';
+import { logger } from '$lib/utils/logger';
 import * as auth from '$lib/server/auth';
 import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 
@@ -18,8 +19,18 @@ export const POST: RequestHandler = async (event) => {
             return json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const body = await event.request.json();
-        const { stat, points } = body;
+        let body: unknown;
+        try {
+            body = await event.request.json();
+        } catch {
+            return json({ error: 'Invalid JSON body' }, { status: 400 });
+        }
+
+        const { stat, points, source } = (body ?? {}) as {
+            stat?: unknown;
+            points?: unknown;
+            source?: unknown;
+        };
 
         if (!stat || !points) {
             return json({ error: 'Stat and points are required' }, { status: 400 });
@@ -29,16 +40,26 @@ export const POST: RequestHandler = async (event) => {
             return json({ error: 'Points must be a positive number' }, { status: 400 });
         }
 
-        const result = await spendStatBoostPoints(user.id, stat, points);
+        if (source !== undefined && source !== 'boost' && source !== 'level') {
+            return json({ error: 'Source must be "boost" or "level"' }, { status: 400 });
+        }
+
+        const result = await spendStatBoostPoints(
+            user.id,
+            stat as string,
+            points,
+            (source as 'boost' | 'level' | undefined) ?? 'boost'
+        );
         
         return json(result);
     } catch (error) {
-        console.error('Error boosting stat:', error);
-        
-        if (error instanceof Error) {
-            return json({ error: error.message }, { status: 400 });
+        if (error instanceof QuestError) {
+            return json({ error: error.message }, { status: error.statusCode });
         }
-        
+
+        logger.error('Error boosting stat:', {
+            error: error instanceof Error ? error.message : String(error)
+        });
         return json({ error: 'Internal server error' }, { status: 500 });
     }
 };

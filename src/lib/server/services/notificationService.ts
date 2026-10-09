@@ -4,7 +4,8 @@ import { eq } from 'drizzle-orm';
 import type { NotificationChannel, NotificationCategory } from '$lib/types';
 import type { EmailProvider } from '$lib/types';
 import { ResendEmailProvider } from './email/ResendEmailProvider';
-import { sendHabitReminderEmail } from './emailVerificationService';
+import { escapeHtml } from '$lib/utils/html';
+import { sendHabitReminderEmail, sanitizeEmailSubject } from './emailVerificationService';
 
 // Default configuration
 const SENDER_EMAIL = process.env.SENDER_EMAIL || 'onboarding@resend.dev';
@@ -116,11 +117,15 @@ export class NotificationService {
         subject: string,
         htmlContent: string
     ): Promise<NotificationResult> {
+        // Treat both the subject and the body as untrusted: an authenticated
+        // caller supplies them via /api/notifications. Sanitize the header and
+        // escape the body so markup cannot be injected into the email.
+        // See docs/audit-backlog.md A-3.
         const result = await this.emailProvider.sendEmail({
             from: `${APP_NAME} <${SENDER_EMAIL}>`,
             to,
-            subject,
-            html: htmlContent
+            subject: sanitizeEmailSubject(String(subject)),
+            html: escapeHtml(String(htmlContent))
         });
 
         if (result.success) {

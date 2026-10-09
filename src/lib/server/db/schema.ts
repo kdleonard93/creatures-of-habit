@@ -11,6 +11,8 @@ export const user = sqliteTable('user', {
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
     emailVerified: integer('email_verified', { mode: 'boolean'}).notNull().default(false),
     emailVerifiedAt: text('email_verified_at'),
+    isAdmin: integer('is_admin', { mode: 'boolean' }).notNull().default(false),
+    timezone: text('timezone'),
 });
 
 export const creature = sqliteTable('creature', {
@@ -41,6 +43,9 @@ export const creatureStats = sqliteTable('creature_stats', {
     wisdom: integer('wisdom').notNull().default(10),
     charisma: integer('charisma').notNull().default(10),
     statBoostPoints: integer('stat_boost_points').notNull().default(0),
+    // Allocatable points earned from leveling are derived from `level` minus
+    // this spent counter, so grants are never missed. See docs/stats-design.md.
+    levelStatPointsSpent: integer('level_stat_points_spent').notNull().default(0),
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
     updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
@@ -112,6 +117,13 @@ export const habitCompletion = sqliteTable('habit_completion', {
     experienceEarned: integer('experience_earned').notNull(),
     note: text('note'),
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => {
+    return {
+        uniqueHabitCompletionDay: unique('unique_habit_completion_day').on(
+            table.habitId,
+            table.completedAt
+        )
+    };
 });
 
 // Streak tracking
@@ -275,6 +287,8 @@ export const contacts = sqliteTable('contacts', {
     name: text('name').notNull(),
     email: text('email').notNull(),
     message: text('message').notNull(),
+    status: text('status').notNull().default('new'), // 'new' | 'reviewed' | 'spam'
+    flagged: integer('flagged', { mode: 'boolean' }).notNull().default(false),
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
@@ -315,6 +329,8 @@ export const userWaitlist = sqliteTable('user_waitlist', {
     ipAddress: text('ip_address'),
     userAgent: text('user_agent'),
     referralSource: text('referral_source'),
+    status: text('status').notNull().default('new'), // 'new' | 'reviewed' | 'spam'
+    flagged: integer('flagged', { mode: 'boolean' }).notNull().default(false),
     subscribedAt: text('subscribed_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
 }, (table) => {
     return {

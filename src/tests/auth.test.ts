@@ -1,75 +1,134 @@
-import { describe, it, expect } from 'vitest';
-import { generateSessionToken } from '../tests/mocks/mockAuth';
-import { sha256 } from '@oslojs/crypto/sha2';
-import { encodeHexLowerCase } from '@oslojs/encoding';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import {
+	generateSessionToken,
+	createSession,
+	validateSessionToken,
+	invalidateSession,
+	createPasswordResetToken,
+	validatePasswordResetToken,
+	createEmailVerificationToken,
+	validateEmailVerificationToken,
+	markEmailAsVerified,
+	cleanupExpiredTokens
+} from '$lib/server/auth';
+import { createTestDb, type TestDb } from './db/test-db';
+import { seedUser } from './db/fixtures';
+import { session, user as userTable, passwordResetToken } from '$lib/server/db/schema';
+import { eq } from 'drizzle-orm';
 
-describe('Auth Utilities', () => {
-    // Mock user data
-    const mockUser = {
-        id: 'mock-user-id',
-        username: 'testuser',
-        email: 'testuser@example.com',
-        passwordHash: 'testpass',
-        age: 25,
-        createdAt: new Date().toISOString()
-    };
+/**
+ * Real auth tests against the real module and a real database. Replaces the
+ * old auth.test.ts that imported a hand-written clone (docs/reports/07-tests.md
+ * T-3).
+ */
+describe('auth (real)', () => {
+	let testDb: TestDb;
+	let testUser: Awaited<ReturnType<typeof seedUser>>;
 
-    it('generates a valid session token', () => {
-        const token = generateSessionToken();
-        expect(token).toMatch(/^[a-z2-7]{32}$/);
-    });
+	beforeEach(async () => {
+		testDb = await createTestDb();
+		await testDb.reset();
+		testUser = await seedUser(testDb.db);
+	});
 
-    it('verifies session creation structure', () => {
-        // Generate a token and session ID
-        const token = generateSessionToken();
-        const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-        
-        // Create a mock session
-        const mockSession = {
-            id: sessionId,
-            userId: mockUser.id,
-            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
-        };
-        
-        // Verify the session structure
-        expect(mockSession).toHaveProperty('id');
-        expect(mockSession).toHaveProperty('userId');
-        expect(mockSession).toHaveProperty('expiresAt');
-        
-        // Verify the session values
-        expect(mockSession.id).toBe(sessionId);
-        expect(mockSession.userId).toBe(mockUser.id);
-        expect(mockSession.expiresAt).toBeInstanceOf(Date);
-    });
+	afterEach(() => {
+		testDb.close();
+	});
 
-    it('verifies session validation structure', () => {
-        // Generate a token and session ID
-        const token = generateSessionToken();
-        const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-        
-        // Create a mock session
-        const mockSession = {
-            id: sessionId,
-            userId: mockUser.id,
-            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
-        };
-        
-        // Create a mock validation result
-        const mockValidationResult = {
-            session: mockSession,
-            user: {
-                id: mockUser.id,
-                username: mockUser.username
-            }
-        };
-        
-        // Verify the validation result structure
-        expect(mockValidationResult).toHaveProperty('session');
-        expect(mockValidationResult).toHaveProperty('user');
-        
-        // Verify the validation result values
-        expect(mockValidationResult.session).toBe(mockSession);
-        expect(mockValidationResult.user.id).toBe(mockUser.id);
-        expect(mockValidationResult.user.username).toBe(mockUser.username);
-    });
+	it('creates a session and validates the token back to the user', async () => {
+		const token = generateSessionToken();
+		const created = await createSession(token, testUser.id, testDb.db);
+
+		const result = await validateSessionToken(token, testDb.db);
+		expect(result.session?.id).toBe(created.id);
+		expect(result.user?.id).toBe(testUser.id);
+		expect(result.user?.email).toBe(testUser.email);
+	});
+
+	it('returns nulls for an unknown token', async () => {
+		const result = await validateSessionToken('not-a-real-token', testDb.db);
+		expect(result.session).toBeNull();
+		expect(result.user).toBeNull();
+	});
+
+	it('deletes an expired session and returns nulls', async () => {
+		const token = generateSessionToken();
+		const created = await createSession(token, testUser.id, testDb.db);
+
+		await testDb.db
+			.update(session)
+			.set({ expiresAt: new Date(Date.now() - 1000) })
+			.where(eq(session.id, created.id));
+
+		const result = await validateSessionToken(token, testDb.db);
+		expect(result.session).toBeNull();
+
+		const remaining = await testDb.db.select().from(session).where(eq(session.id, created.id));
+		expect(remaining).toHaveLength(0);
+	});
+
+	it('invalidateSession removes the session', async () => {
+		const token = generateSessionToken();
+		const created = await createSession(token, testUser.id, testDb.db);
+
+		await invalidateSession(created.id, testDb.db);
+
+		const result = await validateSessionToken(token, testDb.db);
+		expect(result.session).toBeNull();
+	});
+
+	it('round-trips a password reset token and invalidates the previous one', async () => {
+		const first = await createPasswordResetToken(testUser.id, testDb.db);
+		const second = await createPasswordResetToken(testUser.id, testDb.db);
+
+		// Only the newest token remains valid.
+		expect(await validatePasswordResetToken(first, testDb.db)).toBeNull();
+		const result = await validatePasswordResetToken(second, testDb.db);
+		expect(result?.user.id).toBe(testUser.id);
+
+		const tokens = await testDb.db
+			.select()
+			.from(passwordResetToken)
+			.where(eq(passwordResetToken.userId, testUser.id));
+		expect(tokens).toHaveLength(1);
+	});
+
+	it('deletes an expired password reset token', async () => {
+		const token = await createPasswordResetToken(testUser.id, testDb.db);
+		await testDb.db
+			.update(passwordResetToken)
+			.set({ expiresAt: new Date(Date.now() - 1000) })
+			.where(eq(passwordResetToken.userId, testUser.id));
+
+		expect(await validatePasswordResetToken(token, testDb.db)).toBeNull();
+	});
+
+	it('round-trips an email verification token and marks the user verified', async () => {
+		const token = await createEmailVerificationToken(testUser.id, testUser.email, testDb.db);
+		const result = await validateEmailVerificationToken(token, testDb.db);
+		expect(result?.user.id).toBe(testUser.id);
+
+		await markEmailAsVerified(testUser.id, testDb.db);
+		const [updated] = await testDb.db.select().from(userTable).where(eq(userTable.id, testUser.id));
+		expect(updated.emailVerified).toBe(true);
+		expect(updated.emailVerifiedAt).toBeTruthy();
+	});
+
+	it('cleanupExpiredTokens removes only expired reset tokens', async () => {
+		const live = await createPasswordResetToken(testUser.id, testDb.db);
+		const other = await seedUser(testDb.db, { email: 'other@example.com', username: 'other' });
+		await createPasswordResetToken(other.id, testDb.db);
+
+		await testDb.db
+			.update(passwordResetToken)
+			.set({ expiresAt: new Date(Date.now() - 1000) })
+			.where(eq(passwordResetToken.userId, testUser.id));
+
+		await cleanupExpiredTokens(testDb.db);
+
+		expect(await validatePasswordResetToken(live, testDb.db)).toBeNull();
+		const remaining = await testDb.db.select().from(passwordResetToken);
+		expect(remaining).toHaveLength(1);
+		expect(remaining[0].userId).toBe(other.id);
+	});
 });

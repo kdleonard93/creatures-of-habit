@@ -19,7 +19,7 @@ const usernameSchema = z.string().min(3).max(30).regex(/^[a-zA-Z0-9_-]+$/, 'User
 const tokenSchema = z.string().min(1, 'Token is required');
 const habitTitleSchema = z.string().min(1, 'Habit title is required').max(200, 'Habit title must be 200 characters or less');
 
-function sanitizeEmailSubject(subject: string): string {
+export function sanitizeEmailSubject(subject: string): string {
     return subject
         .split('')
         .filter(char => {

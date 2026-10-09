@@ -9,7 +9,7 @@
     import type { PageData } from './$types';
     import type { CreatureRaceType, CreatureClassType, CreatureStats, EquipmentRecord, EnhancedEquipment } from '$lib/types';
     import XPBar from '$lib/components/character/XPBar.svelte';
-    import { calculateStatModifier, calculateHealth, getLevelProgress, applyRacialBonuses, getClassStatModifiers } from '$lib/client/xp';
+    import { calculateStatModifier, calculateHealth, getLevelProgress, applyRacialBonuses, getClassStatModifiers, getLevelStatPoints, getAvailableLevelPoints } from '$lib/client/xp';
     import { Badge } from "$lib/components/ui/badge";
     import { Progress } from "$lib/components/ui/progress";
     import { Swords, Sword, Brain, Heart, Clover, Wand, Target } from '@lucide/svelte';
@@ -68,6 +68,19 @@
     ));
     
     const levelProgress = $derived(getLevelProgress(creature.experience));
+
+    // Stat point pools stored on the creature stats row. Quest boost points are
+    // banked, level points are earned one per five levels.
+    const storedStats = $derived(data.stats as CreatureStats & {
+        statBoostPoints?: number;
+        levelStatPointsSpent?: number;
+    });
+    const questBoostPoints = $derived(storedStats.statBoostPoints ?? 0);
+    const levelStatPointsSpent = $derived(storedStats.levelStatPointsSpent ?? 0);
+    const levelStatPointsEarned = $derived(getLevelStatPoints(creature.level));
+    const availableLevelPoints = $derived(
+        getAvailableLevelPoints(creature.level, levelStatPointsSpent)
+    );
 
     const statDescriptions = {
         strength: {
@@ -195,6 +208,29 @@
                             </p>
                         </div>
                     {/each}
+
+                    <!-- Stat Point Pools -->
+                    <div class="pt-4 border-t space-y-2">
+                        <h3 class="font-medium">Stat Points</h3>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-muted-foreground">Quest boost points</span>
+                            <span class="font-medium">{questBoostPoints}</span>
+                        </div>
+                        {#if levelStatPointsEarned > 0}
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-muted-foreground">Level points (level {creature.level})</span>
+                                <span class="font-medium">{availableLevelPoints} available of {levelStatPointsEarned}</span>
+                            </div>
+                        {/if}
+                        {#if questBoostPoints > 0 || availableLevelPoints > 0}
+                            <a
+                                href="/quests"
+                                class="mt-2 inline-flex w-full items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                            >
+                                Spend stat points
+                            </a>
+                        {/if}
+                    </div>
                 </div>
             </CardContent>
         </Card>

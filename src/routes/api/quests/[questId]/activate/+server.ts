@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { activateQuest } from '$lib/server/services/questService';
+import { activateQuest, QuestError } from '$lib/server/services/questService';
+import { logger } from '$lib/utils/logger';
 import * as auth from '$lib/server/auth';
 
 export const POST: RequestHandler = async ({ params, cookies }) => {
@@ -24,12 +25,14 @@ export const POST: RequestHandler = async ({ params, cookies }) => {
         
         return json(result);
     } catch (error) {
-        console.error('Error activating quest:', error);
-        
-        if (error instanceof Error) {
-            return json({ error: error.message }, { status: 400 });
+        if (error instanceof QuestError) {
+            return json({ error: error.message }, { status: error.statusCode });
         }
-        
+
+        logger.error('Error activating quest:', {
+            error: error instanceof Error ? error.message : String(error),
+            questId: params.questId
+        });
         return json({ error: 'Internal server error' }, { status: 500 });
     }
 };

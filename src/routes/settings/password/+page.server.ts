@@ -5,6 +5,7 @@ import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
 import { verifyPassword, hashPassword } from '$lib/utils/password';
 import { eq } from 'drizzle-orm';
+import { invalidateOtherSessionsAndReissueCookie } from '$lib/server/auth';
 
 export const load: PageServerLoad = async ({ locals }) => {
     if (!locals.session) {
@@ -14,7 +15,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions = {
-    default: async ({ request, locals }) => {
+    default: async (event) => {
+        const { request, locals } = event;
         if (!locals.session) {
             console.info('No session found, redirecting to login');
             throw redirect(302, '/login');
@@ -75,6 +77,10 @@ export const actions = {
                 .update(table.user)
                 .set({ passwordHash: newHashedPassword })
                 .where(eq(table.user.id, user.id));
+
+            // Sign out every OTHER session but keep this one signed in, matching
+            // the settings page. See docs/audit-backlog.md A-1.
+            await invalidateOtherSessionsAndReissueCookie(event, locals.session.userId, locals.session);
 
             console.info('Password updated successfully');
 

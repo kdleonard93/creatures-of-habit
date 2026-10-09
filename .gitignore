@@ -28,6 +28,12 @@ local-db.*
 *.sqlite3-wal
 *.sqlite3-shm
 
+# Test artifacts
+.test-artifacts
+
 # Roadmap
 ROADMAP.md
 ROADMAPV2.md
+
+#docs
+/docs

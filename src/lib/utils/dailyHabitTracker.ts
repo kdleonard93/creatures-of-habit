@@ -2,7 +2,8 @@ import { db } from '../server/db';
 import { dailyHabitTracker, habit, user } from '../server/db/schema';
 import { eq, and, sql, lt } from 'drizzle-orm';
 import { SQLiteTransaction } from 'drizzle-orm/sqlite-core';
-import { formatSqliteTimestamp, formatDateOnly } from './date';
+import { formatSqliteTimestamp } from './date';
+import { getDateOnlyInTimeZone } from '$lib/shared/streaks/schedule';
 
 /**
  * Custom error class for daily tracker operations
@@ -60,23 +61,29 @@ async function verifyHabitBelongsToUser(userId: string, habitId: string): Promis
 }
 
 /**
- * Get the current date in YYYY-MM-DD format
+ * Get the current date in YYYY-MM-DD format for the user's time zone.
+ *
+ * Defaults to UTC so existing callers keep the previous behavior. See C-3.
  */
-function getCurrentDate(): string {
-  return formatDateOnly();
+function getCurrentDate(timeZone = 'UTC'): string {
+  return getDateOnlyInTimeZone(new Date(), timeZone);
 }
 
 /**
  * Ensures that all active habits for a user have tracker entries for the current day
  * This should be called when loading the dashboard to ensure all habits are tracked
+ * @param timeZone The user's IANA time zone; defaults to UTC.
  * @throws DailyTrackerError if operation fails
  */
-export async function ensureDailyTrackerEntries(userId: string): Promise<void> {
+export async function ensureDailyTrackerEntries(
+  userId: string,
+  timeZone = 'UTC'
+): Promise<void> {
   try {
     // Verify user exists
     await verifyUserExists(userId);
     
-    const today = getCurrentDate();
+    const today = getCurrentDate(timeZone);
     
     // Use a transaction to ensure consistency
     await db.transaction(async (tx) => {
@@ -128,15 +135,20 @@ export async function ensureDailyTrackerEntries(userId: string): Promise<void> {
 
 /**
  * Marks a habit as completed in the daily tracker
+ * @param timeZone The user's IANA time zone; defaults to UTC.
  * @throws DailyTrackerError if operation fails or unauthorized
  */
-export async function markHabitCompleted(userId: string, habitId: string): Promise<boolean> {
+export async function markHabitCompleted(
+  userId: string,
+  habitId: string,
+  timeZone = 'UTC'
+): Promise<boolean> {
   try {
     // Verify user exists and habit belongs to user
     await verifyUserExists(userId);
     await verifyHabitBelongsToUser(userId, habitId);
     
-    const today = getCurrentDate();
+    const today = getCurrentDate(timeZone);
     
     // Use a transaction for the operation
     return await db.transaction(async (tx) => {
@@ -186,9 +198,13 @@ export async function markHabitCompleted(userId: string, habitId: string): Promi
 
 /**
  * Gets the daily progress stats for a user
+ * @param timeZone The user's IANA time zone; defaults to UTC.
  * @throws DailyTrackerError if operation fails or unauthorized
  */
-export async function getDailyProgressStats(userId: string): Promise<{
+export async function getDailyProgressStats(
+  userId: string,
+  timeZone = 'UTC'
+): Promise<{
   total: number;
   completed: number;
   percentage: number;
@@ -197,10 +213,10 @@ export async function getDailyProgressStats(userId: string): Promise<{
     // Verify user exists
     await verifyUserExists(userId);
     
-    const today = getCurrentDate();
+    const today = getCurrentDate(timeZone);
     
     // Ensure all habits have tracker entries
-    await ensureDailyTrackerEntries(userId);
+    await ensureDailyTrackerEntries(userId, timeZone);
     
     // Get tracker entries for today, but only for active (non-archived) habits
     const entries = await db

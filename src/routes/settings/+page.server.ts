@@ -2,9 +2,10 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
-import { user, userPreferences, session } from '$lib/server/db/schema';
+import { user, userPreferences } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { hashPassword, verifyPassword } from '$lib/utils/password';
+import { invalidateOtherSessionsAndReissueCookie } from '$lib/server/auth';
 
 export const load: PageServerLoad = async ({ locals }) => {
     const authSession = await locals.auth();
@@ -22,7 +23,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-    updatePassword: async ({ request, locals }) => {
+    updatePassword: async (event) => {
+        const { request, locals } = event;
         const authSession = await locals.auth();
         if (!authSession?.user) {
             return fail(401, { message: 'Unauthorized' });
@@ -58,11 +60,15 @@ export const actions: Actions = {
             .update(user)
             .set({ passwordHash: hashedPassword })
             .where(eq(user.id, authSession.user.id));
-        
-        // Invalidate all sessions for this user after password change
-        await db
-            .delete(session)
-            .where(eq(session.userId, authSession.user.id));
+
+        // Changing a password signs out every OTHER session but keeps the caller
+        // logged in and re-issues the current cookie. This matches
+        // settings/password. See docs/audit-backlog.md A-1.
+        await invalidateOtherSessionsAndReissueCookie(
+            event,
+            authSession.user.id,
+            authSession.session
+        );
 
         return { success: true };
     },

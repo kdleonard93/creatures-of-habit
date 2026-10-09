@@ -1,9 +1,31 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
-import { habit, habitFrequency } from '$lib/server/db/schema';
+import { habit, habitCategory, habitFrequency } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
-import type { HabitData } from '$lib/types';
+import {
+	habitWriteSchema,
+	habitArchiveSchema,
+	firstZodMessage
+} from '$lib/server/validation/habit';
+
+/** A provided category must belong to the session user. See S-1. */
+async function categoryBelongsToUser(categoryId: string, userId: string): Promise<boolean> {
+	const [row] = await db
+		.select({ id: habitCategory.id })
+		.from(habitCategory)
+		.where(and(eq(habitCategory.id, categoryId), eq(habitCategory.userId, userId)));
+	return Boolean(row);
+}
+
+function isArchiveOnlyBody(body: unknown): boolean {
+	return (
+		typeof body === 'object' &&
+		body !== null &&
+		Object.keys(body).length === 1 &&
+		'isArchived' in body
+	);
+}
 
 // GET - Fetch a single habit
 export const GET = (async ({ locals, params }) => {
@@ -42,14 +64,24 @@ export const PUT = (async ({ locals, params, request }) => {
    }
 
    try {
-       const body = await request.json();
-       
+       let body: unknown;
+       try {
+           body = await request.json();
+       } catch {
+           return json({ error: 'Invalid JSON body' }, { status: 400 });
+       }
+
        // Check if this is a simple restore/archive operation
-       if (body.isArchived !== undefined && Object.keys(body).length === 1) {
+       if (isArchiveOnlyBody(body)) {
+           const archive = habitArchiveSchema.safeParse(body);
+           if (!archive.success) {
+               return json({ error: 'isArchived must be a boolean' }, { status: 400 });
+           }
+
            const [updatedHabit] = await db
                .update(habit)
                .set({
-                   isArchived: body.isArchived,
+                   isArchived: archive.data.isArchived,
                    updatedAt: new Date().toISOString()
                })
                .where(and(
@@ -62,8 +94,16 @@ export const PUT = (async ({ locals, params, request }) => {
        }
        
        // Otherwise, treat as full habit update
-       const habitData = body as HabitData;
-       
+       const parsed = habitWriteSchema.safeParse(body);
+       if (!parsed.success) {
+           return json({ error: firstZodMessage(parsed.error) }, { status: 400 });
+       }
+       const habitData = parsed.data;
+
+       if (habitData.categoryId && !(await categoryBelongsToUser(habitData.categoryId, session.user.id))) {
+           return json({ error: 'Category not found' }, { status: 400 });
+       }
+
        let frequencyId = null;
        if (habitData.frequency === 'weekly') {
            const [frequency] = await db
@@ -79,7 +119,7 @@ export const PUT = (async ({ locals, params, request }) => {
                .insert(habitFrequency)
                .values({
                    name: 'custom',
-                   days: JSON.stringify(habitData.customFrequency.days),
+                   days: JSON.stringify(habitData.customFrequency.days ?? []),
                })
                .returning();
            frequencyId = frequency.id;

@@ -11,11 +11,36 @@
 	const props = $props<{ data: LayoutData }>();
 	const {children} = props;
 
+	let timezoneSyncAttempted = false;
+
 	if (browser) {
 		afterNavigate(() => {
         posthog.capture('$pageview');
     });
   }
+
+	$effect(() => {
+		// Sync the browser's IANA time zone to the server once so scheduling and
+		// the daily tracker use the user's local day. Fire and forget: an ignored
+		// failure is retried on the next full load. See C-3.
+		if (!browser || timezoneSyncAttempted) return;
+
+		const user = props.data.user;
+		if (!user) return;
+
+		timezoneSyncAttempted = true;
+
+		const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+		if (!browserTimeZone || browserTimeZone === user.timezone) return;
+
+		void fetch('/api/user/timezone', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ timezone: browserTimeZone })
+		}).catch(() => {
+			// Best effort only; the next load retries the sync.
+		});
+	});
   
 </script>
 

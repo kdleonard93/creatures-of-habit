@@ -1,5 +1,6 @@
 import type { RequestEvent } from '@sveltejs/kit';
 import { dev } from '$app/environment';
+import { isSecureRequest } from './auth';
 
 export interface SecurityHeadersConfig {
 	csp?: {
@@ -25,6 +26,8 @@ export interface SecurityHeadersConfig {
 	hstsPreload?: boolean;
 	frameOptions?: 'DENY' | 'SAMEORIGIN' | string;
 	contentTypeOptions?: boolean;
+	crossOriginOpenerPolicy?: string;
+	crossOriginResourcePolicy?: string;
 	referrerPolicy?: string;
 	permissionsPolicy?: Record<string, string[]>;
 }
@@ -53,6 +56,8 @@ const defaultConfig: SecurityHeadersConfig = {
 	hstsPreload: true,
 	frameOptions: 'DENY',
 	contentTypeOptions: true,
+	crossOriginOpenerPolicy: 'same-origin',
+	crossOriginResourcePolicy: 'same-origin',
 	referrerPolicy: 'strict-origin-when-cross-origin',
 	permissionsPolicy: {
 		camera: [],
@@ -139,7 +144,7 @@ export function setSecurityHeaders(
 		});
 	}
 
-	if (finalConfig.hsts && !dev && event.url.protocol === 'https:') {
+	if (finalConfig.hsts && !dev && isSecureRequest(event)) {
 		let hstsValue = `max-age=${finalConfig.hstsMaxAge}`;
 		if (finalConfig.hstsIncludeSubDomains) {
 			hstsValue += '; includeSubDomains';
@@ -161,6 +166,35 @@ export function setSecurityHeaders(
 	if (finalConfig.contentTypeOptions) {
 		event.setHeaders({
 			'X-Content-Type-Options': 'nosniff'
+		});
+	}
+
+	// Cross-origin isolation. COOP severs the opener relationship with
+	// cross-origin windows and CORP blocks other origins from embedding our
+	// responses, which together limit Spectre-class cross-origin reads.
+	// See docs/audit-backlog.md A-5.
+	//
+	// Cross-Origin-Embedder-Policy is intentionally omitted. Setting it to
+	// `require-corp` would block the third-party assets the app depends on
+	// (PostHog scripts from us-assets.i.posthog.com and Google Fonts from
+	// fonts.googleapis.com / fonts.gstatic.com), because those responses do not
+	// send a matching CORP header. `credentialless` is not a safe substitute
+	// here either: PostHog and font requests that carry credentials would be
+	// dropped in browsers that support it, and browsers that do not ignore it.
+	// The isolation benefit of COEP is not worth breaking analytics and fonts,
+	// so it stays off until the asset surface can serve CORP.
+	//
+	// COOP and CORP are safe to set unconditionally: CORP does not affect the
+	// third-party resources we pull in, only how other origins may embed us.
+	if (finalConfig.crossOriginOpenerPolicy) {
+		event.setHeaders({
+			'Cross-Origin-Opener-Policy': finalConfig.crossOriginOpenerPolicy
+		});
+	}
+
+	if (finalConfig.crossOriginResourcePolicy) {
+		event.setHeaders({
+			'Cross-Origin-Resource-Policy': finalConfig.crossOriginResourcePolicy
 		});
 	}
 

@@ -18,12 +18,12 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 10
           run_install: false
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install
@@ -50,12 +50,12 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 10
           run_install: false
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install
@@ -64,13 +64,6 @@ jobs:
           echo "TURSO_DATABASE_URL=libsql://mock-db.turso.io" >> .env
           echo "TURSO_AUTH_TOKEN=mock-token" >> .env
           echo "PUBLIC_POSTHOG_KEY=phc_mock_posthog_key_for_testing" >> .env
-      - name: Fix case sensitivity issues
-        run: |
-          # Symlinks for case-sensitive files
-          mkdir -p src/lib/components/character
-          if [ -f src/lib/components/character/XPBar.svelte ] && [ ! -f src/lib/components/character/XpBar.svelte ]; then
-            ln -s XPBar.svelte src/lib/components/character/XpBar.svelte
-          fi
       - name: Generate SvelteKit files
         run: npx svelte-kit sync
       - name: Build application

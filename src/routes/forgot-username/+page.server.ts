@@ -5,6 +5,7 @@ import * as table from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { Resend } from "resend";
 import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
+import { escapeHtml } from '$lib/utils/html';
 
 const resendToken = process.env.RESEND_API_KEY;
 const SENDER_EMAIL = process.env.SENDER_EMAIL || 'onboarding@resend.dev';
@@ -37,11 +38,13 @@ export const actions = {
       return fail(400, { message: 'Please enter a valid email address' });
     }
 
-    // Find user by email
+    // Find user by email. Registration stores lowercased emails, so the
+    // lookup must use the normalized value, not the raw submitted one.
+    // See docs/audit-backlog.md S-5.
     const [user] = await db
       .select()
       .from(table.user)
-      .where(eq(table.user.email, email))
+      .where(eq(table.user.email, sanitizedEmail))
       .limit(1);
 
     if (!user) {
@@ -52,19 +55,27 @@ export const actions = {
     // Send email with username
     if (resend) {
       try {
-        await resend.emails.send({
+        const safeUsername = escapeHtml(user.username);
+        const { error } = await resend.emails.send({
           from: `${APP_NAME} <${SENDER_EMAIL}>`,
           to: sanitizedEmail,
           subject: `Your Username - ${APP_NAME}`,
           html: `
             <h2>Your Username</h2>
             <p>Hello,</p>
-            <p>Your username for Creatures of Habit is: <strong>${user.username}</strong></p>
+            <p>Your username for Creatures of Habit is: <strong>${safeUsername}</strong></p>
             <p><strong>Security Notice:</strong> If you did not request this information, someone may be trying to access your account. Please secure your account immediately.</p>
             <p>If you didn't request this information, you can safely ignore this email.</p>
             <p>Thank you for using Creatures of Habit!</p>
           `
         });
+        // The Resend SDK resolves with { data, error } instead of throwing on
+        // API level failures. Treat a present error as a send failure.
+        // See docs/audit-backlog.md A-4.
+        if (error) {
+          console.error('Failed to send username email:', error);
+          return fail(500, { message: 'Failed to send email. Please try again later.' });
+        }
       } catch (error) {
         console.error('Failed to send username email:', error);
         return fail(500, { message: 'Failed to send email. Please try again later.' });
