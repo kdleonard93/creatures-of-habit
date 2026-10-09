@@ -5,6 +5,7 @@ import {
 	isScheduledOn,
 	getPreviousScheduledDate,
 	getNextScheduledDate,
+	getDateOnlyInTimeZone,
 	computeStreakUpdate,
 	type HabitSchedule
 } from '$lib/shared/streaks/schedule';
@@ -46,6 +47,30 @@ describe('habit schedule', () => {
 		// Previous scheduled date before the next Monday is also Friday.
 		expect(getPreviousScheduledDate('2026-01-12', schedule)).toBe(FRIDAY);
 		expect(getNextScheduledDate(MONDAY, schedule)).toBe(FRIDAY);
+	});
+
+	describe('getDateOnlyInTimeZone', () => {
+		// 2026-01-06T02:00:00Z is still 2026-01-05 in America/Chicago (UTC-6).
+		const nearMidnight = new Date('2026-01-06T02:00:00Z');
+
+		it('returns the local date for a zone behind UTC near a UTC midnight boundary', () => {
+			expect(getDateOnlyInTimeZone(nearMidnight, 'America/Chicago')).toBe('2026-01-05');
+		});
+
+		it('returns the next day for a zone ahead of UTC', () => {
+			// 2026-01-05T22:00:00Z is already 2026-01-06 in Asia/Tokyo (UTC+9).
+			expect(getDateOnlyInTimeZone(new Date('2026-01-05T22:00:00Z'), 'Asia/Tokyo')).toBe(
+				'2026-01-06'
+			);
+		});
+
+		it('returns the UTC date when the zone is missing', () => {
+			expect(getDateOnlyInTimeZone(nearMidnight)).toBe('2026-01-06');
+		});
+
+		it('falls back to the UTC date for an invalid zone', () => {
+			expect(getDateOnlyInTimeZone(nearMidnight, 'Not/AZone')).toBe('2026-01-06');
+		});
 	});
 
 	describe('computeStreakUpdate', () => {

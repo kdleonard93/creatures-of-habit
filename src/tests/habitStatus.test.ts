@@ -97,4 +97,37 @@ describe('habit status (schedule based)', () => {
 			expect(message).toBe('Available in 1 day');
 		});
 	});
+
+	describe('time zone', () => {
+		// 2026-01-06T02:00:00Z is Tuesday in UTC but still Monday in America/Chicago.
+		const boundary = new Date('2026-01-06T02:00:00Z');
+		// A habit due on Tuesday: UTC sees it as due, the local zone does not yet.
+		const customTuesday = {
+			frequency: 'custom' as const,
+			customFrequency: { days: [2] },
+			startDate: '2026-01-01'
+		};
+
+		it('computes the scheduled day in the user time zone where it differs from UTC', () => {
+			expect(isHabitActiveToday(customTuesday, null, boundary, 'UTC')).toBe(true);
+			expect(isHabitActiveToday(customTuesday, null, boundary, 'America/Chicago')).toBe(false);
+		});
+
+		it('points to the next assigned day relative to the local date', () => {
+			// Local Monday: the next Tuesday is 2026-01-06.
+			expect(getNextActiveDate(customTuesday, null, boundary, 'America/Chicago')).toBe(
+				'2026-01-06'
+			);
+			expect(getDaysUntilActive(customTuesday, null, boundary, 'America/Chicago')).toBe(1);
+			// UTC Tuesday with no completion is due now.
+			expect(getNextActiveDate(customTuesday, null, boundary, 'UTC')).toBeNull();
+		});
+
+		it('reports an active status in UTC but not in the local zone', () => {
+			expect(getHabitStatus(customTuesday, null, false, boundary, 'UTC').isActiveToday).toBe(true);
+			expect(
+				getHabitStatus(customTuesday, null, false, boundary, 'America/Chicago').isActiveToday
+			).toBe(false);
+		});
+	});
 });

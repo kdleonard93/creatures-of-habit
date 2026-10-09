@@ -9,7 +9,14 @@ export interface RequestEventOptions {
 	body?: unknown;
 	/** Form body. Takes precedence over `body`. */
 	formData?: FormData;
-	user?: { id: string; username?: string; email?: string; emailVerified?: boolean; isAdmin?: boolean } | null;
+	user?: {
+		id: string;
+		username?: string;
+		email?: string;
+		emailVerified?: boolean;
+		isAdmin?: boolean;
+		timezone?: string | null;
+	} | null;
 	session?: unknown;
 	cookies?: Record<string, string>;
 	clientAddress?: string;

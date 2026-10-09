@@ -36,7 +36,8 @@ export async function validateSessionToken(token: string, dbInstance = db) {
 				username: table.user.username,
 				email: table.user.email,
 				emailVerified: table.user.emailVerified,
-				isAdmin: table.user.isAdmin
+				isAdmin: table.user.isAdmin,
+				timezone: table.user.timezone
 			},
 			session: table.session
 		})

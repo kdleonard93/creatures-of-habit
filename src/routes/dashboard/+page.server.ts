@@ -6,6 +6,7 @@ import { eq, and, desc, inArray, sql } from 'drizzle-orm';
 import { ensureDailyTrackerEntries, getDailyProgressStats, DailyTrackerError } from '$lib/utils/dailyHabitTracker';
 import { logger } from '$lib/utils/logger';
 import { getHabitStatus } from '$lib/utils/habitStatus';
+import { getDateOnlyInTimeZone } from '$lib/shared/streaks/schedule';
 import type { HabitFrequency } from '$lib/types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -40,7 +41,10 @@ export const load: PageServerLoad = async ({ locals }) => {
             .where(eq(creature.userId, session.user.id))
             .then(rows => rows[0]);
 
-        const today = new Date().toISOString().split('T')[0];
+        // Compute "today" in the user's time zone so the dashboard matches the
+        // completion endpoint near a UTC midnight boundary. See C-3.
+        const timeZone = session.user.timezone ?? 'UTC';
+        const today = getDateOnlyInTimeZone(new Date(), timeZone);
 
         // Get user's habits
         const habits = await db
@@ -128,7 +132,9 @@ export const load: PageServerLoad = async ({ locals }) => {
                     startDate: h.startDate
                 },
                 lastCompletion ? { completedAt: lastCompletion } : null,
-                completedToday
+                completedToday,
+                new Date(),
+                timeZone
             );
 
             return {
@@ -143,10 +149,10 @@ export const load: PageServerLoad = async ({ locals }) => {
             };
         });
 
-        await ensureDailyTrackerEntries(session.user.id);
+        await ensureDailyTrackerEntries(session.user.id, timeZone);
         
         // Get daily progress stats from the tracker
-        const progressStats = await getDailyProgressStats(session.user.id);
+        const progressStats = await getDailyProgressStats(session.user.id, timeZone);
 
         return {
             user: userInfo,

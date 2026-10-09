@@ -12,6 +12,7 @@ import type { HabitFrequency } from '$lib/types';
 import {
 	isScheduledOn,
 	getNextScheduledDate,
+	getDateOnlyInTimeZone,
 	type HabitSchedule,
 	type HabitFrequencyName
 } from '$lib/shared/streaks/schedule';
@@ -37,10 +38,6 @@ interface CompletionData {
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-function toDateOnly(date: Date): string {
-	return date.toISOString().slice(0, 10);
-}
-
 function toSchedule(habit: HabitData): HabitSchedule {
 	const frequency = (habit.frequency ?? 'daily') as HabitFrequencyName;
 	const days = Array.isArray(habit.customFrequency?.days) ? habit.customFrequency?.days ?? null : null;
@@ -56,9 +53,10 @@ function completedOn(lastCompletion: CompletionData | null, dateStr: string): bo
 export function isHabitActiveToday(
 	habit: HabitData,
 	_lastCompletion: CompletionData | null,
-	currentDate: Date = new Date()
+	currentDate: Date = new Date(),
+	timeZone = 'UTC'
 ): boolean {
-	return isScheduledOn(toDateOnly(currentDate), toSchedule(habit));
+	return isScheduledOn(getDateOnlyInTimeZone(currentDate, timeZone), toSchedule(habit));
 }
 
 /**
@@ -68,10 +66,11 @@ export function isHabitActiveToday(
 export function getNextActiveDate(
 	habit: HabitData,
 	lastCompletion: CompletionData | null,
-	currentDate: Date = new Date()
+	currentDate: Date = new Date(),
+	timeZone = 'UTC'
 ): string | null {
 	const schedule = toSchedule(habit);
-	const today = toDateOnly(currentDate);
+	const today = getDateOnlyInTimeZone(currentDate, timeZone);
 
 	if (!isScheduledOn(today, schedule)) {
 		return getNextScheduledDate(today, schedule);
@@ -87,15 +86,16 @@ export function getNextActiveDate(
 export function getDaysUntilActive(
 	habit: HabitData,
 	lastCompletion: CompletionData | null,
-	currentDate: Date = new Date()
+	currentDate: Date = new Date(),
+	timeZone = 'UTC'
 ): number {
-	const nextDateString = getNextActiveDate(habit, lastCompletion, currentDate);
+	const nextDateString = getNextActiveDate(habit, lastCompletion, currentDate, timeZone);
 	if (nextDateString === null) {
 		return -1;
 	}
 
 	const nextDate = new Date(`${nextDateString}T00:00:00Z`).getTime();
-	const today = new Date(`${toDateOnly(currentDate)}T00:00:00Z`).getTime();
+	const today = new Date(`${getDateOnlyInTimeZone(currentDate, timeZone)}T00:00:00Z`).getTime();
 	const daysUntil = Math.round((nextDate - today) / (1000 * 60 * 60 * 24));
 	return Math.max(0, daysUntil);
 }
@@ -103,10 +103,11 @@ export function getDaysUntilActive(
 export function formatAvailabilityMessage(
 	habit: HabitData,
 	lastCompletion: CompletionData | null,
-	currentDate: Date = new Date()
+	currentDate: Date = new Date(),
+	timeZone = 'UTC'
 ): string {
-	const isActive = isHabitActiveToday(habit, lastCompletion, currentDate);
-	if (isActive && !completedOn(lastCompletion, toDateOnly(currentDate))) {
+	const isActive = isHabitActiveToday(habit, lastCompletion, currentDate, timeZone);
+	if (isActive && !completedOn(lastCompletion, getDateOnlyInTimeZone(currentDate, timeZone))) {
 		return '';
 	}
 
@@ -116,7 +117,7 @@ export function formatAvailabilityMessage(
 		return `Available on: ${names.join(', ')}`;
 	}
 
-	const daysUntil = getDaysUntilActive(habit, lastCompletion, currentDate);
+	const daysUntil = getDaysUntilActive(habit, lastCompletion, currentDate, timeZone);
 	if (daysUntil === -1) {
 		return '';
 	}
@@ -130,14 +131,15 @@ export function getHabitStatus(
 	habit: HabitData,
 	lastCompletion: CompletionData | null,
 	completedToday: boolean,
-	currentDate: Date = new Date()
+	currentDate: Date = new Date(),
+	timeZone = 'UTC'
 ): HabitStatusInfo {
-	const isActive = isHabitActiveToday(habit, lastCompletion, currentDate) && !completedToday;
+	const isActive = isHabitActiveToday(habit, lastCompletion, currentDate, timeZone) && !completedToday;
 
 	// Treat a completed-today habit as if it had a completion dated today, so
 	// the next active date and the countdown are computed consistently even
 	// when the caller does not pass the completion record.
-	const today = toDateOnly(currentDate);
+	const today = getDateOnlyInTimeZone(currentDate, timeZone);
 	const effectiveCompletion =
 		completedToday && !completedOn(lastCompletion, today)
 			? { completedAt: today }
@@ -146,8 +148,8 @@ export function getHabitStatus(
 	return {
 		isActiveToday: isActive,
 		completedToday,
-		nextActiveDate: getNextActiveDate(habit, effectiveCompletion, currentDate),
-		daysUntilActive: getDaysUntilActive(habit, effectiveCompletion, currentDate),
-		availabilityMessage: formatAvailabilityMessage(habit, effectiveCompletion, currentDate)
+		nextActiveDate: getNextActiveDate(habit, effectiveCompletion, currentDate, timeZone),
+		daysUntilActive: getDaysUntilActive(habit, effectiveCompletion, currentDate, timeZone),
+		availabilityMessage: formatAvailabilityMessage(habit, effectiveCompletion, currentDate, timeZone)
 	};
 }

@@ -14,12 +14,13 @@ import { calculateHabitXp, getLevelFromXp } from '$lib/server/xp';
 import {
 	isScheduledOn,
 	computeStreakUpdate,
+	getDateOnlyInTimeZone,
 	type HabitSchedule,
 	type HabitFrequencyName
 } from '$lib/shared/streaks/schedule';
 import { DailyTrackerError } from '$lib/utils/dailyHabitTracker';
 import { logger } from '$lib/utils/logger';
-import { formatSqliteTimestamp, formatDateOnly } from '$lib/utils/date';
+import { formatSqliteTimestamp } from '$lib/utils/date';
 import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
 
 export const POST: RequestHandler = async (event) => {
@@ -46,7 +47,11 @@ export const POST: RequestHandler = async (event) => {
             return json({ error: 'Habit not found' }, { status: 404 });
         }
 
-        const today = formatDateOnly();
+        // Compute "today" in the user's time zone so the completion, streak, and
+        // tracker all land on the user's local day near a UTC midnight boundary.
+        // Storage stays YYYY-MM-DD; only the day key is zoned. See C-3.
+        const timeZone = session.user.timezone ?? 'UTC';
+        const today = getDateOnlyInTimeZone(new Date(), timeZone);
 
         // The completion, streak update, creature XP update, and daily tracker
         // mark are one unit of work. The insert uses the unique index on
@@ -117,7 +122,7 @@ export const POST: RequestHandler = async (event) => {
                     .set({
                         currentStreak: nextStreak.currentStreak,
                         longestStreak: nextStreak.longestStreak,
-                        lastCompletedAt: formatSqliteTimestamp(),
+                        lastCompletedAt: today,
                         updatedAt: formatSqliteTimestamp()
                     })
                     .where(eq(habitStreak.habitId, habitData.id));
@@ -127,7 +132,7 @@ export const POST: RequestHandler = async (event) => {
                     userId: userId,
                     currentStreak: nextStreak.currentStreak,
                     longestStreak: nextStreak.longestStreak,
-                    lastCompletedAt: formatSqliteTimestamp()
+                    lastCompletedAt: today
                 });
             }
 

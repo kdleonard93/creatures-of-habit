@@ -36,6 +36,30 @@ export function toDateOnly(date: Date): string {
 	return date.toISOString().slice(0, 10);
 }
 
+/**
+ * The calendar date (`YYYY-MM-DD`) of `date` in the given IANA time zone.
+ *
+ * Uses `Intl.DateTimeFormat('en-CA', ...)`, whose output is in ISO order, so a
+ * user's local day is computed without any manual offset math. Falls back to the
+ * UTC date when the zone is missing or not a valid IANA zone, which keeps the
+ * previous UTC behavior for callers that have no user zone. See C-3.
+ */
+export function getDateOnlyInTimeZone(date: Date, timeZone?: string): string {
+	if (!timeZone) {
+		return toDateOnly(date);
+	}
+	try {
+		return new Intl.DateTimeFormat('en-CA', {
+			timeZone,
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit'
+		}).format(date);
+	} catch {
+		return toDateOnly(date);
+	}
+}
+
 export function addDays(dateStr: string, days: number): string {
 	const date = toUtcDate(dateStr);
 	date.setUTCDate(date.getUTCDate() + days);
