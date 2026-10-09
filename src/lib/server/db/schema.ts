@@ -12,6 +12,7 @@ export const user = sqliteTable('user', {
     emailVerified: integer('email_verified', { mode: 'boolean'}).notNull().default(false),
     emailVerifiedAt: text('email_verified_at'),
     isAdmin: integer('is_admin', { mode: 'boolean' }).notNull().default(false),
+    timezone: text('timezone'),
 });
 
 export const creature = sqliteTable('creature', {
