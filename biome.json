@@ -48,6 +48,7 @@
 		"ignore": [
 			"build/",
 			".svelte-kit/",
+			".test-artifacts/",
 			"dist/",
 			"**/*.svelte",
 			"node_modules/",

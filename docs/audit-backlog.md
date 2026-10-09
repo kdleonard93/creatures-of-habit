@@ -63,6 +63,27 @@ Seven parallel audit tracks completed on 2026-10-09. Full detail is in `docs/rep
 4. Contact/waitlist admin scope and waitlist usage (`open-questions.md` 10 and 11) before P-5.
 5. Fix order approval and whether to start with the streaks rewrite (C-1) plus the test harness (T-track), or the quick high-value wins (O-8, A-6, C-6) first.
 
+## Progress (updated 2026-10-09)
+
+**Fixed and verified**
+
+- Quick wins (commit `165bf44`): O-8 verification poll loop, A-6 email verification enforcement, O-1 server 5xx-only capture, O-2 single client capture, C-6 quest `requiredStat` crash, C-7 countdown date type.
+- Test harness and conversions (commits `4be46c0`, `548acb2`): the false-confidence API, page-server, and component suites were replaced with real integration tests (43 files, 296 tests). The stale `test-db.ts` was rewritten. T-1, T-2, T-4, T-8, T-9, T-10, T-11 are addressed.
+- CI: CodeQL now watches `main` and the feature branches; the stale case-sensitivity symlink step was removed from `ci.yml`.
+
+**Elevated**
+
+- D-1: the migration chain cannot be replayed from scratch. `0000` creates `user` without `email`, `0001` selects `email` from it, and the `0022` journal tag has no matching file. Tests derive the schema from `schema.ts`. A fresh environment cannot be provisioned with `drizzle-kit migrate`.
+
+**Still open (next)**
+
+- Core gameplay: C-1 streaks, C-2 probability stat checks, C-3 timezone, C-4/C-5 stats and progress, C-8 to C-14.
+- Database: D-1 migration repair, D-4 missing cascade, D-2 constraints, D-3 snapshot procedure.
+- Server: S-1, S-2, S-3, S-8 and the rest.
+- Auth and security: A-1 to A-5 and A-7 to A-11.
+- Abuse: P-1 to P-7.
+- Remaining tests: T-3 (`auth.test.ts` still uses a mock clone), T-5 (quest integration skipped), T-6 (tests excluded from typecheck), T-7 (no coverage), T-12 to T-16.
+
 ## PostHog evidence (Phase 2)
 
 Source: project "Creatures of Habit" (122220), window of 400 days (project lifetime).
