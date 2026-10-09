@@ -1,8 +1,10 @@
 import * as auth from '$lib/server/auth.js';
-import type { Handle, HandleServerError, RequestEvent } from '@sveltejs/kit';
+import { json, redirect } from '@sveltejs/kit';
+import type { Handle, HandleServerError } from '@sveltejs/kit';
 import { initializeScheduler } from '$lib/server/tasks/scheduler';
 import { logger } from '$lib/utils/logger';
 import { setSecurityHeaders } from '$lib/server/securityHeaders';
+import { getVerificationGate } from '$lib/server/verification';
 import { PostHog } from 'posthog-node';
 import { getPostHogKey, posthogServerConfig } from '$lib/plugins/PostHog';
 import { randomBytes } from 'node:crypto';
@@ -56,29 +58,28 @@ export const handle: Handle = async ({ event, resolve }) => {
     if (!sessionToken) {
         event.locals.user = null;
         event.locals.session = null;
-        return resolve(event, {
-            transformPageChunk: ({ html }) => {
-                return html.replace(
-                    /<script(?![^>]*\ssrc=)(?![^>]*\snonce=)([^>]*)>/gi,
-                    (match, attrs) => {
-                        // If nonce already exists, don't add it again
-                        if (attrs.includes('nonce=')) return match;
-                        return `<script nonce="${nonce}"${attrs}>`;
-                    }
-                );
-            }
-        });
-    }
-
-    const { session, user } = await auth.validateSessionToken(sessionToken);
-    if (session) {
-        auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
     } else {
-        auth.deleteSessionTokenCookie(event);
+        const { session, user } = await auth.validateSessionToken(sessionToken);
+        if (session) {
+            auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
+        } else {
+            auth.deleteSessionTokenCookie(event);
+        }
+
+        event.locals.user = user;
+        event.locals.session = session;
     }
 
-    event.locals.user = user;
-    event.locals.session = session;
+    const currentUser = event.locals.user;
+    if (currentUser) {
+        const gate = getVerificationGate(event.url.pathname, currentUser.emailVerified);
+        if (gate === 'api') {
+            return json({ error: 'Email verification required' }, { status: 403 });
+        }
+        if (gate === 'redirect') {
+            throw redirect(302, '/verify-email-pending');
+        }
+    }
 
     return resolve(event, {
         transformPageChunk: ({ html }) => {
@@ -94,14 +95,19 @@ export const handle: Handle = async ({ event, resolve }) => {
     });
 };
 
-export const handleError = async ({ error, status }: {
-    error: unknown;
-    status: number;
-    event?: RequestEvent;
-    message?: string;
-}) => {
-    if (status !== 404 && posthogClient) {
-        posthogClient.captureException(error);
+export const handleError: HandleServerError = async ({ error, status, event }) => {
+    // Capture only unexpected server failures. Expected 4xx responses
+    // (400/401/403/404/405/409/422/429) are not errors and only add noise.
+    // See docs/audit-backlog.md O-1.
+    if (status < 500 || !posthogClient) {
+        return;
     }
+
+    posthogClient.captureException(error, event?.locals?.user?.id, {
+        status_code: status,
+        route: event?.route?.id,
+        method: event?.request?.method,
+        path: event?.url?.pathname
+    });
 };
   

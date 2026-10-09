@@ -2,6 +2,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Mail, RefreshCw } from '@lucide/svelte';
 	import { onMount } from 'svelte';
+	import { createVerificationPoller } from '$lib/client/verificationPoller';
 	
 	let { data } = $props();
 	let resending = $state(false);
@@ -43,18 +44,30 @@
 		}
 	}
 	
-	// Auto-check verification status every 5 seconds
+	// Auto-check verification status with backoff and no unhandled rejections.
+	// See docs/audit-backlog.md O-8. The poller catches every failure, backs
+	// off exponentially, pauses while the tab is hidden, and stops after a cap.
 	onMount(() => {
-		const interval = setInterval(async () => {
-			const response = await fetch('/api/check-verification-status');
-			const result = await response.json();
-			
-			if (result.verified) {
+		const poller = createVerificationPoller({
+			poll: async () => {
+				const response = await fetch('/api/check-verification-status');
+				if (!response.ok) {
+					throw new Error(`Verification check failed with status ${response.status}`);
+				}
+				const result = await response.json();
+				return Boolean(result?.verified);
+			},
+			onVerified: () => {
 				window.location.href = '/dashboard';
-			}
-		}, 5000);
-		
-		return () => clearInterval(interval);
+			},
+			onGiveUp: () => {
+				message = 'Still not verified? Resend the email or refresh the page to try again.';
+			},
+			isHidden: () => typeof document !== 'undefined' && document.hidden
+		});
+
+		poller.start();
+		return () => poller.stop();
 	});
 </script>
 

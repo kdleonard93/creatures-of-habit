@@ -6,7 +6,9 @@ import { generateQuestQuestions as generateQuestionTemplates } from '$lib/utils/
 import { getLevelFromXp } from '$lib/server/xp';
 
 /**
- * Helper function to strip sensitive fields from question data
+ * Helper function to strip the sensitive correct answer from question data.
+ * `requiredStat` and `difficultyThreshold` are intentionally kept: the UI uses
+ * them to show which stat is tested and the success chance.
  */
 function toSafeQuestion(question: typeof questQuestions.$inferSelect) {
     return {
@@ -16,6 +18,8 @@ function toSafeQuestion(question: typeof questQuestions.$inferSelect) {
         questionText: question.questionText,
         choiceA: question.choiceA,
         choiceB: question.choiceB,
+        requiredStat: question.requiredStat,
+        difficultyThreshold: question.difficultyThreshold,
         createdAt: question.createdAt
     };
 }

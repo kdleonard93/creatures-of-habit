@@ -33,6 +33,11 @@
 
 	const userStatValue = $derived(userStats[question.requiredStat as keyof CreatureStats] || 0);
 	const successChance = $derived(Math.min(Math.max((userStatValue / question.difficultyThreshold) * 100, 10), 90));
+	const statLabel = $derived(
+		question?.requiredStat
+			? question.requiredStat.charAt(0).toUpperCase() + question.requiredStat.slice(1)
+			: 'Unknown'
+	);
 
 	function getStatColor(stat: string): string {
 		const colors = {
@@ -64,13 +69,13 @@
 		<div class="flex justify-between items-center">
 			<CardTitle class="text-xl">Question {questionNumber} of {totalQuestions}</CardTitle>
 			<div class="flex items-center gap-2">
-				<Badge class={getStatColor(question.requiredStat)}>
-					{getStatIcon(question.requiredStat)} {question.requiredStat.charAt(0).toUpperCase() + question.requiredStat.slice(1)}
+				<Badge class={getStatColor(question?.requiredStat ?? '')}>
+					{getStatIcon(question?.requiredStat ?? '')} {statLabel}
 				</Badge>
 			</div>
 		</div>
 		<CardDescription>
-			Your {question.requiredStat}: {userStatValue} | Success chance: ~{Math.round(successChance)}%
+			Your {question?.requiredStat ?? 'stat'}: {userStatValue} | Success chance: ~{Math.round(successChance)}%
 		</CardDescription>
 	</CardHeader>
 	

@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 
 	interface Props {
-		nextActiveDate: string | null;
+		nextActiveDate: string | Date | null;
 		isActive: boolean;
 	}
 
@@ -17,9 +17,21 @@
 			return;
 		}
 
-		// Parse date string (YYYY-MM-DD) to midnight in user's local timezone
-		const [year, month, day] = nextActiveDate.split('-').map(Number);
-		const nextDate = new Date(year, month - 1, day, 0, 0, 0, 0);
+		// Accept both a YYYY-MM-DD string and a Date (defensive against producer
+		// drift) and parse to midnight in the user's local timezone.
+		let nextDate: Date;
+		if (typeof nextActiveDate === 'string') {
+			const [year, month, day] = nextActiveDate.split('-').map(Number);
+			nextDate = new Date(year, month - 1, day, 0, 0, 0, 0);
+		} else {
+			nextDate = new Date(nextActiveDate);
+			nextDate.setHours(0, 0, 0, 0);
+		}
+
+		if (Number.isNaN(nextDate.getTime())) {
+			countdown = '';
+			return;
+		}
 		
 		const now = new Date();
 		const diff = nextDate.getTime() - now.getTime();
