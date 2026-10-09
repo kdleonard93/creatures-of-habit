@@ -20,6 +20,8 @@
 		"db:migrate": "drizzle-kit migrate",
 		"db:check-drift": "tsx scripts/check-schema-drift.ts",
 		"db:apply-additive": "tsx scripts/apply-additive-schema.ts",
+		"db:backup": "tsx scripts/backup-db.ts",
+		"db:seed:dev-user": "tsx scripts/seed-dev-user.ts",
 		"db:pull": "drizzle-kit pull",
 		"db:seed:quests": "tsx scripts/seed-quests.ts",
 		"db:check": "drizzle-kit check",

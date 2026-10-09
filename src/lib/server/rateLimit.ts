@@ -1,5 +1,6 @@
 import type { RequestEvent } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
+import { dev } from '$app/environment';
 import { isIP } from 'node:net';
 import type { Cache } from '$lib/types';
 import { MemoryCache } from './cache/MemoryCache';
@@ -40,6 +41,12 @@ export async function rateLimit(
 	keyGenerator?: (event: RequestEvent) => string,
     cache: Cache = defaultCache
 ): Promise<void> {
+	// Dev convenience: allow disabling the limiter locally. This never applies
+	// in production (dev is false) or in tests (dev is also false).
+	if (dev && process.env.DISABLE_RATE_LIMIT === 'true') {
+		return;
+	}
+
 	const {
 		maxRequests,
 		windowMs,
@@ -68,7 +75,7 @@ export async function rateLimit(
 	if (entry.count >= maxRequests) {
 		const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
 		setRateLimitHeaders(event, maxRequests, 0, entry.resetTime, retryAfter);
-		throw error(statusCode, message);
+		throw error(statusCode, `${message} Try again in ${formatRetryAfter(retryAfter)}.`);
 	}
 
 	entry.count++;
@@ -78,6 +85,15 @@ export async function rateLimit(
 	await cache.set(key, entry, remainingTtl);
     
 	setRateLimitHeaders(event, maxRequests, maxRequests - entry.count, entry.resetTime);
+}
+
+/** Human readable retry window, for example "7 minutes" or "1 hour". */
+export function formatRetryAfter(seconds: number): string {
+	if (seconds < 60) return `${seconds} second${seconds === 1 ? '' : 's'}`;
+	const minutes = Math.ceil(seconds / 60);
+	if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'}`;
+	const hours = Math.ceil(minutes / 60);
+	return `${hours} hour${hours === 1 ? '' : 's'}`;
 }
 
 function setRateLimitHeaders(
@@ -123,27 +139,27 @@ export const RateLimitPresets = {
 	AUTH: {
 		maxRequests: 5,
 		windowMs: 15 * 60 * 1000,
-		message: 'Too many authentication attempts. Please try again in 15 minutes.'
+		message: 'Too many authentication attempts.'
 	},
 	PASSWORD_RESET: {
 		maxRequests: 3,
 		windowMs: 60 * 60 * 1000,
-		message: 'Too many password reset requests. Please try again in 1 hour.'
+		message: 'Too many password reset requests.'
 	},
 	API: {
 		maxRequests: 100,
 		windowMs: 15 * 60 * 1000,
-		message: 'Rate limit exceeded. Please try again later.'
+		message: 'Rate limit exceeded.'
 	},
 	CONTACT: {
 		maxRequests: 3,
 		windowMs: 60 * 60 * 1000,
-		message: 'Too many messages sent. Please try again later.'
+		message: 'Too many messages sent.'
 	},
 	WAITLIST: {
 		maxRequests: 5,
 		windowMs: 60 * 60 * 1000,
-		message: 'Too many waitlist submissions. Please try again later.'
+		message: 'Too many waitlist submissions.'
 	}
 } as const;
 

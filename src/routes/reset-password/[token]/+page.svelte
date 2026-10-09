@@ -4,6 +4,7 @@
     import { Input } from "$lib/components/ui/input";
     import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "$lib/components/ui/card";
     import { toast } from 'svelte-sonner';
+    import { toastActionError } from '$lib/client/formToast';
     import type { ActionData, PageData } from './$types';
     import { goto } from '$app/navigation';
 
@@ -33,6 +34,8 @@
                     return async ({ result }) => {
                         isSubmitting = false;
                         
+                        toastActionError(result);
+
                         if (result.type === 'failure') {
                             if (result.data) {
                                 toast.error(String(result.data.message), {

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { rateLimit, RateLimitPresets, clearRateLimitStore } from '../../lib/server/rateLimit';
+import { rateLimit, RateLimitPresets, clearRateLimitStore, formatRetryAfter } from '../../lib/server/rateLimit';
 import type { RequestEvent } from '@sveltejs/kit';
 
 // Mock SvelteKit error function
@@ -124,7 +124,7 @@ describe('Rate Limiting Middleware', () => {
 			try {
 				await rateLimit(event, config);
 			} catch (error: any) {
-				expect(error.message).toBe('Custom rate limit message');
+				expect(error.message).toMatch(/^Custom rate limit message Try again in /);
 				expect(error.status).toBe(503);
 			}
 		});
@@ -205,7 +205,7 @@ describe('Rate Limiting Middleware', () => {
 			expect(RateLimitPresets.AUTH).toEqual({
 				maxRequests: 5,
 				windowMs: 15 * 60 * 1000,
-				message: 'Too many authentication attempts. Please try again in 15 minutes.'
+				message: 'Too many authentication attempts.'
 			});
 		});
 
@@ -213,7 +213,7 @@ describe('Rate Limiting Middleware', () => {
 			expect(RateLimitPresets.PASSWORD_RESET).toEqual({
 				maxRequests: 3,
 				windowMs: 60 * 60 * 1000,
-				message: 'Too many password reset requests. Please try again in 1 hour.'
+				message: 'Too many password reset requests.'
 			});
 		});
 
@@ -221,8 +221,18 @@ describe('Rate Limiting Middleware', () => {
 			expect(RateLimitPresets.API).toEqual({
 				maxRequests: 100,
 				windowMs: 15 * 60 * 1000,
-				message: 'Rate limit exceeded. Please try again later.'
+				message: 'Rate limit exceeded.'
 			});
+		});
+	});
+
+	describe('formatRetryAfter', () => {
+		it('formats seconds, minutes, and hours', () => {
+			expect(formatRetryAfter(30)).toBe('30 seconds');
+			expect(formatRetryAfter(60)).toBe('1 minute');
+			expect(formatRetryAfter(90)).toBe('2 minutes');
+			expect(formatRetryAfter(3600)).toBe('1 hour');
+			expect(formatRetryAfter(7200)).toBe('2 hours');
 		});
 	});
 });
