@@ -11,6 +11,7 @@ export const user = sqliteTable('user', {
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
     emailVerified: integer('email_verified', { mode: 'boolean'}).notNull().default(false),
     emailVerifiedAt: text('email_verified_at'),
+    isAdmin: integer('is_admin', { mode: 'boolean' }).notNull().default(false),
 });
 
 export const creature = sqliteTable('creature', {

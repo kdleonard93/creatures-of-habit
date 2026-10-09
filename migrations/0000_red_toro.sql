@@ -228,7 +228,8 @@ CREATE TABLE `user` (
 	`password_hash` text NOT NULL,
 	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`email_verified` integer DEFAULT false NOT NULL,
-	`email_verified_at` text
+	`email_verified_at` text,
+	`is_admin` integer DEFAULT false NOT NULL
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `user_email_unique` ON `user` (`email`);--> statement-breakpoint
