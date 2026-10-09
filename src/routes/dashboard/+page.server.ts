@@ -124,7 +124,8 @@ export const load: PageServerLoad = async ({ locals }) => {
                 {
                     frequency: frequency as HabitFrequency,
                     customFrequency,
-                    createdAt: h.createdAt
+                    createdAt: h.createdAt,
+                    startDate: h.startDate
                 },
                 lastCompletion ? { completedAt: lastCompletion } : null,
                 completedToday

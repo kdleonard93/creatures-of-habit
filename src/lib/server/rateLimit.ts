@@ -9,8 +9,17 @@ interface RateLimitEntry {
 	resetTime: number;
 }
 
-// Default cache implementation (In-Memory)
-// Can be swapped for RedisCache in the future
+// Default cache implementation (In-Memory).
+//
+// The store is per process instance. On a single-instance deploy this is
+// correct, but under horizontal scaling each instance keeps its own counters,
+// so the effective limit is multiplied by the number of instances, and every
+// counter resets on deploy or restart. For multi-instance deployments, back
+// this with a shared store (for example Redis, or a Turso-backed counter)
+// keyed by the same client IP plus route, and keep the in-memory cache only as
+// a fallback. The `cache` parameter already accepts any `Cache` implementation
+// (see src/lib/types.ts), so swapping it is a wiring change, not a rewrite.
+// See docs/audit-backlog.md A-2.
 const defaultCache: Cache = new MemoryCache();
 
 // Export for testing purposes
@@ -91,7 +100,12 @@ function setRateLimitHeaders(
 	event.setHeaders(headers);
 }
 
-function getClientIP(event: RequestEvent): string {
+/**
+ * Derive the client IP behind a trusted proxy (Railway) when TRUST_PROXY is
+ * true, falling back to the socket address. Exported so the waitlist endpoint
+ * and the limiter agree on the same client. See docs/reports/06-abuse.md P-2.
+ */
+export function getClientIP(event: RequestEvent): string {
 	const trustProxy = process.env.TRUST_PROXY === 'true';
 	if (trustProxy) {
 		const forwarded = event.request.headers.get('x-forwarded-for');
@@ -120,6 +134,16 @@ export const RateLimitPresets = {
 		maxRequests: 100,
 		windowMs: 15 * 60 * 1000,
 		message: 'Rate limit exceeded. Please try again later.'
+	},
+	CONTACT: {
+		maxRequests: 3,
+		windowMs: 60 * 60 * 1000,
+		message: 'Too many messages sent. Please try again later.'
+	},
+	WAITLIST: {
+		maxRequests: 5,
+		windowMs: 60 * 60 * 1000,
+		message: 'Too many waitlist submissions. Please try again later.'
 	}
 } as const;
 

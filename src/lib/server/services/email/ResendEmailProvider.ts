@@ -19,12 +19,23 @@ export class ResendEmailProvider implements EmailProvider {
 		}
 
 		try {
-			await this.resend.emails.send({
+			const { error } = await this.resend.emails.send({
 				from: options.from,
 				to: options.to,
 				subject: options.subject,
 				html: options.html
 			});
+
+			// The Resend SDK resolves with `{ data, error }` instead of throwing on
+			// API level failures, so a present error must be surfaced. See
+			// docs/audit-backlog.md A-4.
+			if (error) {
+				console.error('Resend rejected the email:', error);
+				const message =
+					typeof error === 'string' ? error : error.message || 'Failed to send email';
+				return { success: false, error: message };
+			}
+
 			return { success: true };
 		} catch (error) {
 			console.error('Failed to send email via Resend:', error);

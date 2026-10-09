@@ -7,259 +7,94 @@ import {
 	getHabitStatus
 } from '$lib/utils/habitStatus';
 
-describe('Habit Status Logic', () => {
-	describe('Daily Habits', () => {
-		const dailyHabit = {
-			frequency: 'daily' as const,
-			customFrequency: null,
-			createdAt: '2024-11-01'
-		};
+// 2026-01-05 is a Monday, 2026-01-06 a Tuesday, 2026-01-09 a Friday.
+const MONDAY = new Date('2026-01-05T12:00:00Z');
+const TUESDAY = new Date('2026-01-06T12:00:00Z');
+const FRIDAY = new Date('2026-01-09T12:00:00Z');
+const SATURDAY = new Date('2026-01-10T12:00:00Z');
 
-		it('should always be active regardless of last completion', () => {
-			const today = new Date('2024-11-28T10:00:00Z');
-			const lastCompletion = { completedAt: '2024-11-28' };
+const dailyHabit = { frequency: 'daily' as const, startDate: '2026-01-01' };
+const weeklyHabit = { frequency: 'weekly' as const, startDate: '2026-01-05' };
+const customHabit = {
+	frequency: 'custom' as const,
+	customFrequency: { days: [1, 5] },
+	startDate: '2026-01-01'
+};
 
-			expect(isHabitActiveToday(dailyHabit, lastCompletion, today)).toBe(true);
-			expect(isHabitActiveToday(dailyHabit, null, today)).toBe(true);
+describe('habit status (schedule based)', () => {
+	describe('daily', () => {
+		it('is active every day when not completed', () => {
+			expect(isHabitActiveToday(dailyHabit, null, MONDAY)).toBe(true);
+			expect(isHabitActiveToday(dailyHabit, null, TUESDAY)).toBe(true);
+			expect(getHabitStatus(dailyHabit, null, false, MONDAY).isActiveToday).toBe(true);
 		});
 
-		it('should be inactive when completed today (via getHabitStatus)', () => {
-			const today = new Date('2024-11-28T10:00:00Z');
-			const lastCompletion = { completedAt: '2024-11-28' };
-
-			const status = getHabitStatus(dailyHabit, lastCompletion, true, today);
+		it('is not active once completed today, and the next date is tomorrow', () => {
+			const status = getHabitStatus(dailyHabit, null, true, MONDAY);
 			expect(status.isActiveToday).toBe(false);
-			expect(status.completedToday).toBe(true);
-		});
-
-		it('should be active again the next day', () => {
-			const today = new Date('2024-11-28T10:00:00Z');
-			const tomorrow = new Date('2024-11-29T10:00:00Z');
-			const lastCompletion = { completedAt: '2024-11-28' };
-
-			// Completed today
-			const statusToday = getHabitStatus(dailyHabit, lastCompletion, true, today);
-			expect(statusToday.isActiveToday).toBe(false);
-
-			// Active tomorrow (completedToday = false because it's a new day)
-			const statusTomorrow = getHabitStatus(dailyHabit, lastCompletion, false, tomorrow);
-			expect(statusTomorrow.isActiveToday).toBe(true);
-		});
-
-		it('should not show availability message', () => {
-			const today = new Date('2024-11-28T10:00:00Z');
-			const message = formatAvailabilityMessage(dailyHabit, null, today);
-			expect(message).toBe('');
+			expect(status.nextActiveDate).toBe('2026-01-06');
+			expect(status.daysUntilActive).toBe(1);
 		});
 	});
 
-	describe('Weekly Habits', () => {
-		const weeklyHabit = {
-			frequency: 'weekly' as const,
-			customFrequency: null,
-			createdAt: '2024-11-01'
-		};
-
-		it('should be active if never completed', () => {
-			const today = new Date('2024-11-28T10:00:00Z');
-			expect(isHabitActiveToday(weeklyHabit, null, today)).toBe(true);
-		});
-
-		it('should be inactive for 6 days after completion', () => {
-			const completionDate = new Date('2024-11-21T10:00:00Z'); // Nov 21
-			const lastCompletion = { completedAt: '2024-11-21' };
-
-			// Day 0 (completion day) - should be inactive via completedToday
-			const day0 = new Date('2024-11-21T10:00:00Z');
-			expect(isHabitActiveToday(weeklyHabit, lastCompletion, day0)).toBe(false);
-
-			// Days 1-6 after completion
-			for (let i = 1; i <= 6; i++) {
-				const testDate = new Date('2024-11-21T10:00:00Z');
-				testDate.setDate(testDate.getDate() + i);
-				expect(isHabitActiveToday(weeklyHabit, lastCompletion, testDate)).toBe(false);
-			}
-		});
-
-		it('should be active exactly 7 days after completion', () => {
-			const lastCompletion = { completedAt: '2024-11-21' };
-			const day7 = new Date('2024-11-28T10:00:00Z'); // Exactly 7 days later
-
-			expect(isHabitActiveToday(weeklyHabit, lastCompletion, day7)).toBe(true);
-		});
-
-		it('should be active 8+ days after completion', () => {
-			const lastCompletion = { completedAt: '2024-11-21' };
-			const day8 = new Date('2024-11-29T10:00:00Z');
-			const day30 = new Date('2024-12-21T10:00:00Z');
-
-			expect(isHabitActiveToday(weeklyHabit, lastCompletion, day8)).toBe(true);
-			expect(isHabitActiveToday(weeklyHabit, lastCompletion, day30)).toBe(true);
-		});
-
-		it('should show correct countdown days', () => {
-			const lastCompletion = { completedAt: '2024-11-21' };
-
-			// Day 1 after completion (6 days until midnight of day 7 in local timezone)
-			const day1 = new Date('2024-11-22T10:00:00Z');
-			expect(getDaysUntilActive(weeklyHabit, lastCompletion, day1)).toBe(6);
-
-			// Day 3 after completion (4 days until midnight of day 7)
-			const day3 = new Date('2024-11-24T10:00:00Z');
-			expect(getDaysUntilActive(weeklyHabit, lastCompletion, day3)).toBe(4);
-
-			// Day 6 after completion (1 day until midnight of day 7)
-			const day6 = new Date('2024-11-27T10:00:00Z');
-			expect(getDaysUntilActive(weeklyHabit, lastCompletion, day6)).toBe(1);
-
-			// Day 7 (active again)
-			const day7 = new Date('2024-11-28T10:00:00Z');
-			expect(getDaysUntilActive(weeklyHabit, lastCompletion, day7)).toBe(-1);
-		});
-
-		it('should show correct availability messages', () => {
-			const lastCompletion = { completedAt: '2024-11-21' };
-
-			const day1 = new Date('2024-11-22T10:00:00Z');
-			expect(formatAvailabilityMessage(weeklyHabit, lastCompletion, day1)).toBe(
-				'Available in 6 days'
-			);
-
-			const day6 = new Date('2024-11-27T10:00:00Z');
-			expect(formatAvailabilityMessage(weeklyHabit, lastCompletion, day6)).toBe('Available in 1 day');
-
-			const day7 = new Date('2024-11-28T10:00:00Z');
-			expect(formatAvailabilityMessage(weeklyHabit, lastCompletion, day7)).toBe('');
+	describe('missing frequency defaults to daily', () => {
+		it('is active every day', () => {
+			expect(isHabitActiveToday({ frequency: null }, null, TUESDAY)).toBe(true);
 		});
 	});
 
-	describe('Custom Habits', () => {
-		// Monday = 1, Friday = 5, Saturday = 6
-		const customHabit = {
-			frequency: 'custom' as const,
-			customFrequency: { days: [1, 5, 6] },
-			createdAt: '2024-11-01'
-		};
-
-		it('should be active on selected days (Mon, Fri, Sat)', () => {
-			// Monday, Nov 25, 2024
-			const monday = new Date('2024-11-25T10:00:00Z');
-			expect(isHabitActiveToday(customHabit, null, monday)).toBe(true);
-
-			// Friday, Nov 29, 2024
-			const friday = new Date('2024-11-29T10:00:00Z');
-			expect(isHabitActiveToday(customHabit, null, friday)).toBe(true);
-
-			// Saturday, Nov 30, 2024
-			const saturday = new Date('2024-11-30T10:00:00Z');
-			expect(isHabitActiveToday(customHabit, null, saturday)).toBe(true);
+	describe('weekly', () => {
+		it('is active only on the weekday derived from the start date', () => {
+			expect(isHabitActiveToday(weeklyHabit, null, MONDAY)).toBe(true);
+			expect(isHabitActiveToday(weeklyHabit, null, TUESDAY)).toBe(false);
 		});
 
-		it('should be inactive on non-selected days', () => {
-			// Sunday, Nov 24, 2024
-			const sunday = new Date('2024-11-24T10:00:00Z');
-			expect(isHabitActiveToday(customHabit, null, sunday)).toBe(false);
-
-			// Tuesday, Nov 26, 2024
-			const tuesday = new Date('2024-11-26T10:00:00Z');
-			expect(isHabitActiveToday(customHabit, null, tuesday)).toBe(false);
-
-			// Wednesday, Nov 27, 2024
-			const wednesday = new Date('2024-11-27T10:00:00Z');
-			expect(isHabitActiveToday(customHabit, null, wednesday)).toBe(false);
-
-			// Thursday, Nov 28, 2024
-			const thursday = new Date('2024-11-28T10:00:00Z');
-			expect(isHabitActiveToday(customHabit, null, thursday)).toBe(false);
-		});
-
-		it('should be inactive when completed on active day', () => {
-			const monday = new Date('2024-11-25T10:00:00Z');
-			const lastCompletion = { completedAt: '2024-11-25' };
-
-			const status = getHabitStatus(customHabit, lastCompletion, true, monday);
+		it('points to the next assigned weekday when completed', () => {
+			const status = getHabitStatus(weeklyHabit, null, true, MONDAY);
 			expect(status.isActiveToday).toBe(false);
-			expect(status.completedToday).toBe(true);
+			expect(status.nextActiveDate).toBe('2026-01-12');
+			expect(status.daysUntilActive).toBe(7);
 		});
 
-		it('should be active again on next selected day', () => {
-			const monday = new Date('2024-11-25T10:00:00Z');
-			const lastCompletion = { completedAt: '2024-11-25' };
-
-			// Completed on Monday
-			const statusMonday = getHabitStatus(customHabit, lastCompletion, true, monday);
-			expect(statusMonday.isActiveToday).toBe(false);
-
-			// Active again on Friday (completedToday = false)
-			const friday = new Date('2024-11-29T10:00:00Z');
-			const statusFriday = getHabitStatus(customHabit, lastCompletion, false, friday);
-			expect(statusFriday.isActiveToday).toBe(true);
-		});
-
-		it('should show correct availability message', () => {
-			const tuesday = new Date('2024-11-26T10:00:00Z');
-			const message = formatAvailabilityMessage(customHabit, null, tuesday);
-			expect(message).toBe('Available on: Mon, Fri, Sat');
-		});
-
-		it('should calculate next active date correctly', () => {
-			// Tuesday (next active is Friday)
-			const tuesday = new Date('2024-11-26T10:00:00Z');
-			const nextFromTuesday = getNextActiveDate(customHabit, null, tuesday);
-			expect(nextFromTuesday).toBe('2024-11-29'); // Friday
-
-			// Saturday (active today and not completed, returns null)
-			const saturday = new Date('2024-11-30T10:00:00Z');
-			const nextFromSaturday = getNextActiveDate(customHabit, null, saturday);
-			expect(nextFromSaturday).toBeNull(); // Saturday is an active day
-
-			// Monday (active today and not completed, returns null - habit is active now)
-			const monday = new Date('2024-11-25T10:00:00Z');
-			const nextFromMonday = getNextActiveDate(customHabit, null, monday);
-			// Returns null since Monday is active today and habit not completed
-			expect(nextFromMonday).toBeNull();
+		it('points to the next assigned weekday when viewed off-schedule', () => {
+			const status = getHabitStatus(weeklyHabit, null, false, TUESDAY);
+			expect(status.isActiveToday).toBe(false);
+			expect(status.nextActiveDate).toBe('2026-01-12');
 		});
 	});
 
-	describe('Edge Cases', () => {
-		it('should handle habits with no frequency (defaults to daily)', () => {
-			const noFrequencyHabit = {
-				frequency: null,
-				customFrequency: null,
-				createdAt: '2024-11-01'
-			};
-
-			const today = new Date('2024-11-28T10:00:00Z');
-			expect(isHabitActiveToday(noFrequencyHabit, null, today)).toBe(true);
+	describe('custom', () => {
+		it('is active only on the assigned weekdays', () => {
+			expect(isHabitActiveToday(customHabit, null, MONDAY)).toBe(true);
+			expect(isHabitActiveToday(customHabit, null, FRIDAY)).toBe(true);
+			expect(isHabitActiveToday(customHabit, null, TUESDAY)).toBe(false);
+			expect(isHabitActiveToday(customHabit, null, SATURDAY)).toBe(false);
 		});
 
-		it('should handle custom habits with empty days array', () => {
-			const emptyCustomHabit = {
-				frequency: 'custom' as const,
-				customFrequency: { days: [] },
-				createdAt: '2024-11-01'
-			};
-
-			const today = new Date('2024-11-28T10:00:00Z');
-			// Empty days array means never active
-			expect(isHabitActiveToday(emptyCustomHabit, null, today)).toBe(false);
+		it('points to the next assigned weekday', () => {
+			expect(getNextActiveDate(customHabit, null, TUESDAY)).toBe('2026-01-09');
+			expect(getDaysUntilActive(customHabit, null, TUESDAY)).toBe(3);
+			expect(formatAvailabilityMessage(customHabit, null, TUESDAY)).toBe('Available on: Mon, Fri');
 		});
 
-		it('should handle timezone differences correctly', () => {
-			const weeklyHabit = {
-				frequency: 'weekly' as const,
-				customFrequency: null,
-				createdAt: '2024-11-01'
-			};
+		it('points to the next assigned weekday after completing on an assigned day', () => {
+			const status = getHabitStatus(customHabit, null, true, MONDAY);
+			expect(status.isActiveToday).toBe(false);
+			expect(status.nextActiveDate).toBe('2026-01-09');
+		});
+	});
 
-			const lastCompletion = { completedAt: '2024-11-21' };
+	describe('edge cases', () => {
+		it('a custom habit with no days is never active', () => {
+			const empty = { frequency: 'custom' as const, customFrequency: { days: [] }, startDate: '2026-01-01' };
+			expect(isHabitActiveToday(empty, null, MONDAY)).toBe(false);
+			expect(getNextActiveDate(empty, null, MONDAY)).toBeNull();
+		});
 
-			// Same day, different times
-			const morning = new Date('2024-11-28T08:00:00Z');
-			const evening = new Date('2024-11-28T20:00:00Z');
-
-			expect(isHabitActiveToday(weeklyHabit, lastCompletion, morning)).toBe(true);
-			expect(isHabitActiveToday(weeklyHabit, lastCompletion, evening)).toBe(true);
+		it('reports an availability message of one day for a future weekday', () => {
+			const tuesday = { frequency: 'weekly' as const, startDate: '2026-01-06' };
+			const message = formatAvailabilityMessage(tuesday, null, MONDAY);
+			expect(message).toBe('Available in 1 day');
 		});
 	});
 });

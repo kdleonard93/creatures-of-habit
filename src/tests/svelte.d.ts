@@ -77,10 +77,11 @@ declare module '$lib/utils/dailyHabitProgress' {
 }
 
 declare module '$lib/server/services/questService' {
+  export type StatPointSource = 'boost' | 'level';
   export function getDailyQuest(userId: string): Promise<any>;
   export function activateQuest(questId: string, userId: string): Promise<any>;
-  export function answerQuestion(questId: string, questionId: string, choice: 'A' | 'B', userId: string): Promise<any>;
-  export function spendStatBoostPoints(userId: string, stat: string, points: number): Promise<any>;
+  export function answerQuestion(questId: string, questionId: string, choice: 'A' | 'B', userId: string, random?: () => number): Promise<any>;
+  export function spendStatBoostPoints(userId: string, stat: string, points: number, source?: StatPointSource): Promise<any>;
 }
 
 declare module '$lib/server/db' {

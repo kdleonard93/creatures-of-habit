@@ -1,10 +1,19 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
-import { habit, habitFrequency, habitStreak } from '$lib/server/db/schema';
+import { habit, habitCategory, habitFrequency, habitStreak } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
-import type { HabitData } from '$lib/types';
 import { rateLimit, RateLimitPresets } from '$lib/server/rateLimit';
+import { habitWriteSchema, firstZodMessage } from '$lib/server/validation/habit';
+
+/** A provided category must belong to the session user. See S-1. */
+async function categoryBelongsToUser(categoryId: string, userId: string): Promise<boolean> {
+	const [row] = await db
+		.select({ id: habitCategory.id })
+		.from(habitCategory)
+		.where(and(eq(habitCategory.id, categoryId), eq(habitCategory.userId, userId)));
+	return Boolean(row);
+}
 
 // GET - List habits for the current user
 export const GET = (async (event) => {
@@ -59,9 +68,24 @@ export const POST = (async (event) => {
         return json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    let body: unknown;
     try {
-        const habitData = await event.request.json() as HabitData;
-        
+        body = await event.request.json();
+    } catch {
+        return json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
+
+    const parsed = habitWriteSchema.safeParse(body);
+    if (!parsed.success) {
+        return json({ error: firstZodMessage(parsed.error) }, { status: 400 });
+    }
+    const habitData = parsed.data;
+
+    try {
+        if (habitData.categoryId && !(await categoryBelongsToUser(habitData.categoryId, session.user.id))) {
+            return json({ error: 'Category not found' }, { status: 400 });
+        }
+
         let frequencyId = null;
         if (habitData.frequency === 'weekly') {
             const [frequency] = await db
@@ -77,7 +101,7 @@ export const POST = (async (event) => {
                 .insert(habitFrequency)
                 .values({
                     name: 'custom',
-                    days: JSON.stringify(habitData.customFrequency.days),
+                    days: JSON.stringify(habitData.customFrequency.days ?? []),
                 })
                 .returning();
             frequencyId = frequency.id;

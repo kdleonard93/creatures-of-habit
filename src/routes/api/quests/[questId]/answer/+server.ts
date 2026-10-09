@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { answerQuestion } from '$lib/server/services/questService';
+import { answerQuestion, QuestError } from '$lib/server/services/questService';
+import { logger } from '$lib/utils/logger';
 import * as auth from '$lib/server/auth';
 
 export const POST: RequestHandler = async ({ params, request, cookies }) => {
@@ -20,8 +21,17 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
             return json({ error: 'Quest ID is required' }, { status: 400 });
         }
 
-        const body = await request.json();
-        const { questionId, choice } = body;
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
+            return json({ error: 'Invalid JSON body' }, { status: 400 });
+        }
+
+        const { questionId, choice } = (body ?? {}) as {
+            questionId?: unknown;
+            choice?: unknown;
+        };
 
         if (!questionId || !choice) {
             return json({ error: 'Question ID and choice are required' }, { status: 400 });
@@ -31,16 +41,18 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
             return json({ error: 'Choice must be A or B' }, { status: 400 });
         }
 
-        const result = await answerQuestion(questId, questionId, choice, user.id);
+        const result = await answerQuestion(questId, questionId as string, choice as 'A' | 'B', user.id);
         
         return json(result);
     } catch (error) {
-        console.error('Error answering question:', error);
-        
-        if (error instanceof Error) {
-            return json({ error: error.message }, { status: 400 });
+        if (error instanceof QuestError) {
+            return json({ error: error.message }, { status: error.statusCode });
         }
-        
+
+        logger.error('Error answering question:', {
+            error: error instanceof Error ? error.message : String(error),
+            questId: params.questId
+        });
         return json({ error: 'Internal server error' }, { status: 500 });
     }
 };

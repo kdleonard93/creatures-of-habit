@@ -1,7 +1,15 @@
 import { createClient, type Client } from '@libsql/client';
 import { drizzle, type LibSQLDatabase } from 'drizzle-orm/libsql';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import {
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	readdirSync,
+	rmSync,
+	statSync,
+	writeFileSync
+} from 'node:fs';
 import { join } from 'node:path';
 import * as schema from '$lib/server/db/schema';
 
@@ -17,22 +25,36 @@ const ARTIFACT_DIR = join(process.cwd(), '.test-artifacts');
 const SCHEMA_CACHE = join(ARTIFACT_DIR, 'schema.json');
 const SCHEMA_SOURCE = join(process.cwd(), 'src/lib/server/db/schema.ts');
 const TYPES_SOURCE = join(process.cwd(), 'src/lib/types.ts');
+const MIGRATIONS_DIR = join(process.cwd(), 'migrations');
+
+function latestMtimeIn(dir: string): number {
+	let latest = 0;
+	for (const entry of readdirSync(dir, { withFileTypes: true })) {
+		const path = join(dir, entry.name);
+		if (entry.isDirectory()) {
+			latest = Math.max(latest, latestMtimeIn(path));
+		} else {
+			latest = Math.max(latest, statSync(path).mtimeMs);
+		}
+	}
+	return latest;
+}
 
 /**
  * Produce the DDL for the current schema and cache it.
  *
- * The migration chain cannot be replayed from scratch: `0000` creates `user`
- * without `email` and `0001` selects `email` from it, and the journal tag
- * `0022_foamy_lord_hawal` has no matching file. Production was built with
- * `drizzle-kit push` against `schema.ts`, so we derive the test schema the same
- * way. See docs/audit-backlog.md D-1.
+ * The schema is built by running the real migration chain against a throwaway
+ * database, exactly as staging and production are provisioned. This also
+ * verifies the migrations are replayable from scratch.
  */
 async function ensureSchemaStatements(): Promise<string[]> {
-	const fresh =
-		existsSync(SCHEMA_CACHE) &&
-		statSync(SCHEMA_CACHE).mtimeMs >= statSync(SCHEMA_SOURCE).mtimeMs &&
-		statSync(SCHEMA_CACHE).mtimeMs >= statSync(TYPES_SOURCE).mtimeMs;
+	const sourceMtime = Math.max(
+		statSync(SCHEMA_SOURCE).mtimeMs,
+		statSync(TYPES_SOURCE).mtimeMs,
+		latestMtimeIn(MIGRATIONS_DIR)
+	);
 
+	const fresh = existsSync(SCHEMA_CACHE) && statSync(SCHEMA_CACHE).mtimeMs >= sourceMtime;
 	if (fresh) {
 		return JSON.parse(readFileSync(SCHEMA_CACHE, 'utf8')) as string[];
 	}
@@ -41,32 +63,32 @@ async function ensureSchemaStatements(): Promise<string[]> {
 		mkdirSync(ARTIFACT_DIR, { recursive: true });
 	}
 
-	const pushTarget = join(ARTIFACT_DIR, `push-${process.pid}.db`);
-	if (existsSync(pushTarget)) {
-		rmSync(pushTarget, { force: true });
+	const target = join(ARTIFACT_DIR, `migrate-${process.pid}.db`);
+	if (existsSync(target)) {
+		rmSync(target, { force: true });
 	}
 
-	execFileSync('pnpm', ['exec', 'drizzle-kit', 'push', '--force', '--verbose'], {
+	execFileSync('pnpm', ['exec', 'drizzle-kit', 'migrate'], {
 		cwd: process.cwd(),
 		stdio: 'pipe',
 		env: {
 			...process.env,
 			// Point drizzle.config.ts at the throwaway file so the real Turso
 			// credentials are never touched.
-			TURSO_DATABASE_URL: `file:${pushTarget}`,
+			TURSO_DATABASE_URL: `file:${target}`,
 			TURSO_AUTH_TOKEN: 'test'
 		}
 	});
 
-	const pushClient = createClient({ url: `file:${pushTarget}` });
-	const ddlRows = await pushClient.execute(
+	const client = createClient({ url: `file:${target}` });
+	const ddlRows = await client.execute(
 		"SELECT sql FROM sqlite_master WHERE sql IS NOT NULL AND name NOT LIKE 'sqlite_%' ORDER BY rootpage"
 	);
-	pushClient.close();
+	client.close();
 
 	const statements = ddlRows.rows.map((row) => String(row.sql));
 	writeFileSync(SCHEMA_CACHE, JSON.stringify(statements));
-	rmSync(pushTarget, { force: true });
+	rmSync(target, { force: true });
 
 	return statements;
 }

@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 import * as auth from '$lib/server/auth';
 import { creatureEquipment } from '$lib/server/db/schema';
 import { getEffectiveStats } from '$lib/server/xp';
+import { getAvailableLevelPoints, getLevelStatPoints } from '$lib/shared/stats';
 import { equipmentDefinitions } from '$lib/data/equipment';
 import type { CreatureRaceType, CreatureClassType, CreatureStats } from '$lib/types';
 
@@ -88,8 +89,15 @@ export const GET: RequestHandler = async ({ cookies }) => {
             equipmentWithBonuses
         );
 
+        const level = userCreature[0].level as number;
+        const levelStatPointsSpent = statData.levelStatPointsSpent || 0;
+
         return json({
             statBoostPoints: statData.statBoostPoints || 0,
+            level,
+            levelStatPointsEarned: getLevelStatPoints(level),
+            levelStatPointsSpent,
+            availableLevelPoints: getAvailableLevelPoints(level, levelStatPointsSpent),
             strength: effectiveStats.strength,
             dexterity: effectiveStats.dexterity,
             constitution: effectiveStats.constitution,

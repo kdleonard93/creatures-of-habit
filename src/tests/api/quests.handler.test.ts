@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GET as dailyGet } from '../../routes/api/quests/daily/+server';
 import { POST as activatePost } from '../../routes/api/quests/[questId]/activate/+server';
 import { POST as answerPost } from '../../routes/api/quests/[questId]/answer/+server';
@@ -23,9 +23,10 @@ import { eq } from 'drizzle-orm';
  * handlers against the real database and replace quests.api.test.ts, which
  * asserted on local literals and never imported a handler.
  *
- * Current behavior note: stat checks are deterministic (`userStat >=
- * difficultyThreshold`), not probability based. These tests pin the behavior
- * that ships today; they do not assert it is the intended design (C-2).
+ * Current behavior note: stat checks are probability based
+ * (`calculateStatCheckChance` plus a single roll), not the previous
+ * deterministic `userStat >= difficultyThreshold` (C-2). The answer tests pin
+ * the roll with a `Math.random` spy so the outcome is deterministic.
  */
 describe('quest endpoints (real handlers)', () => {
 	let testDb: TestDb;
@@ -243,24 +244,31 @@ describe('quest endpoints (real handlers)', () => {
 			expect(row.activatedAt).toBeTruthy();
 		});
 
-		it('rejects activating an already active quest with 400', async () => {
+		it('rejects activating an already active quest with 409', async () => {
 			const quest = await seedQuest(owner.id, { status: 'active' });
 			await seedQuestions(quest.id);
 
 			const response = await activatePost(activateEvent(quest.id, ownerCookies));
-			expect(response.status).toBe(400);
+			expect(response.status).toBe(409);
 			const body = await response.json();
-			expect(body.error).toMatch(/not found or already activated/i);
+			expect(body.error).toMatch(/not available/i);
 		});
 
-		it('rejects activating another user quest with 400', async () => {
+		it('returns 404 for an unknown quest', async () => {
+			const response = await activatePost(activateEvent('missing-quest', ownerCookies));
+			expect(response.status).toBe(404);
+			const body = await response.json();
+			expect(body.error).toMatch(/quest not found/i);
+		});
+
+		it('rejects activating another user quest with 404', async () => {
 			const quest = await seedQuest(other.id);
 			await seedQuestions(quest.id);
 
 			const response = await activatePost(activateEvent(quest.id, ownerCookies));
-			expect(response.status).toBe(400);
+			expect(response.status).toBe(404);
 			const body = await response.json();
-			expect(body.error).toMatch(/not found or already activated/i);
+			expect(body.error).toMatch(/quest not found/i);
 
 			const [row] = await testDb.db
 				.select()
@@ -271,6 +279,16 @@ describe('quest endpoints (real handlers)', () => {
 	});
 
 	describe('POST /api/quests/[questId]/answer', () => {
+		beforeEach(() => {
+			// Quest stat checks are probability based (C-2). Pin the roll to 0
+			// so the stat-check outcome is deterministic in these tests.
+			vi.spyOn(Math, 'random').mockReturnValue(0);
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
 		it('returns 401 without a session cookie', async () => {
 			const quest = await seedQuest(owner.id, { status: 'active' });
 			const response = await answerPost(answerEvent(quest.id, {}, {}));
@@ -299,14 +317,14 @@ describe('quest endpoints (real handlers)', () => {
 			expect(body.error).toMatch(/choice must be a or b/i);
 		});
 
-		it('returns 400 when the quest is not active yet', async () => {
+		it('returns 409 when the quest is not active yet', async () => {
 			const quest = await seedQuest(owner.id, { status: 'available' });
 			const questions = await seedQuestions(quest.id);
 
 			const response = await answerPost(
 				answerEvent(quest.id, { questionId: questions[0].id, choice: 'A' }, ownerCookies)
 			);
-			expect(response.status).toBe(400);
+			expect(response.status).toBe(409);
 			const body = await response.json();
 			expect(body.error).toMatch(/not active/i);
 		});
@@ -335,7 +353,7 @@ describe('quest endpoints (real handlers)', () => {
 				.where(eq(questAnswers.questInstanceId, quest.id));
 			expect(answers).toHaveLength(1);
 			expect(answers[0].wasCorrect).toBe(true);
-			// Deterministic stat check: stat 12 >= threshold 10.
+			// Roll pinned to 0: 0 < chance (12/22), so the stat check passes.
 			expect(answers[0].passedStatCheck).toBe(true);
 
 			const [row] = await testDb.db
@@ -347,28 +365,88 @@ describe('quest endpoints (real handlers)', () => {
 			expect(row.statChecksPassed).toBe(1);
 		});
 
-		it('rejects an out-of-order question with 400', async () => {
+		it('rejects an out-of-order question with 409 and a generic message', async () => {
 			const quest = await seedQuest(owner.id, { status: 'active' });
 			const questions = await seedQuestions(quest.id);
 
 			const response = await answerPost(
 				answerEvent(quest.id, { questionId: questions[1].id, choice: 'A' }, ownerCookies)
 			);
-			expect(response.status).toBe(400);
+			expect(response.status).toBe(409);
 			const body = await response.json();
-			expect(body.error).toMatch(/expected question 1/i);
+			expect(body.error).toMatch(/not the next one/i);
+			expect(body.error).not.toMatch(/expected question \d/i);
 		});
 
-		it('rejects answering another user quest with 400', async () => {
+		it('rejects answering a question that already has an answer with 409', async () => {
+			const quest = await seedQuest(owner.id, { status: 'active' });
+			const questions = await seedQuestions(quest.id, { correctChoice: 'A' });
+
+			// Pre-seed the answer for the expected first question so the
+			// already-answered branch (not the out-of-order branch) is exercised.
+			await testDb.db.insert(questAnswers).values({
+				questInstanceId: quest.id,
+				questionId: questions[0].id,
+				userChoice: 'A',
+				wasCorrect: true,
+				passedStatCheck: true
+			});
+
+			const response = await answerPost(
+				answerEvent(quest.id, { questionId: questions[0].id, choice: 'A' }, ownerCookies)
+			);
+			expect(response.status).toBe(409);
+			const body = await response.json();
+			expect(body.error).toMatch(/already been answered/i);
+		});
+
+		it('rejects answering another user quest with 404', async () => {
 			const quest = await seedQuest(other.id, { status: 'active' });
 			const questions = await seedQuestions(quest.id);
 
 			const response = await answerPost(
 				answerEvent(quest.id, { questionId: questions[0].id, choice: 'A' }, ownerCookies)
 			);
+			expect(response.status).toBe(404);
+			const body = await response.json();
+			expect(body.error).toMatch(/quest not found/i);
+		});
+
+		it('returns 400 for a malformed JSON body without leaking parser internals', async () => {
+			const quest = await seedQuest(owner.id, { status: 'active' });
+			await seedQuestions(quest.id);
+
+			const event = answerEvent(quest.id, {}, ownerCookies);
+			event.request = new Request('http://localhost:5175/api/quests/answer', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: '{ not valid json'
+			});
+
+			const response = await answerPost(event);
 			expect(response.status).toBe(400);
 			const body = await response.json();
-			expect(body.error).toMatch(/not found or access denied/i);
+			expect(body.error).toBe('Invalid JSON body');
+		});
+
+		it('returns a generic 500 when the user has no stats (internal fault)', async () => {
+			// A user with a quest but no creatureStats: the service throws a plain
+			// Error, which must not be surfaced as a 400 or leak its message.
+			const statless = await seedUser(testDb.db, {
+				email: 'statless@example.com',
+				username: 'statless'
+			});
+			const cookies = await cookieFor(statless.id);
+			const quest = await seedQuest(statless.id, { status: 'active' });
+			const questions = await seedQuestions(quest.id);
+
+			const response = await answerPost(
+				answerEvent(quest.id, { questionId: questions[0].id, choice: 'A' }, cookies)
+			);
+			expect(response.status).toBe(500);
+			const body = await response.json();
+			expect(body.error).toBe('Internal server error');
+			expect(body.error).not.toMatch(/stats not found/i);
 		});
 
 		it('completes a full quest, awards experience, and updates the creature', async () => {

@@ -4,6 +4,32 @@ import { and, eq, isNull, gte, lte, sql, or, desc, asc } from 'drizzle-orm';
 import { formatDateOnly } from '$lib/utils/date';
 import { generateQuestQuestions as generateQuestionTemplates } from '$lib/utils/questHelpers';
 import { getLevelFromXp } from '$lib/server/xp';
+import type { CreatureStats } from '$lib/types';
+import {
+    STAT_BOOST_POINT_CAP,
+    STAT_MAX,
+    calculateStatCheckChance,
+    getAvailableLevelPoints
+} from '$lib/shared/stats';
+
+/**
+ * A typed domain error for the quest and stat-boost flows.
+ *
+ * Handlers map this to its `statusCode` and a safe `message`; anything that is
+ * not a `QuestError` is treated as an unexpected fault and answered with a
+ * generic 500. This replaces the previous behavior of turning every thrown
+ * `Error` into a 400 with the raw `message`. See docs/reports/01-server-api.md S-2.
+ */
+export class QuestError extends Error {
+    constructor(
+        message: string,
+        public readonly statusCode: number,
+        public readonly code: string
+    ) {
+        super(message);
+        this.name = 'QuestError';
+    }
+}
 
 /**
  * Helper function to strip the sensitive correct answer from question data.
@@ -137,6 +163,27 @@ async function generateQuestQuestions(questInstanceId: string, userId: string) {
  * Activate a quest for a user
  */
 export async function activateQuest(questId: string, userId: string) {
+    // Distinguish "does not exist / not owned" (404) from "wrong state" (409)
+    // before mutating, so the handler can map the failure correctly.
+    const [existing] = await db
+        .select()
+        .from(questInstances)
+        .where(
+            and(
+                eq(questInstances.id, questId),
+                eq(questInstances.userId, userId)
+            )
+        )
+        .limit(1);
+
+    if (!existing) {
+        throw new QuestError('Quest not found', 404, 'QUEST_NOT_FOUND');
+    }
+
+    if (existing.status !== 'available') {
+        throw new QuestError('Quest is not available to activate', 409, 'QUEST_NOT_ACTIVATABLE');
+    }
+
     const [updatedQuest] = await db
         .update(questInstances)
         .set({
@@ -153,7 +200,8 @@ export async function activateQuest(questId: string, userId: string) {
         .returning();
 
     if (!updatedQuest) {
-        throw new Error('Quest not found or already activated');
+        // Lost a race with another activation between the check and the update.
+        throw new QuestError('Quest is not available to activate', 409, 'QUEST_NOT_ACTIVATABLE');
     }
 
     // Get the first question
@@ -179,7 +227,13 @@ export async function activateQuest(questId: string, userId: string) {
  * All authorization and data integrity checks are performed within this function
  * Uses individual queries with database constraints instead of explicit transactions
  */
-export async function answerQuestion(questId: string, questionId: string, choice: 'A' | 'B', userId: string) {
+export async function answerQuestion(
+    questId: string,
+    questionId: string,
+    choice: 'A' | 'B',
+    userId: string,
+    random: () => number = Math.random
+) {
     // Validate that the quest exists and belongs to the user
     const [questInstance] = await db
         .select()
@@ -193,11 +247,11 @@ export async function answerQuestion(questId: string, questionId: string, choice
         .limit(1);
 
     if (!questInstance) {
-        throw new Error('Quest not found or access denied');
+        throw new QuestError('Quest not found', 404, 'QUEST_NOT_FOUND');
     }
 
     if (questInstance.status !== 'active') {
-        throw new Error('Quest is not active');
+        throw new QuestError('Quest is not active', 409, 'QUEST_NOT_ACTIVE');
     }
 
     // Validate that the question belongs to this quest and is the next expected question
@@ -213,12 +267,13 @@ export async function answerQuestion(questId: string, questionId: string, choice
         .limit(1);
 
     if (!question) {
-        throw new Error('Question not found or does not belong to this quest');
+        throw new QuestError('Question not found', 404, 'QUESTION_NOT_FOUND');
     }
 
     const expectedQuestionNumber = questInstance.currentQuestion + 1;
     if (question.questionNumber !== expectedQuestionNumber) {
-        throw new Error(`Expected question ${expectedQuestionNumber}, but received question ${question.questionNumber}`);
+        // Do not leak the internal question counters in the public message.
+        throw new QuestError('Question is not the next one to answer', 409, 'QUESTION_OUT_OF_ORDER');
     }
 
     // Ensure the question has not already been answered
@@ -234,7 +289,7 @@ export async function answerQuestion(questId: string, questionId: string, choice
         .limit(1);
 
     if (existingAnswer.length > 0) {
-        throw new Error('Question has already been answered');
+        throw new QuestError('Question has already been answered', 409, 'QUESTION_ALREADY_ANSWERED');
     }
 
         // Get user's stats
@@ -253,8 +308,11 @@ export async function answerQuestion(questId: string, questionId: string, choice
     // Determine if answer was correct
     const wasCorrect = choice === question.correctChoice;
 
+    // Stat checks are probability based: a single roll per question. The same
+    // model is intended to drive boss battles later. See C-2.
     const userStatValue = stats[question.requiredStat as keyof typeof stats] as number;
-    const passedStatCheck = userStatValue >= question.difficultyThreshold;
+    const successChance = calculateStatCheckChance(userStatValue, question.difficultyThreshold);
+    const passedStatCheck = random() < successChance;
 
     // Record the answer - use try-catch to handle unique constraint violations
     try {
@@ -268,7 +326,7 @@ export async function answerQuestion(questId: string, questionId: string, choice
     } catch (error) {
         // Handle unique constraint violation
         if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
-            throw new Error('Question has already been answered (concurrent request detected)');
+            throw new QuestError('Question has already been answered', 409, 'QUESTION_ALREADY_ANSWERED');
         }
         throw error;
     }
@@ -368,7 +426,9 @@ async function completeQuest(questId: string, userId: string, correctAnswers: nu
             .where(eq(creature.id, userCreature[0].id));
     }
 
-    // Award stat boost points
+    // Award stat boost points, capped at the banked maximum. Points over the
+    // cap are simply not credited.
+    let creditedBoostPoints = 0;
     if (statBoostPoints > 0) {
         const userStats = await db
             .select()
@@ -378,90 +438,125 @@ async function completeQuest(questId: string, userId: string, correctAnswers: nu
             .limit(1);
 
         if (userStats.length > 0) {
-            await db
-                .update(creatureStats)
-                .set({
-                    statBoostPoints: sql`${creatureStats.statBoostPoints} + ${statBoostPoints}`
-                })
-                .where(eq(creatureStats.id, userStats[0].creature_stats.id));
+            const currentBoostPoints = userStats[0].creature_stats.statBoostPoints || 0;
+            creditedBoostPoints = Math.max(
+                0,
+                Math.min(statBoostPoints, STAT_BOOST_POINT_CAP - currentBoostPoints)
+            );
+
+            if (creditedBoostPoints > 0) {
+                await db
+                    .update(creatureStats)
+                    .set({
+                        statBoostPoints: sql`${creatureStats.statBoostPoints} + ${creditedBoostPoints}`
+                    })
+                    .where(eq(creatureStats.id, userStats[0].creature_stats.id));
+            }
         }
     }
 
     return {
         exp: totalExp,
-        statBoostPoints
+        statBoostPoints: creditedBoostPoints
     };
 }
 
 /**
- * Spend stat boost points to increase a stat
+ * Source of the points being spent on a stat.
+ * - `boost`: quest stat boost points (`stat_boost_points`).
+ * - `level`: allocatable level points (`floor(level / 5) - level_stat_points_spent`).
  */
-export async function spendStatBoostPoints(userId: string, stat: string, points: number) {
+export type StatPointSource = 'boost' | 'level';
+
+/**
+ * Spend stat points to permanently raise a base stat.
+ *
+ * Both point sources are enforced against the base stat cap of `STAT_MAX`.
+ * The check and the update happen inside a single transaction so concurrent
+ * spends cannot overspend or exceed the cap.
+ */
+export async function spendStatBoostPoints(
+    userId: string,
+    stat: string,
+    points: number,
+    source: StatPointSource = 'boost'
+) {
     if (points <= 0) {
-        throw new Error('Points must be positive');
+        throw new QuestError('Points must be positive', 400, 'INVALID_POINTS');
     }
 
     const validStats = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
     if (!validStats.includes(stat)) {
-        throw new Error('Invalid stat type');
+        throw new QuestError('Invalid stat type', 400, 'INVALID_STAT');
     }
 
-    // Get user's current stats
-    const userStats = await db
-        .select()
-        .from(creatureStats)
-        .innerJoin(creature, eq(creature.id, creatureStats.creatureId))
-        .where(eq(creature.userId, userId))
-        .limit(1);
-
-    if (userStats.length === 0) {
-        throw new Error('User stats not found');
+    if (source !== 'boost' && source !== 'level') {
+        throw new QuestError('Invalid point source', 400, 'INVALID_SOURCE');
     }
 
-    const currentStats = userStats[0].creature_stats;
-    
-    if (currentStats.statBoostPoints < points) {
-        throw new Error('Insufficient stat boost points');
-    }
+    const statKey = stat as keyof CreatureStats;
 
-    // Update the stat and reduce boost points
-    const updateObj: Record<string, unknown> = {
-        statBoostPoints: sql`${creatureStats.statBoostPoints} - ${points}`
-    };
-    switch (stat) {
-        case 'strength':
-            updateObj.strength = sql`${creatureStats.strength} + ${points}`;
-            break;
-        case 'dexterity':
-            updateObj.dexterity = sql`${creatureStats.dexterity} + ${points}`;
-            break;
-        case 'constitution':
-            updateObj.constitution = sql`${creatureStats.constitution} + ${points}`;
-            break;
-        case 'intelligence':
-            updateObj.intelligence = sql`${creatureStats.intelligence} + ${points}`;
-            break;
-        case 'wisdom':
-            updateObj.wisdom = sql`${creatureStats.wisdom} + ${points}`;
-            break;
-        case 'charisma':
-            updateObj.charisma = sql`${creatureStats.charisma} + ${points}`;
-            break;
-    }
-    await db
-        .update(creatureStats)
-        .set(updateObj)
-        .where(eq(creatureStats.id, currentStats.id));
+    return await db.transaction(async (tx) => {
+        // Read the stats and the creature level inside the transaction.
+        const userStats = await tx
+            .select()
+            .from(creatureStats)
+            .innerJoin(creature, eq(creature.id, creatureStats.creatureId))
+            .where(eq(creature.userId, userId))
+            .limit(1);
 
-    // Return updated values
-    const newStatValue = (currentStats[stat as keyof typeof currentStats] as number) + points;
-    const remainingPoints = currentStats.statBoostPoints - points;
+        if (userStats.length === 0) {
+            // Internal data-integrity fault, not a client error: handled as a 500.
+            throw new Error('User stats not found');
+        }
 
-    return {
-        success: true,
-        newStatValue,
-        remainingPoints
-    };
+        const currentStats = userStats[0].creature_stats;
+        const currentLevel = userStats[0].creature.level as number;
+        const currentValue = currentStats[statKey] as number;
+
+        // A base stat may not be raised above the cap by any point source.
+        if (currentValue + points > STAT_MAX) {
+            throw new QuestError('Stat cannot exceed the maximum', 409, 'STAT_CAP_REACHED');
+        }
+
+        const updateObj: Record<string, unknown> = {};
+        let remainingPoints: number;
+        let levelStatPointsSpent = currentStats.levelStatPointsSpent || 0;
+        let availableLevelPoints = getAvailableLevelPoints(currentLevel, levelStatPointsSpent);
+
+        if (source === 'boost') {
+            const currentBoostPoints = currentStats.statBoostPoints || 0;
+            if (currentBoostPoints < points) {
+                throw new QuestError('Insufficient stat boost points', 409, 'INSUFFICIENT_POINTS');
+            }
+            updateObj.statBoostPoints = sql`${creatureStats.statBoostPoints} - ${points}`;
+            remainingPoints = currentBoostPoints - points;
+        } else {
+            if (availableLevelPoints < points) {
+                throw new QuestError('Insufficient level points', 409, 'INSUFFICIENT_POINTS');
+            }
+            updateObj.levelStatPointsSpent = sql`${creatureStats.levelStatPointsSpent} + ${points}`;
+            levelStatPointsSpent += points;
+            availableLevelPoints -= points;
+            remainingPoints = availableLevelPoints;
+        }
+
+        updateObj[stat] = sql`${creatureStats[statKey]} + ${points}`;
+
+        await tx
+            .update(creatureStats)
+            .set(updateObj)
+            .where(eq(creatureStats.id, currentStats.id));
+
+        return {
+            success: true,
+            newStatValue: currentValue + points,
+            remainingPoints,
+            source,
+            levelStatPointsSpent,
+            availableLevelPoints
+        };
+    });
 }
 
 /**

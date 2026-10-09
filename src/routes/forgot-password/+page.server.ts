@@ -45,7 +45,7 @@ export const actions = {
       try {
         const safeUsername = escapeHtml(user.username);
         const safeResetLink = escapeHtml(resetLink);
-        await resend.emails.send({
+        const { error } = await resend.emails.send({
           from: `${APP_NAME} <${SENDER_EMAIL}>`,
           to: user.email,
           subject: `Password Reset - ${APP_NAME}`,
@@ -61,6 +61,11 @@ export const actions = {
             <p>Link: ${safeResetLink}</p>
           `
         });
+        if (error) {
+          // Resend resolves with an error object instead of throwing. Log it,
+          // but still return success to avoid revealing which usernames exist.
+          console.error('Failed to send password reset email:', error);
+        }
       } catch (error) {
         console.error('Failed to send password reset email:', error);
         return {success: true}

@@ -5,6 +5,7 @@
     import { Label } from "$lib/components/ui/label";
     import { ArrowRight, CheckCircle, Mail, Sparkles, Users } from "@lucide/svelte";
     import { toast } from "svelte-sonner";
+    import { onMount } from "svelte";
     import type { WaitlistData } from "$lib/types";
 	import { type PostHog, type CaptureResult, posthog } from 'posthog-js';
 
@@ -14,6 +15,12 @@
     let email = $state('');
     let isSubmitting = $state(false);
     let redirectTo = $state('');
+    // Optional time-to-submit signal. Set once on mount so a bot that posts
+    // instantly can be told apart from a human. See docs/reports/06-abuse.md P-6.
+    let renderedAt = $state('');
+    onMount(() => {
+        renderedAt = String(Date.now());
+    });
     let errors = $state({
         email: "",
         general: ""
@@ -250,6 +257,13 @@
 
                             <!-- Hidden redirect input for client-side navigation -->
                             <input type="hidden" name="redirectTo" bind:value={redirectTo} />
+                            <input type="hidden" name="renderedAt" value={renderedAt} />
+
+                            <!-- Honeypot: off-screen, out of the tab order, must stay empty. -->
+                            <div class="absolute -left-[9999px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+                                <label for="website">Website</label>
+                                <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" />
+                            </div>
                         </form>
                     </CardContent>
                 </Card>

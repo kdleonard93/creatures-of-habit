@@ -4,7 +4,7 @@ import { createTestDb, type TestDb } from '../db/test-db';
 import { seedUser, seedHabit } from '../db/fixtures';
 import { createRequestEvent } from '../helpers/requestEvent';
 import { clearRateLimitStore } from '$lib/server/rateLimit';
-import { habit } from '$lib/server/db/schema';
+import { habit, habitCategory } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 
 /**
@@ -128,6 +128,78 @@ describe('/api/habits/[id] handlers (real)', () => {
 			expect(row.description).toBe('Updated description');
 			expect(row.difficulty).toBe('hard');
 			expect(row.startDate).toBe('2026-02-01');
+		});
+
+		it('rejects an invalid difficulty with 400 and does not mutate', async () => {
+			const response = await PUT(
+				event({
+					method: 'PUT',
+					user: owner,
+					body: {
+						title: 'Updated Title',
+						difficulty: 'impossible',
+						frequency: 'daily',
+						startDate: '2026-02-01'
+					}
+				})
+			);
+			expect(response.status).toBe(400);
+			expect((await response.json()).error).toMatch(/difficulty/i);
+
+			const [row] = await testDb.db.select().from(habit).where(eq(habit.id, seededHabit.id));
+			expect(row.title).toBe('Original Title');
+			expect(row.difficulty).toBe('medium');
+		});
+
+		it('rejects a full update missing a required title with 400', async () => {
+			const response = await PUT(
+				event({
+					method: 'PUT',
+					user: owner,
+					body: { difficulty: 'hard', frequency: 'daily', startDate: '2026-02-01' }
+				})
+			);
+			expect(response.status).toBe(400);
+
+			const [row] = await testDb.db.select().from(habit).where(eq(habit.id, seededHabit.id));
+			expect(row.title).toBe('Original Title');
+		});
+
+		it('rejects a foreign categoryId with 400 and does not mutate', async () => {
+			const [foreignCategory] = await testDb.db
+				.insert(habitCategory)
+				.values({ userId: other.id, name: 'Theirs' })
+				.returning();
+
+			const response = await PUT(
+				event({
+					method: 'PUT',
+					user: owner,
+					body: {
+						title: 'Updated Title',
+						difficulty: 'hard',
+						frequency: 'daily',
+						startDate: '2026-02-01',
+						categoryId: foreignCategory.id
+					}
+				})
+			);
+			expect(response.status).toBe(400);
+			expect((await response.json()).error).toMatch(/category/i);
+
+			const [row] = await testDb.db.select().from(habit).where(eq(habit.id, seededHabit.id));
+			expect(row.categoryId).toBeNull();
+		});
+
+		it('rejects a non-boolean isArchived with 400 and does not archive', async () => {
+			const response = await PUT(
+				event({ method: 'PUT', user: owner, body: { isArchived: 'yes' } })
+			);
+			expect(response.status).toBe(400);
+			expect((await response.json()).error).toMatch(/boolean/i);
+
+			const [row] = await testDb.db.select().from(habit).where(eq(habit.id, seededHabit.id));
+			expect(row.isArchived).toBe(false);
 		});
 
 		it('does not modify another user habit (ownership isolation, undocumented 200)', async () => {

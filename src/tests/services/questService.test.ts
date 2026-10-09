@@ -1,210 +1,223 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getDailyQuest, activateQuest, answerQuestion, spendStatBoostPoints } from '../../lib/server/services/questService';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { createTestDb, type TestDb } from '../db/test-db';
+import { seedUser, seedCreature } from '../db/fixtures';
+import { answerQuestion } from '$lib/server/services/questService';
+import {
+	questInstances,
+	questQuestions,
+	questTemplates,
+	questAnswers,
+	creature,
+	creatureStats
+} from '$lib/server/db/schema';
+import { eq } from 'drizzle-orm';
 
-// Mock everything before importing the service
-vi.mock('../../lib/server/db', () => ({
-    db: {
-        select: vi.fn().mockReturnThis(),
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        orderBy: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockReturnThis(),
-        insert: vi.fn().mockReturnThis(),
-        values: vi.fn().mockReturnThis(),
-        update: vi.fn().mockReturnThis(),
-        set: vi.fn().mockReturnThis(),
-        returning: vi.fn().mockReturnThis(),
-        execute: vi.fn()
-    }
-}));
+/**
+ * Deterministic tests for the probability-based quest stat check (C-2).
+ *
+ * `answerQuestion` takes an injectable random function, so these tests drive
+ * the roll directly and assert the pass/fail outcome without relying on
+ * `Math.random`. Stat 12 vs threshold 10 gives a chance of 12/22 ~ 0.545.
+ */
+describe('questService answerQuestion stat checks (deterministic)', () => {
+	let testDb: TestDb;
+	let owner: Awaited<ReturnType<typeof seedUser>>;
+	let questId: string;
+	let questions: Awaited<ReturnType<typeof seedQuestions>>;
 
-vi.mock('../../lib/server/db/schema', () => ({
-    questInstances: {},
-    questQuestions: {},
-    questAnswers: {},
-    creatureStats: {},
-    creature: {}
-}));
+	async function seedQuestions(
+		instanceId: string,
+		options: { correctChoice?: 'A' | 'B'; difficultyThreshold?: number; count?: number } = {}
+	) {
+		const { correctChoice = 'A', difficultyThreshold = 10, count = 5 } = options;
+		const rows = Array.from({ length: count }, (_, index) => ({
+			questInstanceId: instanceId,
+			questionNumber: index + 1,
+			questionText: `Question ${index + 1}`,
+			choiceA: 'Choice A',
+			choiceB: 'Choice B',
+			correctChoice,
+			requiredStat: 'strength' as const,
+			difficultyThreshold
+		}));
+		return testDb.db.insert(questQuestions).values(rows).returning();
+	}
 
-describe('Quest Service', () => {
-    const mockUserId = 'test-user-id';
-    const mockQuestId = 'test-quest-id';
-    const mockQuestionId = 'test-question-id';
+	async function seedQuest(statBoostPoints: number, statValue = 12) {
+		const created = await seedCreature(testDb.db, owner.id);
+		await testDb.db.insert(creatureStats).values({
+			creatureId: created.id,
+			strength: statValue,
+			dexterity: statValue,
+			constitution: statValue,
+			intelligence: statValue,
+			wisdom: statValue,
+			charisma: statValue,
+			statBoostPoints
+		});
 
-    beforeEach(() => {
-        vi.clearAllMocks();
-    });
+		const [template] = await testDb.db
+			.insert(questTemplates)
+			.values({
+				title: 'Template Quest',
+				description: 'A seeded quest template',
+				setting: 'forest',
+				difficulty: 'easy'
+			})
+			.returning();
 
-    describe('Function Existence', () => {
-        it('should have getDailyQuest function', () => {
-            expect(getDailyQuest).toBeDefined();
-            expect(typeof getDailyQuest).toBe('function');
-        });
+		const [instance] = await testDb.db
+			.insert(questInstances)
+			.values({
+				userId: owner.id,
+				templateId: template.id,
+				title: 'Seeded Quest',
+				description: 'A seeded quest',
+				narrative: 'Once upon a test',
+				status: 'active'
+			})
+			.returning();
 
-        it('should have activateQuest function', () => {
-            expect(activateQuest).toBeDefined();
-            expect(typeof activateQuest).toBe('function');
-        });
+		questId = instance.id;
+		return created;
+	}
 
-        it('should have answerQuestion function', () => {
-            expect(answerQuestion).toBeDefined();
-            expect(typeof answerQuestion).toBe('function');
-        });
+	beforeEach(async () => {
+		testDb = await createTestDb();
+		await testDb.reset();
+		owner = await seedUser(testDb.db);
+	});
 
-        it('should have spendStatBoostPoints function', () => {
-            expect(spendStatBoostPoints).toBeDefined();
-            expect(typeof spendStatBoostPoints).toBe('function');
-        });
-    });
+	afterEach(() => {
+		testDb.close();
+	});
 
-    describe('Parameter Validation', () => {
-        it('should validate getDailyQuest parameters', async () => {
-            expect(typeof mockUserId).toBe('string');
-            
-            try {
-                await getDailyQuest(mockUserId);
-            } catch (error) {
-                expect(error).toBeDefined();
-            }
-        });
+	it('passes the stat check when the roll is below the chance', async () => {
+		await seedQuest(0, 12);
+		questions = await seedQuestions(questId, { difficultyThreshold: 10 });
 
-        it('should validate activateQuest parameters', async () => {
-            expect(typeof mockQuestId).toBe('string');
-            expect(typeof mockUserId).toBe('string');
-            
-            try {
-                await activateQuest(mockQuestId, mockUserId);
-            } catch (error) {
-                expect(error).toBeDefined();
-            }
-        });
+		const result = await answerQuestion(
+			questId,
+			questions[0].id,
+			'A',
+			owner.id,
+			() => 0.4
+		);
+		expect(result.correct).toBe(true);
 
-        it('should validate answerQuestion parameters', async () => {
-            const validChoices = ['A', 'B'];
-            
-            // Test parameter types and constraints
-            expect(typeof mockQuestId).toBe('string');
-            expect(typeof mockQuestionId).toBe('string');
-            expect(validChoices).toContain('A');
-            expect(validChoices).toContain('B');
-            expect(validChoices).not.toContain('C');
-            
-            try {
-                await answerQuestion(mockQuestId, mockQuestionId, 'A', mockUserId);
-            } catch (error) {
-                expect(error).toBeDefined();
-            }
-        });
+		const [answer] = await testDb.db
+			.select()
+			.from(questAnswers)
+			.where(eq(questAnswers.questionId, questions[0].id));
+		expect(answer.passedStatCheck).toBe(true);
 
-        it('should validate spendStatBoostPoints parameters', async () => {
-            const validStats = ['strength', 'dexterity', 'intelligence', 'charisma'];
-            
-            // Test parameter types and constraints
-            expect(typeof mockUserId).toBe('string');
-            expect(validStats).toContain('strength');
-            expect(validStats).toContain('dexterity');
-            expect(validStats).toContain('intelligence');
-            expect(validStats).toContain('charisma');
-            expect(validStats).not.toContain('magic');
-            
-            try {
-                await spendStatBoostPoints(mockUserId, 'strength', 1);
-            } catch (error) {
-                expect(error).toBeDefined();
-            }
-        });
-    });
+		const [row] = await testDb.db
+			.select()
+			.from(questInstances)
+			.where(eq(questInstances.id, questId));
+		expect(row.statChecksPassed).toBe(1);
+	});
 
-    describe('Business Logic Validation', () => {
-        it('should validate quest reward calculation logic', () => {
-            const baseExp = 50;
-            const bonusExp = 100;
-            
-            // Test reward calculation scenarios
-            const scenarios = [
-                { correct: 0, expected: baseExp },
-                { correct: 1, expected: baseExp },
-                { correct: 2, expected: baseExp },
-                { correct: 3, expected: baseExp + bonusExp },
-                { correct: 4, expected: baseExp + bonusExp },
-                { correct: 5, expected: baseExp + bonusExp }
-            ];
+	it('fails the stat check when the roll is above the chance', async () => {
+		await seedQuest(0, 12);
+		questions = await seedQuestions(questId, { difficultyThreshold: 10 });
 
-            scenarios.forEach(({ correct, expected }) => {
-                const actualReward = baseExp + (correct >= 3 ? bonusExp : 0);
-                expect(actualReward).toBe(expected);
-            });
-        });
+		const result = await answerQuestion(
+			questId,
+			questions[0].id,
+			'A',
+			owner.id,
+			() => 0.7
+		);
+		// The choice was still correct; only the stat check failed.
+		expect(result.correct).toBe(true);
 
-        it('should validate choice constraints', () => {
-            const validChoices = ['A', 'B'];
-            
-            // Test that only A and B are valid choices
-            expect(validChoices).toHaveLength(2);
-            expect(validChoices.includes('A')).toBe(true);
-            expect(validChoices.includes('B')).toBe(true);
-            expect(validChoices.includes('C')).toBe(false);
-            expect(validChoices.includes('')).toBe(false);
-        });
+		const [answer] = await testDb.db
+			.select()
+			.from(questAnswers)
+			.where(eq(questAnswers.questionId, questions[0].id));
+		expect(answer.passedStatCheck).toBe(false);
 
-        it('should validate stat constraints', () => {
-            const validStats = ['strength', 'dexterity', 'intelligence', 'wisdom', 'charisma', 'constitution'];
-            
-            // Test that all expected stats are valid
-            expect(validStats).toHaveLength(6);
-            expect(validStats.includes('strength')).toBe(true);
-            expect(validStats.includes('dexterity')).toBe(true);
-            expect(validStats.includes('intelligence')).toBe(true);
-            expect(validStats.includes('wisdom')).toBe(true);
-            expect(validStats.includes('charisma')).toBe(true);
-            expect(validStats.includes('constitution')).toBe(true);
-            expect(validStats.includes('magic')).toBe(false);
-        });
-    });
+		const [row] = await testDb.db
+			.select()
+			.from(questInstances)
+			.where(eq(questInstances.id, questId));
+		expect(row.statChecksPassed).toBe(0);
+	});
 
-    describe('Data Structure Validation', () => {
-        it('should validate quest data structure', () => {
-            const mockQuest = {
-                id: 'quest-1',
-                title: 'Test Quest',
-                description: 'Test Description',
-                narrative: 'Test Narrative',
-                status: 'available',
-                currentQuestion: 0,
-                totalQuestions: 5,
-                correctAnswers: 0,
-                expRewardBase: 50,
-                expRewardBonus: 100
-            };
+	it('rolls once per question, independent of prior answers', async () => {
+		await seedQuest(0, 12);
+		questions = await seedQuestions(questId, { difficultyThreshold: 10 });
 
-            expect(mockQuest.id).toBeDefined();
-            expect(mockQuest.title).toBeTruthy();
-            expect(mockQuest.description).toBeTruthy();
-            expect(mockQuest.narrative).toBeTruthy();
-            expect(['available', 'active', 'completed']).toContain(mockQuest.status);
-            expect(mockQuest.totalQuestions).toBe(5);
-            expect(mockQuest.currentQuestion).toBeGreaterThanOrEqual(0);
-            expect(mockQuest.currentQuestion).toBeLessThanOrEqual(mockQuest.totalQuestions);
-        });
+		const rolls = [0.2, 0.9];
+		let call = 0;
+		const random = () => rolls[call++];
 
-        it('should validate question data structure', () => {
-            const mockQuestion = {
-                id: 'q1',
-                questionText: 'What do you do?',
-                choiceA: 'Option A',
-                choiceB: 'Option B',
-                requiredStat: 'strength',
-                difficultyThreshold: 10,
-                order: 1
-            };
+		const first = await answerQuestion(questId, questions[0].id, 'A', owner.id, random);
+		expect(first.correct).toBe(true);
 
-            expect(mockQuestion.id).toBeDefined();
-            expect(mockQuestion.questionText).toBeTruthy();
-            expect(mockQuestion.choiceA).toBeTruthy();
-            expect(mockQuestion.choiceB).toBeTruthy();
-            expect(['strength', 'dexterity', 'intelligence', 'charisma']).toContain(mockQuestion.requiredStat);
-            expect(mockQuestion.difficultyThreshold).toBeGreaterThan(0);
-            expect(mockQuestion.order).toBeGreaterThan(0);
-        });
-    });
+		const second = await answerQuestion(questId, questions[1].id, 'A', owner.id, random);
+		expect(second.correct).toBe(true);
+
+		const answers = await testDb.db
+			.select()
+			.from(questAnswers)
+			.where(eq(questAnswers.questInstanceId, questId));
+		expect(answers).toHaveLength(2);
+		expect(answers.find((a) => a.questionId === questions[0].id)?.passedStatCheck).toBe(true);
+		expect(answers.find((a) => a.questionId === questions[1].id)?.passedStatCheck).toBe(false);
+
+		const [row] = await testDb.db
+			.select()
+			.from(questInstances)
+			.where(eq(questInstances.id, questId));
+		expect(row.statChecksPassed).toBe(1);
+	});
+
+	it('awards two boost points on a perfect run', async () => {
+		await seedQuest(0, 12);
+		questions = await seedQuestions(questId, { difficultyThreshold: 10 });
+
+		for (const question of questions) {
+			await answerQuestion(questId, question.id, 'A', owner.id, () => 0);
+		}
+
+		const [questRow] = await testDb.db
+			.select()
+			.from(questInstances)
+			.where(eq(questInstances.id, questId));
+		expect(questRow.status).toBe('completed');
+		expect(questRow.statChecksPassed).toBe(5);
+
+		const [creatureRow] = await testDb.db
+			.select()
+			.from(creature)
+			.where(eq(creature.userId, owner.id));
+		expect(creatureRow.experience).toBe(150);
+
+		const [statsRow] = await testDb.db
+			.select()
+			.from(creatureStats)
+			.where(eq(creatureStats.creatureId, creatureRow.id));
+		expect(statsRow.statBoostPoints).toBe(2);
+	});
+
+	it('does not award boost points beyond the banked cap of 20', async () => {
+		await seedQuest(20, 12);
+		questions = await seedQuestions(questId, { difficultyThreshold: 10 });
+
+		for (const question of questions) {
+			await answerQuestion(questId, question.id, 'A', owner.id, () => 0);
+		}
+
+		const [creatureRow] = await testDb.db
+			.select()
+			.from(creature)
+			.where(eq(creature.userId, owner.id));
+		const [statsRow] = await testDb.db
+			.select()
+			.from(creatureStats)
+			.where(eq(creatureStats.creatureId, creatureRow.id));
+		expect(statsRow.statBoostPoints).toBe(20);
+	});
 });

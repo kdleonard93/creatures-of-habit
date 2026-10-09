@@ -1,5 +1,5 @@
 import type { RequestEvent } from '@sveltejs/kit';
-import { eq, lt } from 'drizzle-orm';
+import { and, eq, lt, ne } from 'drizzle-orm';
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase32LowerCase, encodeHexLowerCase } from '@oslojs/encoding';
 import { db } from '$lib/server/db';
@@ -71,6 +71,36 @@ export type SessionValidationResult = Awaited<ReturnType<typeof validateSessionT
 
 export async function invalidateSession(sessionId: string, dbInstance = db): Promise<void> {
 	await dbInstance.delete(table.session).where(eq(table.session.id, sessionId));
+}
+
+/**
+ * Invalidate every session for a user except the current one, then re-issue the
+ * current session cookie. Used after a password change so other devices are
+ * signed out while the caller stays logged in. Pass `null`/`undefined` for
+ * `currentSession` to invalidate every session.
+ *
+ * Note: the current session is preserved rather than rotated to a new token.
+ * Revoking the other sessions is the security-critical part; rotating to a fresh
+ * token is a possible later hardening step. See docs/audit-backlog.md A-1.
+ */
+export async function invalidateOtherSessionsAndReissueCookie(
+	event: RequestEvent,
+	userId: string,
+	currentSession: { id: string; expiresAt: Date } | null | undefined,
+	dbInstance = db
+): Promise<void> {
+	if (currentSession?.id) {
+		await dbInstance
+			.delete(table.session)
+			.where(and(eq(table.session.userId, userId), ne(table.session.id, currentSession.id)));
+	} else {
+		await dbInstance.delete(table.session).where(eq(table.session.userId, userId));
+	}
+
+	const token = event.cookies.get(sessionCookieName);
+	if (token && currentSession?.expiresAt) {
+		setSessionTokenCookie(event, token, currentSession.expiresAt);
+	}
 }
 
 export function isSecureRequest(event: RequestEvent): boolean {

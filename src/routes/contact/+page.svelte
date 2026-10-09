@@ -11,14 +11,16 @@
     // Initialize form data with the proper type
     let formData = $state<ContactFormData>({name: '', email: '', message: ''});
 
-    const { form } = $props<{ form?: { success?: boolean; error?: boolean; message?: string } }>();
+    const { form } = $props<{ form?: { success?: boolean; error?: string; message?: string } }>();
     let isSubmitting = $state(false);
 
+    // Single toast path: `update()` in the enhance callback applies the action
+    // result to `form`, which this effect observes. See docs/reports/06-abuse.md P-7.
     $effect(() => {
         if (form?.success) {
             toast.success(form.message || 'Message sent successfully!');
         } else if (form?.error) {
-            toast.error(form.message || 'Failed to send message.');
+            toast.error(form.error || 'Failed to send message.');
         }
     });
 
@@ -34,7 +36,7 @@
             <form method="POST"
                 use:enhance={() => {
                     isSubmitting = true;
-                    return async ({ result }) => {
+                    return async ({ result, update }) => {
                         isSubmitting = false;
                         if (result.type === 'success') {
                             // Track successful form submission in PostHog
@@ -49,24 +51,20 @@
                                     last_contacted: new Date().toISOString()
                                 }
                             });
-                            
-                            toast.success(typeof result.data?.message === 'string' ? result.data.message : 'Message sent successfully!');
-                            
-                            // Reset form on success
-                            const form = document.querySelector('form');
-                            if (form) form.reset();
 
                             formData = {name: '', email: '', message: ''};
-                        } else if (result.type === 'failure') {
-                            toast.error(typeof result.data?.error === 'string' ? result.data.error : 'Failed to send message. Please try again.');
                         }
+
+                        // Apply the action result: updates the `form` prop, resets the
+                        // form element on success, and drives the toast effect above.
+                        await update();
                     };
                 }} class="space-y-4">
                 <div class="space-y-2">
                     <Label for="name">Name</Label>
                     <Input type="text" id="name" name="name" bind:value={formData.name} required />
                 </div>
-                
+
                 <div class="space-y-2">
                     <Label for="email">Email</Label>
                     <Input type="email" id="email" name="email" bind:value={formData.email} required />
@@ -81,6 +79,12 @@
                         required
                         class="min-h-[150px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     ></textarea>
+                </div>
+
+                <!-- Honeypot: off-screen, out of the tab order, must stay empty. -->
+                <div class="absolute -left-[9999px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+                    <label for="website">Website</label>
+                    <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" />
                 </div>
 
                 <Button type="submit" class="w-full" disabled={isSubmitting}>

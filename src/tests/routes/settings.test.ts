@@ -86,7 +86,49 @@ describe('settings/+page.server.ts', () => {
 		}
 	});
 
-	it('updatePassword updates the password and deletes all sessions', async () => {
+	it('updatePassword updates the password, revokes other sessions, and keeps the current one', async () => {
+		const user = await seedUser(testDb.db, {
+			passwordHash: await hashPassword('old-password')
+		});
+		const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+		const currentSession = { id: 'session-current', userId: user.id, expiresAt };
+		await testDb.db.insert(sessionTable).values(currentSession);
+		await testDb.db
+			.insert(sessionTable)
+			.values({ id: 'session-other', userId: user.id, expiresAt });
+
+		const event = createFormRequestEvent({
+			method: 'POST',
+			url: '/settings',
+			user,
+			session: currentSession,
+			cookies: { 'auth-session': 'current-raw-token' },
+			fields: { currentPassword: 'old-password', newPassword: 'new-password-123' }
+		});
+
+		const result = await actions.updatePassword(event as never);
+
+		expect(isActionFailure(result)).toBe(false);
+		expect(result).toMatchObject({ success: true });
+
+		const [updated] = await testDb.db
+			.select()
+			.from(userTable)
+			.where(eq(userTable.id, user.id));
+		expect(await verifyPassword(updated.passwordHash, 'new-password-123')).toBe(true);
+
+		// The session that made the request stays valid; all others are revoked.
+		const sessions = await testDb.db
+			.select()
+			.from(sessionTable)
+			.where(eq(sessionTable.userId, user.id));
+		expect(sessions.map((row) => row.id)).toEqual(['session-current']);
+
+		// The current session cookie is re-issued so the caller stays logged in.
+		expect(event.cookies.get('auth-session')).toBe('current-raw-token');
+	});
+
+	it('updatePassword revokes every session when there is no current session', async () => {
 		const user = await seedUser(testDb.db, {
 			passwordHash: await hashPassword('old-password')
 		});
@@ -103,18 +145,13 @@ describe('settings/+page.server.ts', () => {
 				method: 'POST',
 				url: '/settings',
 				user,
+				session: null,
 				fields: { currentPassword: 'old-password', newPassword: 'new-password-123' }
 			}) as never
 		);
 
 		expect(isActionFailure(result)).toBe(false);
 		expect(result).toMatchObject({ success: true });
-
-		const [updated] = await testDb.db
-			.select()
-			.from(userTable)
-			.where(eq(userTable.id, user.id));
-		expect(await verifyPassword(updated.passwordHash, 'new-password-123')).toBe(true);
 
 		const sessions = await testDb.db
 			.select()
